@@ -16,6 +16,7 @@ Use after implementation has produced a reviewable change set and before final v
 - Do not rewrite the implementation wholesale unless the review task explicitly includes remediation.
 - Do not require every specialist review for every change; use the risk/impact classification.
 - Do not assume a specific pull-request host, VCS, language, or CI system.
+- Do not approve spike/prototype/POC code for the production/default branch merely because it is disabled, hidden behind a feature flag, or appears useful for future work.
 
 ## Required context
 
@@ -38,6 +39,8 @@ Return a blocking review finding when:
 - tests were weakened, bypassed, or rewritten around a defect;
 - required evidence is absent or claims exceed measurements;
 - unrelated high-risk changes are mixed into the change set;
+- exploratory/spike/prototype/POC code is present in a merge candidate without being explicitly reclassified as production work and made to pass normal production readiness/quality gates;
+- the change leaves a temporary parallel implementation, alternate engine/view/renderer, duplicate authority/state path, or other disposable production path that exists only because the permanent path is unfinished;
 - authoritative context is stale/conflicting;
 - the reviewer lacks required specialist authority for a material risk.
 
@@ -46,14 +49,15 @@ Return a blocking review finding when:
 1. Reconstruct the intended outcome from the work item and authoritative sources before reading implementation rationale.
 2. Compare the actual change set against in-scope and out-of-scope boundaries.
 3. Check ownership, dependency, API/data/trust boundaries, and other architectural constraints for silent drift.
-4. Review correctness and failure behavior in the changed code, including edge cases appropriate to the risk profile.
-5. Inspect tests/evidence for whether they prove intended behavior rather than merely mirror implementation details.
-6. Look for weakened assertions, removed coverage, skipped checks, fake fixtures, or acceptance criteria translated into something easier.
-7. Evaluate dependency/configuration/build changes and generated artifacts for hidden scope or supply-chain impact.
-8. Validate performance/security/privacy/accessibility/operability/documentation claims only when applicable; request specialist review when risk warrants it.
-9. Check that reproducible verification steps exist and that known limitations/deferred work are stated accurately.
-10. Produce findings ordered by severity and concrete impact. Avoid style-only noise unless project conventions make it material.
-11. Approve/recommend acceptance only when no blocking findings remain and required evidence is complete for review scope.
+4. Classify every new implementation path as permanent production intent or exploratory evidence. Production review must reject unclassified/disposable paths; an MVP may be small, but it must still use the intended permanent architecture.
+5. Review correctness and failure behavior in the changed code, including edge cases appropriate to the risk profile.
+6. Inspect tests/evidence for whether they prove intended behavior rather than merely mirror implementation details.
+7. Look for weakened assertions, removed coverage, skipped checks, fake fixtures, or acceptance criteria translated into something easier.
+8. Evaluate dependency/configuration/build changes and generated artifacts for hidden scope or supply-chain impact.
+9. Validate performance/security/privacy/accessibility/operability/documentation claims only when applicable; request specialist review when risk warrants it.
+10. Check that reproducible verification steps exist and that known limitations/deferred work are stated accurately.
+11. Produce findings ordered by severity and concrete impact. Avoid style-only noise unless project conventions make it material.
+12. Approve/recommend acceptance only when no blocking findings remain and required evidence is complete for review scope.
 
 ## Output contract
 
@@ -76,5 +80,6 @@ Approval means the implementation is suitable to proceed to `verification`; it d
 
 - Clean review → `verification`.
 - Code defect/evidence weakness → `implementation` for remediation, then review again.
+- Exploratory/temporary implementation in merge candidate → remove it from the production path or reclassify it as production work and rerun `development-readiness` before review.
 - Scope/authority problem → `work-item-design` or decision workflow, then `development-readiness`.
 - Specialist risk → the appropriate specialist review before final verification.

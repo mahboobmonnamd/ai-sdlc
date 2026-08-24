@@ -37,6 +37,7 @@ Verification cannot pass when:
 - required evidence is unavailable, non-reproducible, or based only on agent assertion;
 - a mandatory specialist review/gate has not completed;
 - implementation scope differs materially from the accepted outcome;
+- exploratory/spike/prototype/POC code or a temporary parallel implementation remains on the production path without formal production reclassification and normal quality gates;
 - a failure reveals a product/architecture decision rather than an implementation defect.
 
 ## Procedure
@@ -47,10 +48,11 @@ Verification cannot pass when:
 4. Verify negative behavior and important failure conditions where they are part of the contract, not only the successful path.
 5. Compare measured values with explicit targets/budgets when performance, reliability, capacity, or resource constraints are acceptance requirements.
 6. Check that deferred/non-goal behavior remains accurately classified and has not been falsely claimed complete.
-7. Distinguish implementation defects from missing/invalid acceptance criteria or authority decisions.
-8. Record PASS/FAIL/INCONCLUSIVE per criterion with evidence references. An absent evidence item is not a pass.
-9. Produce a final verdict only from the criterion-level evidence, not from overall confidence.
-10. Preserve the evidence needed for a later human/agent to reproduce or audit the verdict.
+7. Confirm the production path contains only permanent-intent implementation for the accepted scope. An MVP may be narrow, but verification must fail if completion depends on disposable POC code or a competing temporary implementation.
+8. Distinguish implementation defects from missing/invalid acceptance criteria or authority decisions.
+9. Record PASS/FAIL/INCONCLUSIVE per criterion with evidence references. An absent evidence item is not a pass.
+10. Produce a final verdict only from the criterion-level evidence, not from overall confidence.
+11. Preserve the evidence needed for a later human/agent to reproduce or audit the verdict.
 
 ## Output contract
 
