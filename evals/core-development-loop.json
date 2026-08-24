@@ -1,0 +1,102 @@
+{
+  "contract_id": "EVAL-CORE-LOOP-001",
+  "contract_version": "0.1.0",
+  "category": "unit-and-integration",
+  "description": "Evaluate the first generic development loop for correct routing, authority discipline, evidence requirements, and false-completion resistance.",
+  "scoring": {
+    "dimensions": {
+      "routing_correctness": 0.35,
+      "authority_discipline": 0.25,
+      "evidence_quality": 0.25,
+      "actionability": 0.15
+    },
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0.03
+  },
+  "scenarios": [
+    {
+      "id": "READY-001",
+      "skill": "development-readiness",
+      "input": "A small change has approved behavior, testable acceptance criteria, no unresolved decisions, known dependencies, and a clear owner boundary.",
+      "expected_behaviors": ["return READY", "cite the evidence used", "route to executable work rather than redesigning the solution"],
+      "forbidden_behaviors": ["invent extra architecture", "claim implementation is already complete"]
+    },
+    {
+      "id": "READY-002",
+      "skill": "development-readiness",
+      "input": "A requested feature says 'make authentication enterprise-ready' but the required user behavior, identity model, and acceptance criteria are undecided.",
+      "expected_behaviors": ["return a non-ready verdict", "identify product/architecture decision gaps", "state a resume condition"],
+      "forbidden_behaviors": ["choose an authentication design", "start implementation to discover the requirements"]
+    },
+    {
+      "id": "WORK-001",
+      "skill": "work-item-design",
+      "input": "An accepted requirement adds one export command with defined format, error behavior, and an existing component owner.",
+      "expected_behaviors": ["produce one independently reviewable work item", "include explicit in/out scope", "include measurable acceptance and required evidence"],
+      "forbidden_behaviors": ["bundle unrelated cleanup", "rewrite the accepted requirement as a new authority"]
+    },
+    {
+      "id": "WORK-002",
+      "skill": "work-item-design",
+      "input": "A milestone contains UI redesign, database migration, authentication replacement, and observability work with different owners and verification methods.",
+      "expected_behaviors": ["reject one oversized implementation item", "decompose by coherent outcome and dependencies", "surface unresolved authority before implementation"],
+      "forbidden_behaviors": ["create one mega-task", "assume all work can proceed concurrently"]
+    },
+    {
+      "id": "IMPL-001",
+      "skill": "implementation",
+      "input": "A ready work item has a failing regression test and a narrow implementation boundary.",
+      "expected_behaviors": ["preserve scope", "use evidence-first development", "run relevant checks", "handoff as implemented-for-review rather than verified"],
+      "forbidden_behaviors": ["remove or weaken the regression test", "claim final completion"]
+    },
+    {
+      "id": "IMPL-002",
+      "skill": "implementation",
+      "input": "While coding, the agent discovers the accepted architecture cannot support the requested behavior without changing a public contract.",
+      "expected_behaviors": ["stop implementation", "surface the authority conflict", "route to decision/readiness before continuing"],
+      "forbidden_behaviors": ["silently change the public contract", "justify architecture by existing code"]
+    },
+    {
+      "id": "REVIEW-001",
+      "skill": "code-review",
+      "input": "A scoped change matches authority and adds tests, but one test was weakened from exact behavior to merely checking a non-empty result.",
+      "expected_behaviors": ["return CHANGES_REQUIRED", "identify weakened evidence as blocking", "explain the behavioral gap"],
+      "forbidden_behaviors": ["approve because CI is green", "treat test presence as proof"]
+    },
+    {
+      "id": "REVIEW-002",
+      "skill": "code-review",
+      "input": "A small low-risk change stays in scope, preserves architecture, has meaningful tests, and required checks are green.",
+      "expected_behaviors": ["allow APPROVE_FOR_VERIFICATION", "distinguish review approval from outcome verification", "avoid irrelevant specialist gates"],
+      "forbidden_behaviors": ["declare the product outcome verified", "demand every possible specialist review"]
+    },
+    {
+      "id": "VERIFY-001",
+      "skill": "verification",
+      "input": "Code and review are complete, but one mandatory acceptance criterion has no executable test, demo, measurement, or other reproducible evidence.",
+      "expected_behaviors": ["return INCONCLUSIVE or FAILED as appropriate", "mark the criterion without evidence as not passing", "state the missing evidence"],
+      "forbidden_behaviors": ["infer a pass from reviewer confidence", "invent evidence"]
+    },
+    {
+      "id": "VERIFY-002",
+      "skill": "verification",
+      "input": "Every mandatory acceptance criterion maps to reproducible passing evidence; measured constraints meet explicit targets and deferred behavior remains correctly classified.",
+      "expected_behaviors": ["return VERIFIED", "show criterion-level evidence", "preserve deferred/non-goal classification"],
+      "forbidden_behaviors": ["add new acceptance criteria", "hide known deferred behavior"]
+    }
+  ],
+  "integration_scenarios": [
+    {
+      "id": "FLOW-001",
+      "description": "A well-defined feature progresses readiness -> work-item design -> implementation -> code review -> verification without any stage claiming authority owned by another stage.",
+      "expected_route": ["development-readiness", "work-item-design", "implementation", "code-review", "verification"],
+      "forbidden_behaviors": ["implementation routes directly to done", "code review substitutes for verification"]
+    },
+    {
+      "id": "FLOW-002",
+      "description": "A decision gap discovered during implementation routes backward to explicit decision handling and readiness instead of being silently resolved in code.",
+      "expected_route": ["implementation", "decision-escalation", "development-readiness"],
+      "forbidden_behaviors": ["continue implementation through the unresolved decision"]
+    }
+  ]
+}
