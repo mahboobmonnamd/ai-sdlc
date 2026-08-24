@@ -15,6 +15,7 @@ Use before implementation begins, resumes after a material decision, or expands 
 - Do not replace product discovery, architecture design, technical specification, work-item design, or verification.
 - Do not treat existing code as authority when approved requirements or decisions say otherwise.
 - Do not mark work ready because an agent is confident or because implementation has already started.
+- Do not mark mergeable production work ready when the intended code is still a spike, prototype, POC, or other disposable experiment.
 
 ## Required context
 
@@ -35,7 +36,7 @@ Return a non-ready verdict instead of guessing when any of these applies:
 
 - **product decision required** — behavior, scope, priority, acceptance, or user outcome is unresolved;
 - **architecture decision required** — ownership, system boundary, major dependency, trust boundary, public contract, or other architectural choice is unresolved;
-- **technical unknown** — feasibility or a material mechanism needs evidence from a spike/prototype/measurement;
+- **technical unknown** — feasibility or a material mechanism needs evidence from a spike/prototype/measurement; exploratory code must be isolated from mergeable production work;
 - **acceptance gap** — success cannot be objectively verified;
 - **dependency blocker** — required upstream work or external capability is unavailable;
 - **stale/conflicting authority** — sources disagree or derived context is stale;
@@ -46,12 +47,13 @@ Return a non-ready verdict instead of guessing when any of these applies:
 1. Restate the requested outcome without adding implementation assumptions.
 2. Identify the authoritative artifacts and decisions that constrain it.
 3. Check for unresolved decisions and authority gaps before implementation details.
-4. Check material technical uncertainty. Route uncertainty to `technical-spike`; do not bury it inside production implementation.
+4. Check material technical uncertainty. Route uncertainty to `technical-spike`; do not bury it inside production implementation. A spike/prototype/POC must run on an explicitly isolated, non-mergeable path. Its findings may graduate into accepted evidence, but its exploratory code does not become production by default.
 5. Check that acceptance criteria are observable, testable, and sufficient to distinguish success from a plausible partial implementation.
 6. Check dependencies and required predecessor artifacts/work.
 7. Check that scope, ownership boundaries, and non-goals are explicit enough to prevent uncontrolled expansion.
-8. Apply the project's rigor profile: lightweight work may need fewer artifacts, but it may not skip unresolved authority, acceptance, or material-risk gates.
-9. Produce exactly one primary verdict and the smallest next action needed to advance.
+8. Confirm that code intended for the production/default branch is production-intent code on the accepted architecture path. An MVP may deliberately implement only a small slice, but that slice must not depend on a disposable or competing temporary implementation.
+9. Apply the project's rigor profile: lightweight work may need fewer artifacts, but it may not skip unresolved authority, acceptance, or material-risk gates.
+10. Produce exactly one primary verdict and the smallest next action needed to advance.
 
 ## Output contract
 
@@ -72,6 +74,6 @@ A READY verdict means implementation may begin within the assessed scope; it doe
 
 - READY → `work-item-design` if the executable work item is still weak, otherwise `implementation-planning`/`test-design`/`implementation` as appropriate.
 - Missing acceptance/scope → requirements or `work-item-design`.
-- Technical uncertainty → `technical-spike`.
+- Technical uncertainty → an isolated, non-mergeable `technical-spike`; re-run readiness before any production implementation is created from the result.
 - Product/architecture/other authority gap → explicit decision/escalation workflow.
 - Stale/conflicting context → reconcile authoritative sources before continuing.
