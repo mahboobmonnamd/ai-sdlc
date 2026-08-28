@@ -73,6 +73,7 @@ class SkillCatalogTests(unittest.TestCase):
             "implementation",
             "code-review",
             "verification",
+            "pr-acceptance-review",
         }
         scenarios = contract["scenarios"]
         covered = {scenario["skill"] for scenario in scenarios}
