@@ -73,6 +73,7 @@ class SkillCatalogTests(unittest.TestCase):
             "implementation",
             "code-review",
             "verification",
+            "pr-review",
         }
         scenarios = contract["scenarios"]
         covered = {scenario["skill"] for scenario in scenarios}
@@ -87,6 +88,19 @@ class SkillCatalogTests(unittest.TestCase):
             self.assertTrue(scenario["expected_behaviors"])
             self.assertTrue(scenario["forbidden_behaviors"])
         self.assertGreaterEqual(contract["scoring"]["pass_threshold"], 0.85)
+
+    def test_pr_review_orchestrates_core_acceptance_checks(self):
+        contract_path = ROOT / "evals" / "core-development-loop.json"
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        flow = next(
+            scenario
+            for scenario in contract["integration_scenarios"]
+            if scenario["id"] == "FLOW-001"
+        )
+        self.assertEqual(
+            ["code-review", "verification", "risk-based-specialist-review"],
+            flow["orchestrated_by_pr_review"],
+        )
 
 
 if __name__ == "__main__":

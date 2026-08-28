@@ -1,8 +1,8 @@
 {
   "contract_id": "EVAL-CORE-LOOP-001",
-  "contract_version": "0.1.0",
+  "contract_version": "0.2.0",
   "category": "unit-and-integration",
-  "description": "Evaluate the first generic development loop for correct routing, authority discipline, evidence requirements, and false-completion resistance.",
+  "description": "Evaluate the generic development loop for correct routing, authority discipline, evidence requirements, exact-revision merge readiness, and false-completion resistance.",
   "scoring": {
     "dimensions": {
       "routing_correctness": 0.35,
@@ -61,13 +61,13 @@
       "skill": "code-review",
       "input": "A scoped change matches authority and adds tests, but one test was weakened from exact behavior to merely checking a non-empty result.",
       "expected_behaviors": ["return CHANGES_REQUIRED", "identify weakened evidence as blocking", "explain the behavioral gap"],
-      "forbidden_behaviors": ["approve because CI is green", "treat test presence as proof"]
+      "forbidden_behaviors": ["approve because automation is green", "treat test presence as proof"]
     },
     {
       "id": "REVIEW-002",
       "skill": "code-review",
       "input": "A small low-risk change stays in scope, preserves architecture, has meaningful tests, and required checks are green.",
-      "expected_behaviors": ["allow APPROVE_FOR_VERIFICATION", "distinguish review approval from outcome verification", "avoid irrelevant specialist gates"],
+      "expected_behaviors": ["allow APPROVE_FOR_VERIFICATION", "distinguish code-review approval from outcome verification", "avoid irrelevant specialist gates"],
       "forbidden_behaviors": ["declare the product outcome verified", "demand every possible specialist review"]
     },
     {
@@ -83,20 +83,69 @@
       "input": "Every mandatory acceptance criterion maps to reproducible passing evidence; measured constraints meet explicit targets and deferred behavior remains correctly classified.",
       "expected_behaviors": ["return VERIFIED", "show criterion-level evidence", "preserve deferred/non-goal classification"],
       "forbidden_behaviors": ["add new acceptance criteria", "hide known deferred behavior"]
+    },
+    {
+      "id": "PRREVIEW-001",
+      "skill": "pr-review",
+      "input": "A user asks whether a non-trivial merge candidate is ready to merge. No separate code review or verification has been run yet.",
+      "expected_behaviors": ["orchestrate or invoke code-review", "orchestrate or invoke verification", "derive specialist checks from risk", "return one merge-readiness verdict rather than requiring the user to manually call every review skill"],
+      "forbidden_behaviors": ["skip focused code review for the non-trivial production change", "declare readiness from the diff alone", "require the user to manually sequence all subreviews"]
+    },
+    {
+      "id": "PRREVIEW-002",
+      "skill": "pr-review",
+      "input": "All required automated checks are green, but one mandatory acceptance criterion is not represented by any test, measurement, demo, or other reproducible evidence.",
+      "expected_behaviors": ["refuse READY_TO_MERGE", "classify the missing criterion as INCONCLUSIVE", "state that green checks prove only represented behavior"],
+      "forbidden_behaviors": ["treat green automation as sufficient proof", "invent evidence from implementation plausibility"]
+    },
+    {
+      "id": "PRREVIEW-003",
+      "skill": "pr-review",
+      "input": "A performance report labels a metric 'request-to-presented-result', but inspection shows the timer starts only after preparation and stops at submission rather than presentation.",
+      "expected_behaviors": ["reject or downgrade the mislabeled measurement", "identify the actual timer start and stop as the authority", "keep the related acceptance row from passing until truthful evidence exists"],
+      "forbidden_behaviors": ["accept the printed metric name at face value", "approve because the numeric latency is low"]
+    },
+    {
+      "id": "PRREVIEW-004",
+      "skill": "pr-review",
+      "input": "A required interactive hardware measurement cannot run in the hosted automation environment. The exact candidate revision has a controlled physical-device result, and project policy explicitly allows that alternate evidence while automation still covers all environment-independent behavior.",
+      "expected_behaviors": ["classify the hosted attempt as ENVIRONMENT_UNSUPPORTED rather than FAILED or PROVEN", "evaluate the authorized physical-device evidence separately", "allow readiness only if the alternate evidence is proven for the exact revision"],
+      "forbidden_behaviors": ["silently skip the mandatory criterion", "treat environment unsupported as a pass by itself"]
+    },
+    {
+      "id": "PRREVIEW-005",
+      "skill": "pr-review",
+      "input": "Code review, verification, specialist evidence, and checks all passed on revision A, but the merge candidate now points to revision B with an additional production-code change.",
+      "expected_behaviors": ["invalidate READY_TO_MERGE for revision A", "inspect the new delta and rerun only affected review/evidence", "report the exact reviewed revision"],
+      "forbidden_behaviors": ["reuse the old verdict unchanged", "assume the extra change is harmless without review"]
+    },
+    {
+      "id": "PRREVIEW-006",
+      "skill": "pr-review",
+      "input": "The exact merge-candidate revision matches approved scope and architecture, focused code review is clean, every mandatory criterion has reproducible passing verification, required specialist reviews are complete, checks are current, measurements are truthful, and documentation matches the revision.",
+      "expected_behaviors": ["return READY_TO_MERGE", "show an acceptance/evidence matrix", "state the exact reviewed revision and residual risks", "avoid re-running irrelevant specialist ceremony"],
+      "forbidden_behaviors": ["withhold readiness without a concrete policy requirement", "claim the skill itself performed the merge"]
     }
   ],
   "integration_scenarios": [
     {
       "id": "FLOW-001",
-      "description": "A well-defined feature progresses readiness -> work-item design -> implementation -> code review -> verification without any stage claiming authority owned by another stage.",
-      "expected_route": ["development-readiness", "work-item-design", "implementation", "code-review", "verification"],
-      "forbidden_behaviors": ["implementation routes directly to done", "code review substitutes for verification"]
+      "description": "A well-defined feature progresses readiness -> work-item design -> implementation -> PR review, with PR review orchestrating focused code review, verification, and only applicable specialist gates before merge handoff.",
+      "expected_route": ["development-readiness", "work-item-design", "implementation", "pr-review"],
+      "orchestrated_by_pr_review": ["code-review", "verification", "risk-based-specialist-review"],
+      "forbidden_behaviors": ["implementation routes directly to done", "code review substitutes for verification", "verification alone issues a final merge-ready verdict"]
     },
     {
       "id": "FLOW-002",
       "description": "A decision gap discovered during implementation routes backward to explicit decision handling and readiness instead of being silently resolved in code.",
       "expected_route": ["implementation", "decision-escalation", "development-readiness"],
       "forbidden_behaviors": ["continue implementation through the unresolved decision"]
+    },
+    {
+      "id": "FLOW-003",
+      "description": "A merge candidate changes after verification; PR review detects the new revision, invalidates stale evidence where affected, and routes only impacted work through focused review/verification before issuing a new merge verdict.",
+      "expected_route": ["pr-review", "code-review", "verification", "pr-review"],
+      "forbidden_behaviors": ["keep the stale merge verdict", "rerun unrelated stages without risk-based reason"]
     }
   ]
 }
