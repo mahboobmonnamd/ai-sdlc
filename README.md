@@ -24,7 +24,8 @@ The first reference slice contains:
 - `work-item-design` — create one implementation-ready, independently reviewable unit of work;
 - `implementation` — execute ready work without silently changing authority or scope;
 - `code-review` — independently review implementation and evidence;
-- `verification` — prove acceptance outcomes separately from implementation/review confidence.
+- `verification` — prove acceptance outcomes separately from implementation/review confidence;
+- `pr-acceptance-review` — independently synthesize exact-revision authority, implementation, verification, checks, measurements, documentation, and residual risk into a merge-readiness verdict.
 
 This is intentionally not the complete PRD catalog yet.
 
