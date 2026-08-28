@@ -23,9 +23,9 @@ The first reference slice contains:
 - `development-readiness` — decide whether implementation may begin and route blockers;
 - `work-item-design` — create one implementation-ready, independently reviewable unit of work;
 - `implementation` — execute ready work without silently changing authority or scope;
-- `code-review` — independently review implementation and evidence;
+- `code-review` — perform focused implementation/diff defect and regression review;
 - `verification` — prove acceptance outcomes separately from implementation/review confidence;
-- `pr-acceptance-review` — independently synthesize exact-revision authority, implementation, verification, checks, measurements, documentation, and residual risk into a merge-readiness verdict.
+- `pr-review` — orchestrate code review, verification, applicable specialist review, exact-revision checks, measurements, documentation, and residual risk into a final merge-readiness verdict.
 
 This is intentionally not the complete PRD catalog yet.
 
@@ -62,7 +62,7 @@ Individual skill selection can use the skills CLI's supported `--skill` option w
 
 ## Reference consumer
 
-Seyal is the first demanding reference consumer. It keeps terminal/product-specific knowledge and skills in its own repository while consuming generic AI-SDLC capabilities through a reviewed pin. Generic capabilities must remain useful without Seyal.
+Seyal is the first demanding reference consumer. It keeps product/domain-specific knowledge and skills in its own repository while consuming generic AI-SDLC capabilities through a reviewed pin. Generic capabilities must remain useful without Seyal.
 
 ## Design authority
 
