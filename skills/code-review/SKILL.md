@@ -14,6 +14,7 @@ Use after implementation has produced a reviewable change set and before final v
 - Do not act as final product verification merely because the code looks correct.
 - Do not approve architecture-by-precedent when accepted decisions say otherwise.
 - Do not rewrite the implementation wholesale unless the review task explicitly includes remediation.
+- Do not improve, reformat, or extend the change in a review-only pass.
 - Do not require every specialist review for every change; use the risk/impact classification.
 - Do not assume a specific pull-request host, VCS, language, or CI system.
 - Do not approve spike/prototype/POC code for the production/default branch merely because it is disabled, hidden behind a feature flag, or appears useful for future work.
@@ -56,8 +57,8 @@ Return a blocking review finding when:
 8. Evaluate dependency/configuration/build changes and generated artifacts for hidden scope or supply-chain impact.
 9. Validate performance/security/privacy/accessibility/operability/documentation claims only when applicable; request specialist review when risk warrants it.
 10. Check that reproducible verification steps exist and that known limitations/deferred work are stated accurately.
-11. Produce findings ordered by severity and concrete impact. Avoid style-only noise unless project conventions make it material.
-12. Approve/recommend acceptance only when no blocking findings remain and required evidence is complete for review scope.
+11. Produce findings ordered by severity and concrete impact. Quote the exact line or evidence for each blocking finding. For a non-trivial change, surface the worst weaknesses (up to 10). For a tiny mechanical diff, do not invent a top-10 list. Avoid style-only noise unless project conventions make it material. If a source or effect is not established, write `unknown`; never invent a citation.
+12. Approve/recommend acceptance only when no blocking findings remain and required evidence is complete for review scope. Do not implement fixes unless the task explicitly includes remediation.
 
 ## Output contract
 
@@ -65,8 +66,9 @@ Return:
 
 ```text
 verdict: APPROVE_FOR_VERIFICATION | CHANGES_REQUIRED | BLOCKED_BY_DECISION | SPECIALIST_REVIEW_REQUIRED
-blocking_findings: concrete defects/violations with evidence
-non_blocking_findings: useful improvements that do not block outcome
+blocking_findings: concrete defects/violations with quoted evidence, ranked by severity
+non_blocking_findings: useful improvements that do not block outcome; do not implement them in a review-only pass
+unknowns
 scope_assessment
 architecture_authority_assessment
 test_evidence_assessment

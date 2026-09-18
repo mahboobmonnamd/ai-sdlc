@@ -29,6 +29,8 @@ The first reference slice contains:
 
 This is intentionally not the complete PRD catalog yet.
 
+Working-loop prompts (clarify, slice, proof, smallest change, checkable Done) are **not** a separate skill. They are skip-gated inside the skills above. See [`docs/WORKING-LOOP.md`](docs/WORKING-LOOP.md). Do not copy that file into always-on project rules. Consuming projects should absorb only the thin deltas in [`docs/CONSUMER-ABSORPTION.md`](docs/CONSUMER-ABSORPTION.md).
+
 ## Quality model
 
 Every publishable skill must have:
@@ -69,7 +71,9 @@ Seyal is the first demanding reference consumer. It keeps product/domain-specifi
 - [`docs/ai-native-sdlc-skills-prd-v0.2.md`](docs/ai-native-sdlc-skills-prd-v0.2.md)
 - Phase-0 design records under [`phase-0/`](phase-0/)
 - Evaluation standard: [`phase-0/P0-07-evaluation-standard.md`](phase-0/P0-07-evaluation-standard.md)
+- Task-selected working loop: [`docs/WORKING-LOOP.md`](docs/WORKING-LOOP.md)
+- Consumer pin/absorption map: [`docs/CONSUMER-ABSORPTION.md`](docs/CONSUMER-ABSORPTION.md)
 
 ## Contribution principle
 
-Do not add a skill merely because a workflow could be written as a prompt. Add or change a skill only when it represents a coherent reusable capability, has a clear routing boundary, and can be evaluated against realistic failure cases.
+Do not add a skill merely because a workflow could be written as a prompt. Add or change a skill only when it represents a coherent reusable capability, has a clear routing boundary, and can be evaluated against realistic failure cases. Prefer updating an existing skill over adding a parallel always-on checklist.

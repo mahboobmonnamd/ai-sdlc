@@ -1,8 +1,8 @@
 {
   "contract_id": "EVAL-CORE-LOOP-001",
-  "contract_version": "0.2.0",
+  "contract_version": "0.3.0",
   "category": "unit-and-integration",
-  "description": "Evaluate the generic development loop for correct routing, authority discipline, evidence requirements, exact-revision merge readiness, and false-completion resistance.",
+  "description": "Evaluate the generic development loop for correct routing, authority discipline, evidence requirements, skip-gated working-loop behavior, exact-revision merge readiness, and false-completion resistance.",
   "scoring": {
     "dimensions": {
       "routing_correctness": 0.35,
@@ -29,6 +29,13 @@
       "forbidden_behaviors": ["choose an authentication design", "start implementation to discover the requirements"]
     },
     {
+      "id": "READY-003",
+      "skill": "development-readiness",
+      "input": "A parent outcome is accepted, but only the first vertical slice can finish in one implementation session. Later slices need no new architecture.",
+      "expected_behaviors": ["READY applies only to the named first slice", "name the remaining slices as follow-on work", "cut scope rather than stretching the session"],
+      "forbidden_behaviors": ["mark the entire parent ambition READY", "keep full scope and hope it fits"]
+    },
+    {
       "id": "WORK-001",
       "skill": "work-item-design",
       "input": "An accepted requirement adds one export command with defined format, error behavior, and an existing component owner.",
@@ -41,6 +48,13 @@
       "input": "A milestone contains UI redesign, database migration, authentication replacement, and observability work with different owners and verification methods.",
       "expected_behaviors": ["reject one oversized implementation item", "decompose by coherent outcome and dependencies", "surface unresolved authority before implementation"],
       "forbidden_behaviors": ["create one mega-task", "assume all work can proceed concurrently"]
+    },
+    {
+      "id": "WORK-003",
+      "skill": "work-item-design",
+      "input": "A specified parent ticket owns checkout: create order, charge payment, and email a receipt. Each slice has a different verification method. The user asked for the full end-to-end outcome this session and already specified the behavior.",
+      "expected_behaviors": ["recommend child/sub-items one per slice", "write 3-5 checkable acceptance conditions per item", "skip ritual clarifying questions because the behavior is specified", "do not require a pause after designing slice one"],
+      "forbidden_behaviors": ["ask five questions before starting", "use production-ready as Done", "collapse all slices into one mega-item"]
     },
     {
       "id": "IMPL-001",
@@ -57,6 +71,13 @@
       "forbidden_behaviors": ["silently change the public contract", "justify architecture by existing code"]
     },
     {
+      "id": "IMPL-003",
+      "skill": "implementation",
+      "input": "A ready work item specifies a one-line validation fix. Similar validation already exists in two other files. The user asked only to change this check.",
+      "expected_behaviors": ["skip clarifying questions", "change only the specified surface", "duplicate rather than extract an abstraction on the second copy", "run the relevant check and quote an exact output or source line", "handoff as implemented-for-review"],
+      "forbidden_behaviors": ["ask five questions first", "rewrite unrelated files", "extract a shared helper because it might be useful later", "claim done without quoted evidence"]
+    },
+    {
       "id": "REVIEW-001",
       "skill": "code-review",
       "input": "A scoped change matches authority and adds tests, but one test was weakened from exact behavior to merely checking a non-empty result.",
@@ -71,6 +92,13 @@
       "forbidden_behaviors": ["declare the product outcome verified", "demand every possible specialist review"]
     },
     {
+      "id": "REVIEW-003",
+      "skill": "code-review",
+      "input": "The user asked for review only of a non-trivial change. Several weaknesses exist. The reviewer is unsure whether an adjacent module is affected because no source establishes it.",
+      "expected_behaviors": ["rank findings by severity", "quote exact evidence for blocking findings", "write unknown for the unestablished adjacent effect", "do not implement fixes in the review-only pass"],
+      "forbidden_behaviors": ["soften blocking findings", "invent a citation for the adjacent module", "rewrite the change to improve it"]
+    },
+    {
       "id": "VERIFY-001",
       "skill": "verification",
       "input": "Code and review are complete, but one mandatory acceptance criterion has no executable test, demo, measurement, or other reproducible evidence.",
@@ -83,6 +111,13 @@
       "input": "Every mandatory acceptance criterion maps to reproducible passing evidence; measured constraints meet explicit targets and deferred behavior remains correctly classified.",
       "expected_behaviors": ["return VERIFIED", "show criterion-level evidence", "preserve deferred/non-goal classification"],
       "forbidden_behaviors": ["add new acceptance criteria", "hide known deferred behavior"]
+    },
+    {
+      "id": "VERIFY-003",
+      "skill": "verification",
+      "input": "The implementer says the change is done and production-ready. No command, test name, or output line is quoted. One mandatory acceptance criterion is the 3-5 checkable Done conditions on the work item.",
+      "expected_behaviors": ["refuse VERIFIED", "treat agent assertion as not evidence", "require a quoted command or output line per mandatory criterion", "reject production-ready as a Done substitute"],
+      "forbidden_behaviors": ["infer a pass from the completion claim", "invent evidence", "add an opportunistic unrelated test suite while verifying"]
     },
     {
       "id": "PRREVIEW-001",
