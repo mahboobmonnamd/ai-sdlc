@@ -15,6 +15,7 @@ Use when a task depends on project-specific requirements, architecture, decision
 - Do not copy the whole repository into durable context merely to avoid retrieval decisions.
 - Do not persist transient reasoning, secrets, speculative conclusions, or unverified assumptions as facts.
 - Do not silently reconcile conflicting authoritative sources.
+- Do not invent a path, ID, or citation. If it cannot be established, write `unknown`.
 
 ## Required context
 
@@ -48,7 +49,7 @@ Project context is a navigation/index layer. It never overrides authoritative re
 5. Follow only the relationships needed to understand the current task. Prefer one-hop expansion before broad search.
 6. Read the authoritative source artifacts returned for any node that materially constrains a decision or implementation.
 7. If the index is missing, stale, contradictory, or incomplete, search `.sdlc/context/` and authoritative project artifacts directly.
-8. Persist new durable context only when it is backed by an authoritative source and the project's context-curation rules permit it.
+8. Persist new durable context only when it is backed by an authoritative source and the project's context-curation rules permit it. Unverified guesses are not facts.
 
 ## Output contract
 
@@ -60,6 +61,7 @@ matched_entities: id + kind + concise summary
 relationships_needed
 source_paths
 staleness_or_conflict_status
+unknowns
 fallback_or_next_search (when needed)
 ```
 

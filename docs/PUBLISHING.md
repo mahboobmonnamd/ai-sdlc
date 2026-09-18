@@ -37,7 +37,7 @@ Every skill defines:
 - output/verdict contract;
 - handoff/next activity.
 
-Overlapping skills must have explicit precedence or negative boundaries. A user request must not be claimed by multiple skills with incompatible behavior.
+Overlapping skills must have explicit precedence or negative boundaries. A user request must not be claimed by multiple skills with incompatible behavior. Working-loop prompts live inside those skills with skip conditions; they are not a separate distributed skill or always-on constitution.
 
 ### 3. Authority discipline
 

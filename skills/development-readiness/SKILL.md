@@ -16,6 +16,7 @@ Use before implementation begins, resumes after a material decision, or expands 
 - Do not treat existing code as authority when approved requirements or decisions say otherwise.
 - Do not mark work ready because an agent is confident or because implementation has already started.
 - Do not mark mergeable production work ready when the intended code is still a spike, prototype, POC, or other disposable experiment.
+- Do not mark the parent ambition READY when only a thinner slice can finish; name the slice.
 
 ## Required context
 
@@ -51,9 +52,11 @@ Return a non-ready verdict instead of guessing when any of these applies:
 5. Check that acceptance criteria are observable, testable, and sufficient to distinguish success from a plausible partial implementation.
 6. Check dependencies and required predecessor artifacts/work.
 7. Check that scope, ownership boundaries, and non-goals are explicit enough to prevent uncontrolled expansion.
-8. Confirm that code intended for the production/default branch is production-intent code on the accepted architecture path. An MVP may deliberately implement only a small slice, but that slice must not depend on a disposable or competing temporary implementation.
+8. Confirm that code intended for the production/default branch is production-intent code on the accepted architecture path. An MVP may deliberately implement only a small slice, but that slice must not depend on a disposable or competing temporary implementation. The slice must still be exercisable: a command, test, API, UI, or other observable path a human can run.
 9. Apply the project's rigor profile: lightweight work may need fewer artifacts, but it may not skip unresolved authority, acceptance, or material-risk gates.
-10. Produce exactly one primary verdict and the smallest next action needed to advance.
+10. Flag decisions that would be expensive to reverse (public contract, persisted format, authority split, hard dependency). Unresolved architecture is still `AWAITING_DECISION` / architecture-decision-required, not an implementation vote among options.
+11. If the requested outcome cannot finish in one implementation session, READY applies only to the named slice. Cut scope, not time.
+12. Produce exactly one primary verdict and the smallest next action needed to advance. If a source or gap cannot be established, write `unknown`; never invent evidence.
 
 ## Output contract
 
@@ -66,6 +69,9 @@ blocking_items: IDs or concrete gaps
 next_capability: the SDLC skill/activity that should run next
 resume_condition: what must become true before readiness is re-evaluated
 evidence_used: authoritative sources actually relied on
+hard_to_reverse_decisions
+named_slice_if_scope_cut
+unknowns
 ```
 
 A READY verdict means implementation may begin within the assessed scope; it does not mean implementation is complete or correct.

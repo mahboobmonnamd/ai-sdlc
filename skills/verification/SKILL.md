@@ -13,8 +13,9 @@ Use after implementation and applicable review are complete, or whenever someone
 
 - Do not equate compilation, passing unit tests, merged code, or reviewer approval with outcome verification.
 - Do not change acceptance criteria after seeing the implementation unless the owning authority explicitly revises them.
-- Do not invent missing evidence, measurements, or user behavior.
+- Do not invent missing evidence, measurements, or user behavior. If a source cannot be established, write `unknown`.
 - Do not repair implementation silently while acting as an independent verifier; return failures to the appropriate activity.
+- Do not add an opportunistic test suite while verifying; missing required evidence is FAIL or INCONCLUSIVE.
 - Do not assume one verification technique fits every project or risk profile.
 
 ## Required context
@@ -50,8 +51,8 @@ Verification cannot pass when:
 6. Check that deferred/non-goal behavior remains accurately classified and has not been falsely claimed complete.
 7. Confirm the production path contains only permanent-intent implementation for the accepted scope. An MVP may be narrow, but verification must fail if completion depends on disposable POC code or a competing temporary implementation.
 8. Distinguish implementation defects from missing/invalid acceptance criteria or authority decisions.
-9. Record PASS/FAIL/INCONCLUSIVE per criterion with evidence references. An absent evidence item is not a pass.
-10. Produce a final verdict only from the criterion-level evidence, not from overall confidence.
+9. Record PASS/FAIL/INCONCLUSIVE per criterion with evidence references. Quote the exact command, test, output line, or measurement. An absent evidence item is not a pass. Agent assertion is not evidence.
+10. Produce a final verdict only from the criterion-level evidence, not from overall confidence. Done is the work item’s 3–5 checkable conditions, never “production-ready” or “looks good.”
 11. Preserve the evidence needed for a later human/agent to reproduce or audit the verdict.
 
 ## Output contract
@@ -63,7 +64,7 @@ verdict: VERIFIED | FAILED | INCONCLUSIVE | BLOCKED_BY_DECISION
 criteria:
   - criterion
     result: PASS | FAIL | INCONCLUSIVE
-    evidence
+    evidence: quoted command/output/source or `unknown`
     source_authority
 failures_or_gaps
 measurements_and_targets (when applicable)

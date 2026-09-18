@@ -24,6 +24,7 @@ Use the same procedure for a pull request, merge request, change list, patch sta
 - Do not require every possible specialist review for every change; derive rigor from project rules and material risk.
 - Do not merge, approve, or mutate the change unless the task explicitly grants that authority. The default action is a review verdict and handoff.
 - Do not make new product, architecture, security, compliance, performance-budget, or scope decisions during review.
+- Do not improve, reformat, or extend the change in a review-only pass.
 - Do not duplicate specialist procedures inside this skill when an applicable reusable review capability exists; orchestrate and synthesize them.
 
 ## Required context
@@ -106,7 +107,7 @@ Do not convert an environmental limitation into a false pass. Classify it explic
 
 12. **Re-check the exact revision.** Immediately before final verdict, resolve the merge candidate again. If the revision changed, determine whether the delta is trivially metadata-only under project policy or invalidate affected review/evidence and inspect the new delta. Never state “ready to merge” for an unreviewed revision.
 
-13. **Synthesize, do not average.** A single unresolved mandatory blocker keeps the verdict from passing even if every other category is strong. Distinguish implementation defects from evidence/metadata gaps so remediation is narrow and honest.
+13. **Synthesize, do not average.** A single unresolved mandatory blocker keeps the verdict from passing even if every other category is strong. Distinguish implementation defects from evidence/metadata gaps so remediation is narrow and honest. Rank blocking findings and residual risks by severity and do not soften them. Quote the exact evidence line. For a tiny mechanical diff, do not invent a top-10 list. If a source cannot be established, write `unknown`; never invent a citation. Done is the work item’s checkable conditions, not “production-ready.”
 
 ## Output contract
 
@@ -118,10 +119,10 @@ reviewed_revision: immutable revision identifier when available
 base_revision_or_target: identifier when available
 
 blocking_findings:
-  - severity
+  - severity (ranked, blunt)
   - subsystem/file/path when available
   - violated requirement or acceptance criterion
-  - concrete failure/evidence gap
+  - concrete failure/evidence gap with quoted evidence or `unknown`
   - narrow remediation direction
 
 non_blocking_findings:
