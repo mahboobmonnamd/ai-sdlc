@@ -38,14 +38,12 @@ Use after implementation when acceptance evidence must be proven, when invoked a
 
 Load:
 
-- original intended outcome;
-- when `verification_target` is `work_item`: work-item acceptance criteria and non-goals;
-- when `verification_target` is `merge_candidate`: candidate intent, repository authority, tests/checks, and applicable requirements — do not require a work item;
-- governing specifications/decisions when they apply;
+- original intended outcome and accepted requirements;
+- work-item acceptance criteria and non-goals;
+- governing specifications/decisions;
 - implementation/review evidence and known limitations;
 - required test, integration, demo, measurement, security, accessibility, operational, or documentation evidence;
-- applicable rigor profile;
-- `candidate_lifecycle_stage` when a merge candidate exists.
+- applicable rigor profile.
 
 ## Stop or escalate when
 
@@ -71,13 +69,11 @@ Verification cannot pass when:
 8. Confirm the production path contains only permanent-intent implementation for the accepted scope. An MVP may be narrow, but verification must fail if completion depends on disposable POC code or a competing temporary implementation.
 9. Distinguish implementation defects from missing/invalid acceptance criteria or authority decisions.
 10. Record PASS/FAIL/INCONCLUSIVE per criterion with evidence references. Quote the exact command, test, output line, or measurement. An absent evidence item is not a pass. Agent assertion is not evidence.
-11. Produce a final verdict only from the criterion-level evidence, not from overall confidence. For a work item, Done is that item’s 3–5 checkable conditions. For a merge candidate with no work item, Done is the candidate-intent criteria. Never “production-ready” or “looks good.”
+11. Produce a final verdict only from the criterion-level evidence, not from overall confidence. Done is the work item’s 3–5 checkable conditions, never “production-ready” or “looks good.”
 12. Preserve the evidence needed for a later human/agent to reproduce or audit the verdict.
 13. Re-resolve the candidate revision before final verdict when the host exposes one. If it changed, revision-sensitive evidence is stale and the result cannot be VERIFIED until evidence is gathered for the new revision.
 
 ## Output contract
-
-Every result includes `effects`: the list of effect ids for actions this invocation performed. Omitting `effects` is not an empty trace.
 
 Return:
 
@@ -108,10 +104,6 @@ next_action
 - VERIFIED when invoked by `pr-review` → return criterion-level evidence to that `pr-review`.
 - Standalone VERIFIED with an existing merge candidate or a project/rigor policy that requires PR review → `pr-review`; do not route directly to release readiness.
 - Standalone VERIFIED only when no PR-review gate applies → `release-readiness` or project completion workflow.
-- Implementation defect on an open merge candidate:
-  - `IN_REVIEW` → `address-pr-review`, then full `pr-review`;
-  - `IMPLEMENTATION_IN_PROGRESS` → `implementation`;
-  - `UNKNOWN` → stop and reconcile the durable stage; do not guess;
-  - no merge candidate yet → `implementation`.
+- Implementation defect on an open merge candidate → `address-pr-review`, then full `pr-review`; before a merge candidate exists → `implementation`.
 - Acceptance/authority defect → upstream requirements/decision skill, then `development-readiness`.
 - Missing evidence → obtain the required test/measurement/specialist evidence and re-run verification.

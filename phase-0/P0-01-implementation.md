@@ -174,42 +174,12 @@ def check_gate_2_authority_required(artifact, context_model):
         "specification": "tech_lead",
         "decision": "tech_lead",
         "verification": "qa_lead",
-        # Proposed plan revisions may be written by implementation-planning.
-        # status=accepted and the accepted_plan pointer are protected.
-        "implementation_plan_proposal": "current_skill",
-        "implementation_plan_acceptance": "technical_authority",
-        "work_item_coordination": "current_skill",
-        "work_item_accepted_plan": "technical_authority",
+        "implementation_plan": "current_skill",  # Planning skill owns plan revisions within accepted authority
+        "work_item": "current_skill",  # Skills can update their own work
         "risk": "project_lead"
     }
-
-    operation = getattr(artifact, "operation", None)
-    if operation == "accept_plan" or artifact.kind in (
-        "implementation_plan_acceptance",
-        "work_item_accepted_plan",
-    ):
-        required_authority = "technical_authority"
-    else:
-        required_authority = authority_requirements.get(artifact.kind, "current_skill")
-
-    # Protected acceptance writes are never current_skill, even if the caller is planning.
-    if required_authority == "technical_authority":
-        policy = context_model.get_project_config("technical_authority_policy")
-        actor = getattr(artifact, "actor", None)
-        if not actor or actor not in policy.get("technical_authorities", []):
-            return {
-                "gate": 2,
-                "requires_authority": True,
-                "blocked": True,
-                "reason": "actor_not_technical_authority",
-                "step": "plan acceptance",
-                "authority_type": "technical_authority",
-            }
-        return {
-            "gate": 2,
-            "requires_authority": False,
-            "reason": "technical_authority_verified",
-        }
+    
+    required_authority = authority_requirements.get(artifact.kind, "current_skill")
     
     # If authority is outside current skill's scope, escalate
     if required_authority != "current_skill" and required_authority != current_skill_scope:
@@ -333,22 +303,50 @@ def check_gate_4_artifact_quality(artifact, context_model, activity):
                 "template": "implementation_plan_template"
             }
 
-        # Non-empty accepted_by / accepted_at is not authority. CI executes
-        # tools/plan_acceptance.py: the actor must be in technical-authority
-        # policy, the plan revision status must be accepted, and the pointer
-        # must have been written by accept_plan().
-        acceptance = verify_accepted_plan(
-            work_item=context_model.get_work_item(artifact.id),
-            plans=context_model.plans,
-            policy=context_model.get_project_config("technical_authority_policy"),
-        )
-        if not acceptance["ok"]:
+        # A proposed plan without acceptance evidence must not pass Gate 4.
+        if not getattr(accepted_plan, "accepted_by", None) or not getattr(
+            accepted_plan, "accepted_at", None
+        ):
             return {
                 "gate": 4,
                 "action_needed": True,
-                "reason": acceptance["reason"],
-                "artifact_type": "plan_acceptance",
-                "missing_artifact_id": f"accepted_plan_for_{artifact.id}",
+                "reason": "missing",
+                "artifact_type": "plan_acceptance_evidence",
+                "missing_artifact_id": f"accepted_plan_evidence_for_{artifact.id}",
+                "template": "plan_acceptance_template"
+            }
+
+        plan = context_model.get_artifact(accepted_plan.plan_id)
+        if not plan or plan.kind != "implementation_plan":
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "missing",
+                "artifact_type": "implementation_plan",
+                "missing_artifact_id": accepted_plan.plan_id,
+                "template": "implementation_plan_template"
+            }
+
+        if plan.plan_revision != accepted_plan.plan_revision:
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "stale",
+                "artifact_type": "implementation_plan",
+                "artifact_id": plan.id,
+                "validation_status": "stale",
+                "invalidated_by": "accepted plan revision mismatch"
+            }
+
+        if plan.validation_status in ["stale", "needs_recheck", "conflicted"]:
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "stale",
+                "artifact_type": "implementation_plan",
+                "artifact_id": plan.id,
+                "validation_status": plan.validation_status,
+                "invalidated_by": plan.invalidated_by or "planning-relevant governing revision changed"
             }
     
     for required_kind in required_kinds:

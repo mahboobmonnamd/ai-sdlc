@@ -786,19 +786,227 @@
 
 ---
 
-## Part 4: Canonical evaluator
+## Part 4: Test Harness & Scoring Engine (Python Pseudocode)
 
-`tools/eval_judge.py` scores contracts. `tools/run_eval_contract.py` runs both unit and integration contracts. A safety criterion that fails scores the scenario 0, including when the effect trace is omitted or contains a forbidden effect. CI rejects a scenario whose expected or forbidden behavior has no matching safety check.
+The executable judge is `tools/eval_judge.py`. It scores adapter output fields. It does not treat `required_behaviors_satisfied`, `forbidden_behaviors_absent`, or `route_matched` as evidence; contract validation rejects those checks. Integration routes are scored by comparing `observed_route` from an orchestration adapter (`execute(scenario) -> {observed_route: [...]}`) with `expected_route`. Register adapters with `tools/run_integration_eval.py --skill-adapter NAME=module:callable` and `--orchestration-adapter module:callable`. A wiring fixture is not a behavioral run; contract `results.status` stays `NOT_RUN` until a live adapter executes.
 
-The `EvaluationContractHarness` sketch that followed this section in earlier drafts is not an evaluator. It only implemented `==` and `contains`, and it read top-level `dimensions`. Do not cite it as compatible with the current contracts. Scoring dimensions, when used, live under `scoring`.
+```python
+class EvaluationContractHarness:
+    """Execute evaluation contracts and measure skill quality."""
+    
+    def __init__(self, skill_instance, contract_file):
+        self.skill = skill_instance
+        self.contract = load_contract(contract_file)
+        self.results = []
+    
+    def run_contract(self):
+        """Execute all scenarios in contract."""
+        for scenario in self.contract["scenarios"]:
+            result = self.run_scenario(scenario)
+            self.results.append(result)
+        
+        return self.score_contract()
+    
+    def run_scenario(self, scenario):
+        """Execute single test scenario."""
+        scenario_id = scenario["scenario_id"]
+        input_data = scenario["input"]
+        expected_output = scenario["expected_output"]
+        
+        # Run skill
+        start_time = time.time()
+        try:
+            actual_output = self.skill.execute(input_data)
+            execution_time = (time.time() - start_time) * 1000  # ms
+            error = None
+        except Exception as e:
+            actual_output = None
+            execution_time = None
+            error = str(e)
+        
+        # Score output
+        if error:
+            accuracy_score = 0
+            audit_score = 0
+            latency_score = 0
+        else:
+            accuracy_score = self.score_accuracy(actual_output, expected_output, scenario)
+            audit_score = self.score_auditability(actual_output, scenario)
+            latency_score = self.score_latency(execution_time, scenario)
+        
+        return {
+            "scenario_id": scenario_id,
+            "category": scenario.get("category", ""),
+            "name": scenario.get("name", ""),
+            "passed": accuracy_score >= 0.9,  # 90% accuracy threshold
+            "accuracy": accuracy_score,
+            "auditability": audit_score,
+            "latency": latency_score,
+            "latency_ms": execution_time,
+            "error": error,
+            "actual_output": actual_output,
+            "expected_output": expected_output
+        }
+    
+    def score_accuracy(self, actual, expected, scenario):
+        """Score how closely actual matches expected (0-1)."""
+        if actual is None:
+            return 0
+        
+        criteria = scenario.get("scoring", {}).get("criteria", [])
+        total_points = sum(c.get("points", 0) for c in criteria)
+        earned_points = 0
+        
+        for criterion in criteria:
+            check_expr = criterion.get("check", "")
+            if self.evaluate_check(check_expr, actual, expected):
+                earned_points += criterion.get("points", 0)
+        
+        return earned_points / total_points if total_points > 0 else 0
+    
+    def score_auditability(self, actual, scenario):
+        """Score how auditable the decision is."""
+        if not actual or "audit_trail" not in actual:
+            return 0.5
+        
+        trail = actual["audit_trail"]
+        expected_gates = scenario.get("expected_output", {}).get("audit_trail_gates", [])
+        
+        if not expected_gates:
+            return 1.0  # No audit trail expected
+        
+        gates_found = sum(1 for entry in trail if "gate" in entry and entry["gate"] in expected_gates)
+        return gates_found / len(expected_gates) if expected_gates else 1.0
+    
+    def score_latency(self, execution_time, scenario):
+        """Score latency performance."""
+        if execution_time is None:
+            return 0
+        
+        # Get latency threshold from scenario or contract
+        threshold_ms = scenario.get("latency_threshold", 100)
+        
+        if execution_time <= threshold_ms:
+            return 1.0
+        else:
+            # Penalize proportionally
+            return max(0, 1.0 - (execution_time - threshold_ms) / threshold_ms)
+    
+    def evaluate_check(self, check_expr, actual, expected):
+        """Evaluate a check expression against actual/expected output."""
+        # Simplified: parse common check patterns
+        # In production, would use AST or expression evaluator
+        
+        if "==" in check_expr:
+            parts = check_expr.split("==")
+            left = self.evaluate_path(parts[0].strip(), actual)
+            right = self.evaluate_value(parts[1].strip())
+            return left == right
+        
+        if "contains" in check_expr:
+            parts = check_expr.split("contains")
+            left = self.evaluate_path(parts[0].strip(), actual)
+            right = self.evaluate_value(parts[1].strip())
+            return isinstance(left, str) and right in left
+        
+        return False
+    
+    def evaluate_path(self, path, obj):
+        """Evaluate dotted path (e.g., 'output.routing_decision') in object."""
+        parts = path.replace("output.", "").replace("actual.", "").split(".")
+        current = obj
+        for part in parts:
+            if isinstance(current, dict):
+                current = current.get(part)
+            else:
+                return None
+        return current
+    
+    def evaluate_value(self, value_str):
+        """Parse value string (e.g., 'awaiting_decision', '100', 'true')."""
+        value_str = value_str.strip().strip("'\"")
+        if value_str.lower() in ("true", "false"):
+            return value_str.lower() == "true"
+        try:
+            return int(value_str)
+        except:
+            return value_str
+    
+    def score_contract(self):
+        """Aggregate scores across all scenarios."""
+        if not self.results:
+            return {"error": "No test results"}
+        
+        dimensions = self.contract.get("dimensions", [])
+        dimension_weights = {d["dimension"]: d["weight"] for d in dimensions}
+        
+        # Aggregate by dimension
+        dimension_scores = {}
+        for dimension in dimension_weights:
+            if dimension == "accuracy":
+                scores = [r["accuracy"] for r in self.results]
+            elif dimension == "auditability":
+                scores = [r["auditability"] for r in self.results]
+            elif dimension == "latency":
+                scores = [r["latency"] for r in self.results]
+            else:
+                scores = []
+            
+            dimension_scores[dimension] = sum(scores) / len(scores) if scores else 0
+        
+        # Compute overall score
+        overall_score = sum(
+            dimension_scores.get(d["dimension"], 0) * d["weight"]
+            for d in dimensions
+        )
+        
+        # Check pass threshold
+        pass_threshold = self.contract.get("scoring", {}).get("pass_threshold", 0.85)
+        passed = overall_score >= pass_threshold
+        
+        return {
+            "contract_id": self.contract["contract_id"],
+            "skill": self.contract["skill"],
+            "total_scenarios": len(self.results),
+            "scenarios_passed": sum(1 for r in self.results if r["passed"]),
+            "pass_rate": sum(1 for r in self.results if r["passed"]) / len(self.results),
+            "dimensions": dimension_scores,
+            "overall_score": overall_score,
+            "pass_threshold": pass_threshold,
+            "passed": passed,
+            "detailed_results": self.results
+        }
 
-```text
-canonical evaluator: tools/eval_judge.py
-canonical runner:    tools/run_eval_contract.py
-unit adapter:        --skill-adapter module:callable
-integration adapter: --orchestration-adapter module:callable
-pass rule:           any failed safety criterion → 0; otherwise weighted criteria; pass at >= 0.9
-missing effects:     excludes/includes fail closed
+
+class RegressionDetector:
+    """Detect quality regression between skill versions."""
+    
+    def __init__(self, baseline_results, current_results):
+        self.baseline = baseline_results
+        self.current = current_results
+    
+    def check_regression(self, tolerance=0.05):
+        """Check if current scores regressed from baseline."""
+        regressions = []
+        
+        for dimension, baseline_score in self.baseline["dimensions"].items():
+            current_score = self.current["dimensions"].get(dimension, 0)
+            diff = baseline_score - current_score
+            
+            if diff > tolerance:
+                regressions.append({
+                    "dimension": dimension,
+                    "baseline": baseline_score,
+                    "current": current_score,
+                    "regression": diff,
+                    "severity": "high" if diff > 0.1 else "medium"
+                })
+        
+        return {
+            "regression_detected": len(regressions) > 0,
+            "regressions": regressions,
+            "tolerance": tolerance
+        }
 ```
 
 ---
@@ -814,7 +1022,7 @@ missing effects:     excludes/includes fail closed
 - [x] **AC-5:** Baseline methodology defined (vs. no-skill, vs. previous version)
 - [x] **AC-6:** Test fixture format defined (artifact templates, context snapshots)
 - [x] **AC-7:** Regression detection implemented (tolerance, alert policy)
-- [x] **AC-8:** Contract execution is tools/eval_judge.py via tools/run_eval_contract.py
+- [x] **AC-8:** Contract execution workflow documented (Python harness)
 - [x] **AC-9:** Historical tracking format defined (results stored per run)
 - [x] **AC-10:** Pass threshold for Phase 1 contracts: 85% overall score
 

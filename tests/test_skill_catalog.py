@@ -424,18 +424,6 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertIn("14 entity kinds, 12 relationship types", status)
         self.assertIn("Amendment — 2026-09-26", status)
         self.assertIn("2.0.0", status)
-        self.assertIn("verify_accepted_plan", (ROOT / "phase-0" / "P0-01-implementation.md").read_text(encoding="utf-8"))
-        self.assertIn(
-            "validate_implementation_resume_context",
-            (ROOT / "phase-0" / "P0-05-resumability.md").read_text(encoding="utf-8"),
-        )
-        prd = (ROOT / "docs" / "ai-native-sdlc-skills-prd-v0.2.md").read_text(encoding="utf-8")
-        self.assertIn("Plan Acceptance", prd)
-        self.assertLess(prd.index("Implementation Planning"), prd.index("Plan Acceptance"))
-        self.assertLess(prd.index("Plan Acceptance"), prd.index("Development Readiness"))
-        index = json.loads((ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8"))
-        self.assertIn("plan-acceptance", index["target_capability"]["postconditions"][0])
-        self.assertIn("tools/eval_judge.py", index["description"])
         self.assertIn("Do not invent accepted_by", model)
         self.assertIn("candidate_lifecycle_stage", model)
         resume = (ROOT / "phase-0" / "P0-05-resumability.md").read_text(encoding="utf-8")

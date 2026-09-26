@@ -65,8 +65,6 @@ Project context is a navigation/index layer. It never overrides authoritative re
 
 ## Output contract
 
-Every result includes `effects`: the list of effect ids for actions this invocation performed. Omitting `effects` is not an empty trace.
-
 Return or expose the smallest useful context slice:
 
 ```text

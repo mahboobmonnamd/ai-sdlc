@@ -55,8 +55,6 @@ Stop when scope/acceptance is unresolved, a required authority decision is missi
 
 ## Output contract
 
-Every result includes `effects`: the list of effect ids for actions this invocation performed. Omitting `effects` is not an empty trace.
-
 ```text
 work_item_id
 plan_id

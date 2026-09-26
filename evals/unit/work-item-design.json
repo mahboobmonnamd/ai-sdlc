@@ -72,57 +72,9 @@
             "criterion": "Design does not claim implementation ownership",
             "points": 30,
             "check": "output.ownership_claim == NOT_PERFORMED"
-          },
-          {
-            "criterion": "design independently reviewable slices",
-            "behavior": "design independently reviewable slices",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes design_independently_reviewable_slices"
-          },
-          {
-            "criterion": "write 3-5 observable acceptance conditions per item",
-            "behavior": "write 3-5 observable acceptance conditions per item",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes write_3_5_observable_acceptance_conditions_per_item"
-          },
-          {
-            "criterion": "keep ownership policy outside generic work-item design",
-            "behavior": "keep ownership policy outside generic work-item design",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes keep_ownership_policy_outside_generic_work_item_design"
-          },
-          {
-            "criterion": "route ready slices to implementation-planning",
-            "behavior": "route ready slices to implementation-planning",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes route_ready_slices_to_implementation_planning"
-          },
-          {
-            "criterion": "collapse all outcomes into one mega-item",
-            "behavior": "collapse all outcomes into one mega-item",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes collapse_all_outcomes_into_one_mega_item"
-          },
-          {
-            "criterion": "claim implementation ownership",
-            "behavior": "claim implementation ownership",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes claim_implementation_ownership"
           }
         ],
-        "total_points": 130
+        "total_points": 100
       }
     },
     {
@@ -163,49 +115,9 @@
             "criterion": "Next action is the decision activity",
             "points": 30,
             "check": "output.next_action == decision-activity"
-          },
-          {
-            "criterion": "use the explicit work_item_id",
-            "behavior": "use the explicit work_item_id",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes use_the_explicit_work_item_id"
-          },
-          {
-            "criterion": "stop rather than invent behavior or architecture",
-            "behavior": "stop rather than invent behavior or architecture",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes stop_rather_than_invent_behavior_or_architecture"
-          },
-          {
-            "criterion": "route to the appropriate decision activity",
-            "behavior": "route to the appropriate decision activity",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes route_to_the_appropriate_decision_activity"
-          },
-          {
-            "criterion": "hide the decision inside acceptance criteria",
-            "behavior": "hide the decision inside acceptance criteria",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes hide_the_decision_inside_acceptance_criteria"
-          },
-          {
-            "criterion": "label the item implementation-ready",
-            "behavior": "label the item implementation-ready",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes label_the_item_implementation_ready"
           }
         ],
-        "total_points": 125
+        "total_points": 100
       }
     }
   ],

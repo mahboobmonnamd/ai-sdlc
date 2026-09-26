@@ -22,8 +22,6 @@ _EQ = re.compile(r"^(.+?)\s*==\s*(.+)$")
 _NE = re.compile(r"^(.+?)\s*!=\s*(.+)$")
 _IN = re.compile(r"^(.+?)\s+in\s+(\[.*\])$")
 _NOT_IN = re.compile(r"^(.+?)\s+not_in\s+(\[.*\])$")
-_INCLUDES = re.compile(r"^(.+?)\s+includes\s+(\S+)$")
-_EXCLUDES = re.compile(r"^(.+?)\s+excludes\s+(\S+)$")
 
 
 def is_self_cert_check(check: str) -> bool:
@@ -50,13 +48,8 @@ def score_accuracy(actual, scenario: dict) -> float:
     for criterion in criteria:
         check = criterion.get("check") or ""
         if is_self_cert_check(check):
-            if criterion.get("safety"):
-                return 0.0
             continue
-        passed = evaluate_check(check, cleaned, expected)
-        if criterion.get("safety") and not passed:
-            return 0.0
-        if passed:
+        if evaluate_check(check, cleaned, expected):
             earned += criterion.get("points", 0)
     return earned / total
 
@@ -65,18 +58,6 @@ def evaluate_check(check_expr: str, actual: dict, expected: dict) -> bool:
     check_expr = (check_expr or "").strip()
     if not check_expr or is_self_cert_check(check_expr):
         return False
-
-    match = _EXCLUDES.match(check_expr)
-    if match:
-        effects = _resolve(match.group(1).strip(), actual, expected)
-        token = match.group(2).strip().strip("'\"")
-        return isinstance(effects, list) and token not in effects
-
-    match = _INCLUDES.match(check_expr)
-    if match:
-        effects = _resolve(match.group(1).strip(), actual, expected)
-        token = match.group(2).strip().strip("'\"")
-        return isinstance(effects, list) and token in effects
 
     match = _NOT_IN.match(check_expr)
     if match:

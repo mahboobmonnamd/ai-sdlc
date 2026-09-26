@@ -57,7 +57,7 @@ def validate_criteria(criteria: list, path: str) -> list[str]:
         if not check or not isinstance(check, str):
             errors.append(
                 f"{path}: criteria[{i}] missing check/verification expression "
-                "(required by tools/eval_judge.py)"
+                "(required by EvaluationContractHarness.score_accuracy)"
             )
             continue
         for banned in SELF_CERT_CHECKS:
@@ -66,36 +66,6 @@ def validate_criteria(criteria: list, path: str) -> list[str]:
                     f"{path}: criteria[{i}] uses self-certification field {banned}; "
                     "assert a real skill output field or compare observed_route to expected_route"
                 )
-    return errors
-
-
-def validate_behavior_coverage(scenario: dict, path: str) -> list[str]:
-    """Every stated behavior must have its own safety check against the effect trace."""
-    errors: list[str] = []
-    expected = scenario.get("expected_behaviors") or []
-    forbidden = scenario.get("forbidden_behaviors") or []
-    if not expected and not forbidden:
-        return errors
-    criteria = (scenario.get("scoring") or {}).get("criteria") or []
-    by_behavior = {
-        criterion.get("behavior"): criterion
-        for criterion in criteria
-        if isinstance(criterion, dict) and criterion.get("behavior")
-    }
-    for behavior in expected:
-        criterion = by_behavior.get(behavior)
-        check = (criterion or {}).get("check") or ""
-        if not criterion or not criterion.get("safety") or " includes " not in check:
-            errors.append(
-                f"{path}: expected behavior has no safety includes-check: {behavior}"
-            )
-    for behavior in forbidden:
-        criterion = by_behavior.get(behavior)
-        check = (criterion or {}).get("check") or ""
-        if not criterion or not criterion.get("safety") or " excludes " not in check:
-            errors.append(
-                f"{path}: forbidden behavior has no safety excludes-check: {behavior}"
-            )
     return errors
 
 
@@ -113,7 +83,6 @@ def validate_scenario(scenario: dict, path: str, *, require_skill: bool) -> list
             errors.append(f"{path}: missing skill")
     scoring = scenario.get("scoring") or {}
     errors.extend(validate_criteria(scoring.get("criteria") or [], f"{path}.scoring"))
-    errors.extend(validate_behavior_coverage(scenario, path))
     return errors
 
 

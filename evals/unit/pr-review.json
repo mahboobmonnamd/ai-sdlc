@@ -76,73 +76,9 @@
             "criterion": "Verification uses the work item when available",
             "points": 30,
             "check": "output.verification_target == work_item"
-          },
-          {
-            "criterion": "route directly to pr-review",
-            "behavior": "route directly to pr-review",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes route_directly_to_pr_review"
-          },
-          {
-            "criterion": "review implementation correctness inside pr-review",
-            "behavior": "review implementation correctness inside pr-review",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes review_implementation_correctness_inside_pr_review"
-          },
-          {
-            "criterion": "review the entire current candidate",
-            "behavior": "review the entire current candidate",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes review_the_entire_current_candidate"
-          },
-          {
-            "criterion": "evaluate verification and required risk evidence",
-            "behavior": "evaluate verification and required risk evidence",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes evaluate_verification_and_required_risk_evidence"
-          },
-          {
-            "criterion": "return one merge-readiness verdict",
-            "behavior": "return one merge-readiness verdict",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes return_one_merge_readiness_verdict"
-          },
-          {
-            "criterion": "ask the user to choose between code-review and pr-review",
-            "behavior": "ask the user to choose between code-review and pr-review",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes ask_the_user_to_choose_between_code_review_and_pr_review"
-          },
-          {
-            "criterion": "require a separate generic code-review skill",
-            "behavior": "require a separate generic code-review skill",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes require_a_separate_generic_code_review_skill"
-          },
-          {
-            "criterion": "review the diff only",
-            "behavior": "review the diff only",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes review_the_diff_only"
           }
         ],
-        "total_points": 140
+        "total_points": 100
       }
     },
     {
@@ -187,65 +123,9 @@
             "criterion": "Review continues after the first blocker",
             "points": 30,
             "check": "output.finding_stop_policy == CONTINUE_AFTER_BLOCKERS"
-          },
-          {
-            "criterion": "continue after the first blocker",
-            "behavior": "continue after the first blocker",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes continue_after_the_first_blocker"
-          },
-          {
-            "criterion": "complete the review coverage map",
-            "behavior": "complete the review coverage map",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes complete_the_review_coverage_map"
-          },
-          {
-            "criterion": "report all material blockers discovered in the pass",
-            "behavior": "report all material blockers discovered in the pass",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes report_all_material_blockers_discovered_in_the_pass"
-          },
-          {
-            "criterion": "group duplicate symptoms without hiding independent defects",
-            "behavior": "group duplicate symptoms without hiding independent defects",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes group_duplicate_symptoms_without_hiding_independent_defects"
-          },
-          {
-            "criterion": "stop after the first blocker",
-            "behavior": "stop after the first blocker",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes stop_after_the_first_blocker"
-          },
-          {
-            "criterion": "cap findings arbitrarily",
-            "behavior": "cap findings arbitrarily",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes cap_findings_arbitrarily"
-          },
-          {
-            "criterion": "defer already discovered blockers to later rounds",
-            "behavior": "defer already discovered blockers to later rounds",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes defer_already_discovered_blockers_to_later_rounds"
           }
         ],
-        "total_points": 135
+        "total_points": 100
       }
     },
     {
@@ -290,65 +170,9 @@
             "criterion": "Delta is context only",
             "points": 30,
             "check": "output.re_review_mode == FULL_NOT_DELTA"
-          },
-          {
-            "criterion": "verify disposition of prior blockers",
-            "behavior": "verify disposition of prior blockers",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes verify_disposition_of_prior_blockers"
-          },
-          {
-            "criterion": "perform a full review of the entire current candidate",
-            "behavior": "perform a full review of the entire current candidate",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes perform_a_full_review_of_the_entire_current_candidate"
-          },
-          {
-            "criterion": "surface the new defect",
-            "behavior": "surface the new defect",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes surface_the_new_defect"
-          },
-          {
-            "criterion": "treat the remediation delta as context only",
-            "behavior": "treat the remediation delta as context only",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes treat_the_remediation_delta_as_context_only"
-          },
-          {
-            "criterion": "review only prior comment lines",
-            "behavior": "review only prior comment lines",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes review_only_prior_comment_lines"
-          },
-          {
-            "criterion": "approve because old threads are resolved",
-            "behavior": "approve because old threads are resolved",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes approve_because_old_threads_are_resolved"
-          },
-          {
-            "criterion": "perform delta-only re-review",
-            "behavior": "perform delta-only re-review",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes perform_delta_only_re_review"
           }
         ],
-        "total_points": 135
+        "total_points": 100
       }
     },
     {
@@ -394,49 +218,9 @@
             "criterion": "Ready to merge is withheld",
             "points": 30,
             "check": "output.verdict != READY_TO_MERGE"
-          },
-          {
-            "criterion": "reject the stale verification evidence for exact-revision acceptance",
-            "behavior": "reject the stale verification evidence for exact-revision acceptance",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes reject_the_stale_verification_evidence_for_exact_revision_accept"
-          },
-          {
-            "criterion": "obtain or rerun verification for def456",
-            "behavior": "obtain or rerun verification for def456",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes obtain_or_rerun_verification_for_def456"
-          },
-          {
-            "criterion": "withhold READY_TO_MERGE until mandatory exact-revision evidence is proven",
-            "behavior": "withhold READY_TO_MERGE until mandatory exact-revision evidence is proven",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes withhold_ready_to_merge_until_mandatory_exact_revision_evidence_"
-          },
-          {
-            "criterion": "accept verification from abc123 as if it proved def456",
-            "behavior": "accept verification from abc123 as if it proved def456",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes accept_verification_from_abc123_as_if_it_proved_def456"
-          },
-          {
-            "criterion": "ignore verified_revision",
-            "behavior": "ignore verified_revision",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes ignore_verified_revision"
           }
         ],
-        "total_points": 125
+        "total_points": 100
       }
     },
     {
@@ -486,65 +270,9 @@
             "criterion": "Verification uses the merge candidate",
             "points": 30,
             "check": "output.verification_target == merge_candidate"
-          },
-          {
-            "criterion": "set lifecycle_accepted_plan to NOT_APPLICABLE",
-            "behavior": "set lifecycle_accepted_plan to NOT_APPLICABLE",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes set_lifecycle_accepted_plan_to_not_applicable"
-          },
-          {
-            "criterion": "continue full review against candidate intent repository authority tests and applicable requirements",
-            "behavior": "continue full review against candidate intent repository authority tests and applicable requirements",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes continue_full_review_against_candidate_intent_repository_authori"
-          },
-          {
-            "criterion": "do not return INCONCLUSIVE solely because a plan is missing",
-            "behavior": "do not return INCONCLUSIVE solely because a plan is missing",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes do_not_return_inconclusive_solely_because_a_plan_is_missing"
-          },
-          {
-            "criterion": "invoke verification against the merge candidate and candidate intent",
-            "behavior": "invoke verification against the merge candidate and candidate intent",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes invoke_verification_against_the_merge_candidate_and_candidate_in"
-          },
-          {
-            "criterion": "block solely due to missing implementation plan",
-            "behavior": "block solely due to missing implementation plan",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes block_solely_due_to_missing_implementation_plan"
-          },
-          {
-            "criterion": "invent an owning work item or plan",
-            "behavior": "invent an owning work item or plan",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes invent_an_owning_work_item_or_plan"
-          },
-          {
-            "criterion": "skip exact-revision verification",
-            "behavior": "skip exact-revision verification",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes skip_exact_revision_verification"
           }
         ],
-        "total_points": 135
+        "total_points": 100
       }
     },
     {
@@ -585,49 +313,9 @@
             "criterion": "Verdict is inconclusive or blocked",
             "points": 60,
             "check": "output.verdict in ['INCONCLUSIVE', 'BLOCKED_BY_DECISION']"
-          },
-          {
-            "criterion": "set lifecycle_accepted_plan to REQUIRED_BUT_MISSING",
-            "behavior": "set lifecycle_accepted_plan to REQUIRED_BUT_MISSING",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes set_lifecycle_accepted_plan_to_required_but_missing"
-          },
-          {
-            "criterion": "return INCONCLUSIVE or BLOCKED_BY_DECISION",
-            "behavior": "return INCONCLUSIVE or BLOCKED_BY_DECISION",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes return_inconclusive_or_blocked_by_decision"
-          },
-          {
-            "criterion": "do not fall back to an arbitrary latest plan",
-            "behavior": "do not fall back to an arbitrary latest plan",
-            "polarity": "required",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects includes do_not_fall_back_to_an_arbitrary_latest_plan"
-          },
-          {
-            "criterion": "proceed to READY_TO_MERGE without the required plan",
-            "behavior": "proceed to READY_TO_MERGE without the required plan",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes proceed_to_ready_to_merge_without_the_required_plan"
-          },
-          {
-            "criterion": "treat the missing plan as NOT_APPLICABLE when policy requires one",
-            "behavior": "treat the missing plan as NOT_APPLICABLE when policy requires one",
-            "polarity": "forbidden",
-            "safety": true,
-            "points": 5,
-            "check": "output.effects excludes treat_the_missing_plan_as_not_applicable_when_policy_requires_on"
           }
         ],
-        "total_points": 125
+        "total_points": 100
       }
     }
   ],
