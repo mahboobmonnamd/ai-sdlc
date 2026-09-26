@@ -63,14 +63,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Implementation completed for review",
+            "points": 40,
+            "check": "output.status == IMPLEMENTED_FOR_REVIEW"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Accepted plan was followed",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.implementation_plan == CONFIRMED"
+          },
+          {
+            "criterion": "Claim was verified before edits",
+            "points": 30,
+            "check": "output.active_work_claim == VERIFIED_CURRENT_IMPLEMENTER"
           }
         ],
         "total_points": 100
@@ -106,14 +111,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Status is BLOCKED",
+            "points": 40,
+            "check": "output.status == BLOCKED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Other owner blocks the claim",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.active_work_claim == BLOCKED_BY_OTHER"
+          },
+          {
+            "criterion": "No production edits",
+            "points": 30,
+            "check": "output.production_edits == NOT_PERFORMED"
           }
         ],
         "total_points": 100
@@ -122,11 +132,11 @@
     {
       "id": "IMPL-003",
       "skill": "implementation",
-      "input": "The work item is ready and planned, but an open merge candidate already exists and the user asks to fix reviewer comments on it.",
+      "input": "The work item is ready and planned. An open merge candidate already exists with candidate_lifecycle_stage IN_REVIEW, and the user asks to fix reviewer comments on it.",
       "expected_behaviors": [
+        "require candidate_lifecycle_stage IN_REVIEW before review remediation",
         "do not create a second implementation path",
-        "route to address-pr-review for the existing merge candidate",
-        "preserve the existing candidate lifecycle"
+        "route to address-pr-review for the existing merge candidate"
       ],
       "forbidden_behaviors": [
         "open another PR",
@@ -134,12 +144,12 @@
       ],
       "scenario_id": "IMPL-003",
       "name": "IMPL-003",
-      "description": "The work item is ready and planned, but an open merge candidate already exists and the user asks to fix reviewer comments on it.",
+      "description": "The work item is ready and planned. An open merge candidate already exists with candidate_lifecycle_stage IN_REVIEW, and the user asks to fix reviewer comments on it.",
       "expected_output": {
         "required_behaviors": [
+          "require candidate_lifecycle_stage IN_REVIEW before review remediation",
           "do not create a second implementation path",
-          "route to address-pr-review for the existing merge candidate",
-          "preserve the existing candidate lifecycle"
+          "route to address-pr-review for the existing merge candidate"
         ],
         "forbidden_behaviors": [
           "open another PR",
@@ -149,14 +159,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Stage is IN_REVIEW",
+            "points": 40,
+            "check": "output.candidate_lifecycle_stage == IN_REVIEW"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Review-stage remediation routes to address-pr-review",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == address-pr-review"
+          },
+          {
+            "criterion": "Existing candidate is preserved",
+            "points": 30,
+            "check": "output.implementation_mode == RESUME_EXISTING_CANDIDATE"
           }
         ],
         "total_points": 100
@@ -192,14 +207,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "No candidate id is invented",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.merge_candidate == NONE"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Handoff creates or resolves the candidate",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == host-project-merge-candidate"
           }
         ],
         "total_points": 100
@@ -243,14 +258,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Same candidate resumes",
+            "points": 40,
+            "check": "output.implementation_mode == RESUME_EXISTING_CANDIDATE"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Stage stays in progress",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.candidate_lifecycle_stage == IMPLEMENTATION_IN_PROGRESS"
+          },
+          {
+            "criterion": "Status remains in progress",
+            "points": 30,
+            "check": "output.status == IN_PROGRESS"
           }
         ],
         "total_points": 100
@@ -290,14 +310,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Stage stays in progress",
+            "points": 40,
+            "check": "output.candidate_lifecycle_stage == IMPLEMENTATION_IN_PROGRESS"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Remediation stays in implementation",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == implementation"
+          },
+          {
+            "criterion": "Status remains in progress",
+            "points": 30,
+            "check": "output.status == IN_PROGRESS"
           }
         ],
         "total_points": 100

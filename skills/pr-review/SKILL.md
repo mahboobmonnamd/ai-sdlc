@@ -70,7 +70,11 @@ A changed candidate revision invalidates the prior merge-readiness verdict.
 4. Review implementation correctness and permanent-production intent across that full map.
 5. Verify architecture/authority was not silently changed.
 6. Audit tests and required checks for weakened assertions, skipped/bypassed paths, mocks/fakes that replace production behavior, stale artifacts, and revision mismatch.
-7. Run or consume `verification`; for revision-sensitive evidence require `verified_revision == reviewed_revision` unless project policy explicitly authorizes carry-forward. Reconsider every mandatory criterion as `PROVEN | FAILED | INCONCLUSIVE | ENVIRONMENT_UNSUPPORTED`.
+7. Run or consume `verification` for exact-revision evidence. Choose a legal verification target from lifecycle context:
+   - `lifecycle_work_item = AVAILABLE` → `verification_target: work_item` with that `work_item_id`;
+   - `lifecycle_work_item = NOT_APPLICABLE` → `verification_target: merge_candidate`, using this `merge_candidate_id` plus reconstructed candidate intent, repository authority, tests/checks, and applicable requirements. Do not invent a work item, and do not skip verification;
+   - `REQUIRED_BUT_MISSING` → already stopped; do not call verification with a fabricated target.
+   For revision-sensitive evidence require `verified_revision == reviewed_revision` unless project policy explicitly authorizes carry-forward. Reconsider every mandatory criterion as `PROVEN | FAILED | INCONCLUSIVE | ENVIRONMENT_UNSUPPORTED`.
 8. Audit material measurements by actual boundary, workload, environment/configuration, statistics, instrumentation, and exact revision.
 9. Run/consume only specialist reviews required by project policy or material risk.
 10. Compare PR/docs/work-item (when available) claims with the exact implementation and evidence.
@@ -90,6 +94,12 @@ base_revision_or_target
 candidate_lifecycle_stage: IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
 lifecycle_work_item: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
 lifecycle_accepted_plan: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
+verification_target: work_item | merge_candidate
+review_scope: FULL_CANDIDATE | PREMATURE
+review_coverage: COMPLETE | INCOMPLETE
+finding_stop_policy: CONTINUE_AFTER_BLOCKERS
+re_review_mode: FULL_NOT_DELTA | NOT_A_REREVIEW
+separate_code_review_skill: NOT_REQUIRED
 verification_evidence_revision: <exact revision> | NOT_REVISION_SENSITIVE | INCONCLUSIVE
 blocking_findings
 review_coverage

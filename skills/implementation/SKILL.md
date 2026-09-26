@@ -79,7 +79,8 @@ Stop for missing/ambiguous/closed work item, NEW work that is not READY, stale r
 7. Run narrow checks continuously, then all project-required checks for this work. While stage is `IMPLEMENTATION_IN_PROGRESS`, fix failing checks needed to complete accepted scope here rather than routing to `address-pr-review` / `pr-review`.
 8. Record exact proof for claimed success; write `unknown` rather than inventing evidence.
 9. If implementation exposes a material authority/design fork or makes the plan stale, stop and route backward.
-10. When accepted-scope implementation is complete, set/record stage `IN_REVIEW` on the existing candidate if one exists; otherwise let host/project policy create or resolve the concrete candidate in review stage. Do not invent a candidate ID. Only then hand off to `pr-review`.
+10. Persist `candidate_lifecycle_stage` on the durable candidate/checkpoint record. `implementation` is the only skill that may transition it: set `IMPLEMENTATION_IN_PROGRESS` while accepted scope is incomplete, and set `IN_REVIEW` only when accepted-scope implementation is complete. Record `stage_set_by: implementation` and `stage_set_at`. Do not leave the stage only in the current session.
+11. When accepted-scope implementation is complete, persist stage `IN_REVIEW` on the existing candidate if one exists; otherwise let host/project policy create or resolve the concrete candidate in review stage. Do not invent a candidate ID. Only then hand off to `pr-review`.
 
 ## Output contract
 
@@ -96,6 +97,9 @@ merge_candidate: NONE | OPEN:<id> | UNKNOWN
 candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW
 merge_candidate_ownership: CURRENT_IMPLEMENTER | OTHER_IMPLEMENTER | UNKNOWN | NOT_APPLICABLE
 active_work_claim: NOT_APPLICABLE | VERIFIED_CURRENT_IMPLEMENTER | BLOCKED_BY_OTHER | CLAIM_FAILED
+production_edits: NOT_PERFORMED | PERFORMED
+edits_started_before_claim_reread: true | false
+next_action: implementation | address-pr-review | host-project-merge-candidate | pr-review | implementation-planning | development-readiness | plan-acceptance
 implemented_scope
 changed_surfaces
 tests_or_evidence_added

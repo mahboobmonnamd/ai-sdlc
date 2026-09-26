@@ -220,7 +220,7 @@ class SkillCatalogTests(unittest.TestCase):
         contract = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow = next(
             scenario
-            for scenario in contract["integration_scenarios"]
+            for scenario in contract["scenarios"]
             if scenario["id"] == "FLOW-001"
         )
         self.assertEqual(
@@ -261,11 +261,11 @@ class SkillCatalogTests(unittest.TestCase):
         integration = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow5 = next(
             scenario
-            for scenario in integration["integration_scenarios"]
+            for scenario in integration["scenarios"]
             if scenario["id"] == "FLOW-005"
         )
         self.assertEqual(["verification", "pr-review"], flow5["expected_route"])
-        flow9 = next(f for f in integration["integration_scenarios"] if f["id"] == "FLOW-009")
+        flow9 = next(f for f in integration["scenarios"] if f["id"] == "FLOW-009")
         self.assertEqual(
             [
                 "implementation:resume-existing-candidate",
@@ -312,7 +312,7 @@ class SkillCatalogTests(unittest.TestCase):
         )
         integration = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow = next(
-            f for f in integration["integration_scenarios"] if f["id"] == "FLOW-007"
+            f for f in integration["scenarios"] if f["id"] == "FLOW-007"
         )
         self.assertEqual(
             ["implementation:resume-existing-candidate", "implementation:complete", "pr-review"],
@@ -357,7 +357,7 @@ class SkillCatalogTests(unittest.TestCase):
         contract = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow = next(
             scenario
-            for scenario in contract["integration_scenarios"]
+            for scenario in contract["scenarios"]
             if scenario["id"] == "FLOW-002"
         )
         self.assertEqual(
@@ -397,6 +397,9 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertIn("address-pr-review", pr_review)
         self.assertIn("UX-008", pr_review)
         self.assertIn("NOT_APPLICABLE", pr_review)
+        self.assertIn("verification_target: merge_candidate", pr_review)
+        contract = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
+        self.assertNotIn("integration_scenarios", contract)
 
     def test_address_pr_review_requires_complete_inventory(self):
         remediation = (
@@ -421,6 +424,15 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertIn("14 entity kinds, 12 relationship types", status)
         self.assertIn("Amendment — 2026-09-26", status)
         self.assertIn("2.0.0", status)
+        self.assertIn("Do not invent accepted_by", model)
+        self.assertIn("candidate_lifecycle_stage", model)
+        resume = (ROOT / "phase-0" / "P0-05-resumability.md").read_text(encoding="utf-8")
+        self.assertIn("candidate_lifecycle_stage", resume)
+        self.assertIn("Never default a missing stage to `IN_REVIEW`", resume)
+        rigor = (ROOT / "phase-0" / "P0-06-rigor-profiles.md").read_text(encoding="utf-8")
+        self.assertIn("Plan Acceptance", rigor)
+        verification = (ROOT / "skills" / "verification" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("merge_candidate_id", verification)
 
 
 if __name__ == "__main__":

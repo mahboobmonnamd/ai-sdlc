@@ -89,9 +89,10 @@ Project C chooses "Standard"
 2. Specification Writer (optional; acceptance criteria may be sufficient)
 3. Work Item Design
 4. Implementation Planning (compact; no separate design document required)
-5. Development Readiness
-6. Implementation
-7. PR Review (peer; consumes light verification evidence)
+5. Plan Acceptance (project-defined technical authority; records accepted_by / accepted_at; advances accepted_plan)
+6. Development Readiness
+7. Implementation
+8. PR Review (peer; consumes light verification evidence)
 
 **Verification Gates:**
 - Unit tests > 60% coverage (not 80%)
@@ -126,10 +127,11 @@ Project C chooses "Standard"
 2. Specification Writer (required)
 3. Work Item Design
 4. Implementation Planning
-5. Development Readiness
-6. Implementation
-7. Regression Testing
-8. PR Review (tech lead + peer; consumes comprehensive verification evidence)
+5. Plan Acceptance (project-defined technical authority; records accepted_by / accepted_at; advances accepted_plan)
+6. Development Readiness
+7. Implementation
+8. Regression Testing
+9. PR Review (tech lead + peer; consumes comprehensive verification evidence)
 
 **Verification Gates:**
 - Unit tests > 80% coverage
@@ -166,12 +168,13 @@ Project C chooses "Standard"
 2. Specification Writer (formal, detailed)
 3. Work Item Design
 4. Implementation Planning (formal, traceable)
-5. Development Readiness
-6. Implementation (with traceability)
-7. Security Review
-8. Compliance Review
-9. PR Review (formal, documented; consumes formal verification and specialist evidence)
-10. External Audit (if required)
+5. Plan Acceptance (project-defined technical authority; records accepted_by / accepted_at; advances accepted_plan)
+6. Development Readiness
+7. Implementation (with traceability)
+8. Security Review
+9. Compliance Review
+10. PR Review (formal, documented; consumes formal verification and specialist evidence)
+11. External Audit (if required)
 
 **Verification Gates:**
 - Unit tests > 95% coverage
@@ -328,6 +331,7 @@ Lightweight:
 ├─ Specification Writer (optional)
 ├─ Work Item Design (required)
 ├─ Implementation Planning (required, compact)
+├─ Plan Acceptance (required; project technical authority)
 ├─ Development Readiness (required)
 ├─ Implementation (required)
 └─ PR Review (required; consumes light verification evidence)
@@ -337,6 +341,7 @@ Standard:
 ├─ Specification Writer (required)
 ├─ Work Item Design (required)
 ├─ Implementation Planning (required)
+├─ Plan Acceptance (required; project technical authority)
 ├─ Development Readiness (required)
 ├─ Implementation (required)
 ├─ Regression Tester
@@ -348,6 +353,7 @@ High-Rigor:
 ├─ Specification Writer (required, formal)
 ├─ Work Item Design (required)
 ├─ Implementation Planning (required, formal/traceable)
+├─ Plan Acceptance (required; project technical authority)
 ├─ Development Readiness (required)
 ├─ Implementation (required, with traceability)
 ├─ Security Reviewer (required)

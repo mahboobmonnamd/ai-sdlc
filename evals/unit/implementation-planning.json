@@ -36,7 +36,7 @@
         "identify intended production surfaces and implementation sequence",
         "map acceptance criteria to tests/evidence",
         "surface risk and specialist gates",
-        "handoff to development-readiness"
+        "handoff to plan-acceptance before development-readiness"
       ],
       "forbidden_behaviors": [
         "claim the work item",
@@ -52,7 +52,7 @@
           "identify intended production surfaces and implementation sequence",
           "map acceptance criteria to tests/evidence",
           "surface risk and specialist gates",
-          "handoff to development-readiness"
+          "handoff to plan-acceptance before development-readiness"
         ],
         "forbidden_behaviors": [
           "claim the work item",
@@ -63,14 +63,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Plan status is PROPOSED",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.plan_status == PROPOSED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Next action is plan acceptance",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == plan-acceptance"
           }
         ],
         "total_points": 100
@@ -106,14 +106,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Plan status is BLOCKED",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.plan_status == BLOCKED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Next action is the decision activity",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == decision-activity"
           }
         ],
         "total_points": 100
@@ -157,14 +157,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Refreshed revision stays PROPOSED",
+            "points": 40,
+            "check": "output.plan_status == PROPOSED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Planning does not advance accepted_plan",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.accepted_plan_pointer == UNCHANGED"
+          },
+          {
+            "criterion": "Exact revision is addressable",
+            "points": 30,
+            "check": "output.plan_content_ref == REVISION_ADDRESSABLE"
           }
         ],
         "total_points": 100
@@ -202,14 +207,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Plan status is PROPOSED",
+            "points": 40,
+            "check": "output.plan_status == PROPOSED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "accepted_plan stays unset",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.accepted_plan_pointer == UNCHANGED"
+          },
+          {
+            "criterion": "Next action is plan acceptance",
+            "points": 30,
+            "check": "output.next_action == plan-acceptance"
           }
         ],
         "total_points": 100

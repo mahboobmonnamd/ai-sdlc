@@ -72,8 +72,11 @@ query_terms
 matched_entities: id + kind + concise summary
 relationships_needed
 source_paths
-staleness_or_conflict_status
-unknowns
+staleness_or_conflict_status: CURRENT | STALE | CONFLICT | UNKNOWN
+authority_basis: AUTHORITATIVE_SOURCE | SUMMARY_ONLY | UNKNOWN
+unknowns: REPORTED | NONE
+external_transmission: NOT_SENT | AUTHORIZED | BLOCKED
+authorization_required: EXPLICIT | NOT_APPLICABLE
 fallback_or_next_search (when needed)
 ```
 

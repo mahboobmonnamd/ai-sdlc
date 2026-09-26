@@ -59,14 +59,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Verdict is failed or inconclusive",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.verdict in ['FAILED', 'INCONCLUSIVE']"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Target is the work item",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.verification_target == work_item"
           }
         ],
         "total_points": 100
@@ -102,14 +102,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Verdict is verified",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.verdict == VERIFIED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Criterion-level evidence is present",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.criteria_evidence == PRESENT"
           }
         ],
         "total_points": 100
@@ -145,14 +145,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Verdict is verified",
+            "points": 40,
+            "check": "output.verdict == VERIFIED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "criterion": "Next action is pr-review",
+            "points": 60,
+            "check": "output.next_action == pr-review"
           }
         ],
         "total_points": 100
@@ -190,14 +190,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Evidence was gathered for abc123",
+            "points": 40,
+            "check": "output.evidence_revision_evaluated == abc123"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Head moved to def456",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.head_revision == def456"
+          },
+          {
+            "criterion": "Verified is refused for the new head",
+            "points": 30,
+            "check": "output.verdict != VERIFIED"
           }
         ],
         "total_points": 100

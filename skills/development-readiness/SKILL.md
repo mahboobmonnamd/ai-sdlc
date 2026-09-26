@@ -93,6 +93,7 @@ verdict: READY | NOT_READY | AWAITING_DECISION | NEEDS_SPIKE | BLOCKED
 reason
 blocking_items
 implementation_plan: PRESENT | MISSING | STALE | PROPOSED_ONLY | UNKNOWN
+plan_staleness: CURRENT | STALE | UNKNOWN
 accepted_plan_reference: <plan_id>@<plan_revision> | MISSING | UNKNOWN
 accepted_plan_id
 accepted_plan_revision

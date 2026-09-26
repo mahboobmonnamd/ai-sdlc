@@ -234,6 +234,26 @@ work_item:
 
 `accepted_plan.plan_id + accepted_plan.plan_revision` is the resolution key used by readiness, implementation, resumability, and (when lifecycle plan context is `AVAILABLE`) PR review. Updating ordinary coordination metadata must not change this pointer. Accepting a refreshed plan advances the pointer only after the project-defined technical authority accepts that plan revision and records `accepted_by` / `accepted_at` (or project-equivalent evidence fields). A `PROPOSED` plan without that evidence must not pass readiness.
 
+### Candidate lifecycle stage
+
+When a merge candidate exists, its stage is durable project state, not session memory. Resume, consumer facades, and review routing read this record. If it is absent, reconstruct it using the rules in P0-05; do not assume `IN_REVIEW`.
+
+```yaml
+merge_candidate:
+  id: "PR-99"
+  work_item_id: "WI-042"          # null when lifecycle_work_item is NOT_APPLICABLE
+  candidate_lifecycle_stage: "IMPLEMENTATION_IN_PROGRESS"  # or IN_REVIEW
+  stage_set_by: "implementation"  # only implementation may transition the stage
+  stage_set_at: "2026-09-26T12:00:00Z"
+  stage_reason: "accepted scope still incomplete"
+```
+
+Transition authority:
+
+- `implementation` sets `IMPLEMENTATION_IN_PROGRESS` when accepted scope is incomplete, including while CI fails or early comments exist.
+- `implementation` sets `IN_REVIEW` only after accepted-scope implementation is complete.
+- `pr-review` and `address-pr-review` must not promote an incomplete candidate to `IN_REVIEW`.
+
 The storage representation must make every referenced `(plan_id, plan_revision)` **resolvable to immutable plan content**. Keeping only the latest mutable plan body is insufficient. A project may satisfy this with immutable revision records, an embedded revision history, or VCS-backed revision/source references, but consumers must be able to load the exact accepted revision without guessing from "latest".
 
 ### Directory Structure
@@ -657,7 +677,9 @@ compatibility:
 # - major-version changes require migration.
 ```
 
-### Migration Path (v1.0.0 → v2.0.0 example)
+### Migration Path (v1.0.0 → v2.0.0)
+
+This is the migration for the breaking change that caused the 2.0.0 bump: mandatory implementation-plan identity and acceptance evidence. It is not a rename of unrelated decision fields.
 
 ```yaml
 # docs/migrations/v1-to-v2.yaml
@@ -665,29 +687,52 @@ version_from: "1.0.0"
 version_to: "2.0.0"
 
 changes:
-  - entity: "decision_escalation"
-    change_type: "new_entity"
-    description: "New entity kind for tracking unresolved decisions"
-    
-  - field: "decision_type"
-    entity: "decision"
-    change_type: "added"
-    default: "architecture"
-    
-  - field: "old_field_name"
-    entity: "requirement"
-    change_type: "renamed"
-    new_field_name: "new_field_name"
+  - entity: "implementation_plan"
+    change_type: "new_required_semantics"
+    description: "Durable proposed plan revisions. 1.x projects do not have them."
+
+  - field: "accepted_plan"
+    entity: "work_item"
+    change_type: "new_required_before_implementation"
+    description: "Pointer to plan_id + plan_revision plus accepted_by and accepted_at. Must not be fabricated from an old plan file or from agent output."
+
+  - field: "candidate_lifecycle_stage"
+    entity: "merge_candidate"
+    change_type: "new_when_candidate_exists"
+    description: "Durable IMPLEMENTATION_IN_PROGRESS or IN_REVIEW. Missing stage is reconstructed, never defaulted to IN_REVIEW."
+
+migration_rules:
+  - "Do not copy a generated or historical plan into accepted_plan."
+  - "Do not invent accepted_by, accepted_at, or acceptance_source."
+  - "A 1.x work item with no recorded technical-authority acceptance has no accepted plan."
 
 migration_steps:
   - step: 1
-    description: "Add decision_type field with default value"
-    command: "migration --step=1 --from=1.0.0 --to=2.0.0"
-    
+    description: "Inventory work items that already have implementation in progress or a merge candidate."
+    action: "Mark each of those work items NOT_READY for further implementation until the steps below finish."
+
   - step: 2
-    description: "Validate no breaking changes detected"
-    validation: "all-entities-valid"
+    description: "Propose a plan without accepting it."
+    action: "Run implementation-planning. Persist plan_status PROPOSED. Leave accepted_plan unset."
+
+  - step: 3
+    description: "Accept only through project technical authority."
+    action: "An authorized person or policy operation records accepted_by and accepted_at and then advances accepted_plan. Planning output is not this step."
+
+  - step: 4
+    description: "Re-run development-readiness."
+    action: "Implementation stays blocked until readiness returns READY against the accepted revision."
+
+  - step: 5
+    description: "Record candidate stage from evidence, not from the migration itself."
+    action: "If accepted scope is still incomplete, set IMPLEMENTATION_IN_PROGRESS. If scope is complete and the candidate is already in review, set IN_REVIEW. If that cannot be shown, set UNKNOWN and do not route to address-pr-review."
+
+  - step: 6
+    description: "Leave not-yet-started 1.x work without an accepted plan."
+    action: "Those items gain a plan only when planning and acceptance actually happen. Absence is not backfilled."
 ```
+
+Work that was implementable under 1.x does not stay implementable merely because a plan document can be generated. Affected implementation work is not-ready until a plan is proposed and explicitly accepted.
 
 ---
 

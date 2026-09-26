@@ -1913,7 +1913,10 @@ technical-spike
 architecture/spec/work item updated
 
 implementation-planning
-  → current accepted plan with plan_id + plan_revision
+  → PROPOSED plan with plan_id + plan_revision
+
+plan-acceptance
+  → accepted_plan with accepted_by + accepted_at
 
 development-readiness
   → READY
@@ -1971,7 +1974,10 @@ work-item-design
   → refresh ticket against accepted session model
 
 implementation-planning
-  → current codebase-specific plan with durable plan identity
+  → PROPOSED codebase-specific plan with durable plan identity
+
+plan-acceptance
+  → accepted_plan with accepted_by + accepted_at
 
 development-readiness
   → READY
@@ -2253,6 +2259,7 @@ Build the minimum workflow that demonstrates the thesis:
 - `product-requirements`
 - `work-item-design`
 - `implementation-planning`
+- plan acceptance (project-defined technical authority; not a skill that self-accepts)
 - `development-readiness`
 - `technical-spike`
 - `verification`
@@ -2261,7 +2268,7 @@ Build the minimum workflow that demonstrates the thesis:
 - lightweight + standard profile support
 - explicit routing/authority/context contracts
 
-**Exit:** vague idea → validated PRD → planning-ready work item → implementation plan/spike → final development readiness → verification can be demonstrated generically without requiring a tracker integration or custom orchestrator agent.
+**Exit:** vague idea → validated PRD → planning-ready work item → proposed implementation plan/spike → explicit plan acceptance → final development readiness → verification can be demonstrated generically without requiring a tracker integration or custom orchestrator agent.
 
 ### Phase 2 — Development loop
 Add:

@@ -93,14 +93,16 @@ slice_plan_or_child_items
 risk_and_specialist_impacts
 verification_procedure
 readiness_for_planning: READY | REFINEMENT_REQUIRED | BLOCKED
+next_action: implementation-planning | decision-activity | spike | split
+ownership_claim: NOT_PERFORMED
 blocking_reason
 unknowns
 ```
 
 ## Handoff
 
-- READY → `implementation-planning`.
+- READY → `implementation-planning`, then project-defined plan acceptance, then `development-readiness`.
 - Missing authority/acceptance → appropriate upstream decision/requirements activity, then re-run work-item design.
 - Material feasibility unknown → isolated non-mergeable spike.
 - Oversized work → recursively design smaller dependent work items.
-- After an implementation plan exists → `development-readiness` before `implementation`.
+- A proposed plan is not readiness. After plan acceptance records `accepted_plan`, run `development-readiness` before `implementation`.

@@ -788,6 +788,8 @@
 
 ## Part 4: Test Harness & Scoring Engine (Python Pseudocode)
 
+The executable judge is `tools/eval_judge.py`. It scores adapter output fields. It does not treat `required_behaviors_satisfied`, `forbidden_behaviors_absent`, or `route_matched` as evidence; contract validation rejects those checks. Integration routes are scored by comparing `observed_route` from an orchestration adapter (`execute(scenario) -> {observed_route: [...]}`) with `expected_route`. Register adapters with `tools/run_integration_eval.py --skill-adapter NAME=module:callable` and `--orchestration-adapter module:callable`. A wiring fixture is not a behavioral run; contract `results.status` stays `NOT_RUN` until a live adapter executes.
+
 ```python
 class EvaluationContractHarness:
     """Execute evaluation contracts and measure skill quality."""

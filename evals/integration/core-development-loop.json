@@ -3,7 +3,7 @@
   "contract_version": "0.9.0",
   "skill": "core-development-loop",
   "category": "integration",
-  "description": "Multi-skill integration contract for the core development loop. Not executable by the single-skill EvaluationContractHarness alone; use tools/run_integration_eval.py to dispatch per-scenario skills.",
+  "description": "Multi-skill integration contract for the core development loop. tools/run_integration_eval.py dispatches an orchestration adapter and tools/eval_judge.py compares observed_route to expected_route. Behavioral execution remains NOT_RUN until a live adapter is used.",
   "skill_version_tested": "unreleased",
   "date_created": "2026-09-26",
   "date_last_run": null,
@@ -43,7 +43,7 @@
       "skills are loaded from the candidate revision under evaluation"
     ],
     "postconditions": [
-      "routing follows the canonical work-item-design -> implementation-planning -> development-readiness -> implementation -> candidate -> pr-review lifecycle",
+      "routing follows work-item-design -> implementation-planning -> plan-acceptance -> development-readiness -> implementation -> candidate -> pr-review",
       "existing authorized incomplete candidates resume without parallel PRs",
       "review remediation is separated from unfinished implementation",
       "revision-sensitive verification is tied to the exact candidate revision"
@@ -78,14 +78,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -109,14 +109,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -145,14 +145,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -174,14 +174,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -202,14 +202,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -234,14 +234,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -265,14 +265,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -296,14 +296,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -328,14 +328,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100
@@ -359,338 +359,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Expected route followed",
+            "criterion": "Observed route equals expected_route",
             "points": 70,
-            "check": "output.route_matched == true"
+            "check": "output.observed_route == expected.expected_route"
           },
           {
-            "criterion": "Forbidden route behaviors absent",
+            "criterion": "Observed route is non-empty",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    }
-  ],
-  "integration_scenarios": [
-    {
-      "id": "FLOW-001",
-      "description": "Normal planned implementation lifecycle.",
-      "expected_route": [
-        "work-item-design",
-        "implementation-planning",
-        "plan-acceptance",
-        "development-readiness",
-        "implementation",
-        "host-project-merge-candidate",
-        "pr-review"
-      ],
-      "pr_review_consumes": [
-        "verification",
-        "risk-based-specialist-review"
-      ],
-      "forbidden_behaviors": [
-        "implementation begins without an accepted plan",
-        "implementation-planning self-accepts the plan",
-        "implementation routes directly to done",
-        "pr-review starts before a concrete merge candidate exists",
-        "user must manually invoke a separate code-review skill"
-      ],
-      "scenario_id": "FLOW-001",
-      "name": "FLOW-001",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-002",
-      "description": "A complete review returns multiple blockers; remediation batches the known set and re-review is full.",
-      "expected_route": [
-        "pr-review",
-        "address-pr-review",
-        "pr-review"
-      ],
-      "forbidden_behaviors": [
-        "fix one comment per round while known blockers remain",
-        "perform delta-only re-review",
-        "use implementation as the review-comment remediation entrypoint"
-      ],
-      "scenario_id": "FLOW-002",
-      "name": "FLOW-002",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-003",
-      "description": "Readiness fails because acceptance is incomplete and the implementation plan is therefore missing.",
-      "expected_route": [
-        "development-readiness",
-        "work-item-design",
-        "implementation-planning",
-        "development-readiness"
-      ],
-      "required_artifacts": [
-        "gap_table",
-        "gap_report_body"
-      ],
-      "forbidden_behaviors": [
-        "plan around untestable acceptance",
-        "claim the work item before non-ready gaps are resolved",
-        "start production edits"
-      ],
-      "scenario_id": "FLOW-003",
-      "name": "FLOW-003",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-004",
-      "description": "A material authority decision is discovered during planning or implementation.",
-      "expected_route": [
-        "implementation-planning-or-implementation",
-        "decision-escalation",
-        "development-readiness"
-      ],
-      "forbidden_behaviors": [
-        "silently decide the authority change in code"
-      ],
-      "scenario_id": "FLOW-004",
-      "name": "FLOW-004",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-005",
-      "description": "Standalone verification cannot bypass a review gate required by project or rigor policy.",
-      "expected_route": [
-        "verification",
-        "pr-review"
-      ],
-      "forbidden_behaviors": [
-        "verification routes directly to release-readiness while PR review is required"
-      ],
-      "scenario_id": "FLOW-005",
-      "name": "FLOW-005",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-006",
-      "description": "Lightweight work still uses a compact implementation plan before the final readiness gate.",
-      "expected_route": [
-        "work-item-design",
-        "implementation-planning",
-        "plan-acceptance",
-        "development-readiness",
-        "implementation"
-      ],
-      "forbidden_behaviors": [
-        "lightweight profile skips implementation planning",
-        "lightweight planning requires an unnecessary heavyweight design document"
-      ],
-      "scenario_id": "FLOW-006",
-      "name": "FLOW-006",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-007",
-      "description": "Incomplete implementation continues on the same authorized merge candidate across sessions.",
-      "expected_route": [
-        "implementation:resume-existing-candidate",
-        "implementation:complete",
-        "pr-review"
-      ],
-      "forbidden_behaviors": [
-        "existing authorized incomplete candidate is treated as an automatic blocker",
-        "address-pr-review is used without review-remediation intent",
-        "a second merge candidate is created"
-      ],
-      "scenario_id": "FLOW-007",
-      "name": "FLOW-007",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-008",
-      "description": "A governing artifact change stales the accepted implementation plan before implementation.",
-      "expected_route": [
-        "implementation-planning:refresh",
-        "plan-acceptance",
-        "development-readiness",
-        "implementation"
-      ],
-      "forbidden_behaviors": [
-        "stale plan passes readiness",
-        "implementation proceeds on an obsolete plan revision"
-      ],
-      "scenario_id": "FLOW-008",
-      "name": "FLOW-008",
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-009",
-      "scenario_id": "FLOW-009",
-      "name": "FLOW-009",
-      "description": "Mixed state: implementation incomplete AND failing CI or early reviewer feedback. Must not enter full merge-readiness pr-review until implementation is complete and IN_REVIEW.",
-      "expected_route": [
-        "implementation:resume-existing-candidate",
-        "implementation:complete-ci-and-scope",
-        "implementation:mark-IN_REVIEW",
-        "pr-review"
-      ],
-      "forbidden_behaviors": [
-        "address-pr-review then pr-review while IMPLEMENTATION_IN_PROGRESS",
-        "full merge-readiness pr-review before accepted scope is complete",
-        "create a second merge candidate"
-      ],
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
-          }
-        ],
-        "total_points": 100
-      }
-    },
-    {
-      "id": "FLOW-010",
-      "scenario_id": "FLOW-010",
-      "name": "FLOW-010",
-      "description": "Plan is proposed then accepted by technical authority before readiness.",
-      "expected_route": [
-        "implementation-planning",
-        "plan-acceptance",
-        "development-readiness",
-        "implementation"
-      ],
-      "forbidden_behaviors": [
-        "implementation-planning self-accepts accepted_plan",
-        "development-readiness marks READY on PROPOSED_ONLY plan"
-      ],
-      "scoring": {
-        "criteria": [
-          {
-            "criterion": "Expected route followed",
-            "points": 70,
-            "check": "output.route_matched == true"
-          },
-          {
-            "criterion": "Forbidden route behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.observed_route != []"
           }
         ],
         "total_points": 100

@@ -7,12 +7,17 @@ description: Prove acceptance outcomes with revision-traceable evidence; not for
 
 ## Invocation contract
 
-Required input:
+Required input is one verification target, plus revision when the evidence is revision-sensitive:
 
 ```text
-work_item_id: authoritative work-item identifier
+verification_target: work_item | merge_candidate
+work_item_id: required when verification_target is work_item
+merge_candidate_id: required when verification_target is merge_candidate
+candidate_intent: required when verification_target is merge_candidate; reconstructed from the candidate description, repository authority, and applicable requirements
 candidate_revision: exact implementation revision when verification is revision-sensitive
 ```
+
+Use `work_item` when an owning work item is available. Use `merge_candidate` when `pr-review` classified `lifecycle_work_item` as `NOT_APPLICABLE` (external, docs, dependency, legacy, or other no-work-item candidates). Do not invent a work item to satisfy this skill. Do not require `work_item_id` for that target.
 
 A consuming project may omit `candidate_revision` only when its evidence model is explicitly not revision-sensitive. Never guess a revision when the host exposes one. When a revision is supplied, verification must return that exact verified revision.
 
@@ -55,7 +60,7 @@ Verification cannot pass when:
 ## Procedure
 
 1. Resolve and record `candidate_revision` before gathering revision-sensitive evidence. If no revision applies under project policy, record `NOT_REVISION_SENSITIVE`.
-2. Translate every applicable acceptance criterion into one or more evidence items before considering the implementation result.
+2. Translate every applicable acceptance criterion into one or more evidence items before considering the implementation result. For `verification_target: work_item`, criteria come from the work item. For `verification_target: merge_candidate`, criteria come from candidate intent, repository authority, tests/checks, and applicable requirements.
 3. Map each evidence item to its authoritative source so success cannot be redefined opportunistically.
 4. Gather or execute the strongest practical evidence appropriate to the risk profile: tests, integration behavior, fixtures, reproducible demos, measurements, failure injection, specialist reviews, documentation checks, or operational checks.
 5. Verify negative behavior and important failure conditions where they are part of the contract, not only the successful path.
@@ -74,8 +79,13 @@ Return:
 
 ```text
 verdict: VERIFIED | FAILED | INCONCLUSIVE | BLOCKED_BY_DECISION
+verification_target: work_item | merge_candidate
 verified_revision: <exact revision> | NOT_REVISION_SENSITIVE
 revision_sensitivity: REVISION_SENSITIVE | NOT_REVISION_SENSITIVE
+evidence_revision_evaluated: <revision evidence was gathered for> | NOT_REVISION_SENSITIVE
+head_revision: <current candidate head when known> | UNKNOWN
+criteria_evidence: PRESENT | MISSING
+next_action: pr-review | implementation | address-pr-review | release-readiness | obtain-evidence | decision-activity
 criteria:
   - criterion
     result: PASS | FAIL | INCONCLUSIVE

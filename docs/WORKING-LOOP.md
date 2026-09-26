@@ -42,7 +42,7 @@ There is intentionally **no standalone generic code-review skill**. A request to
 | Accept a proposed plan | project-defined technical authority | plan_id + plan_revision | Records `accepted_by` / `accepted_at`; advances `accepted_plan` |
 | Decide whether implementation may start | development-readiness | work_item_id | Requires accepted plan + acceptance evidence; non-ready must expose gaps |
 | Implement new/incomplete work | implementation | work_item_id | Ready + accepted plan; stage `IMPLEMENTATION_IN_PROGRESS` until scope complete |
-| Prove acceptance outcome | verification | work_item_id (+ revision when applicable) | Evidence per criterion; assertion is not evidence |
+| Prove acceptance outcome | verification | work_item_id or merge_candidate_id (+ revision when applicable) | Work-item criteria, or candidate intent when no work item applies; assertion is not evidence |
 | Review/re-review merge candidate | pr-review | merge_candidate_id | Full review; plan required only when policy/workflow requires it |
 | Fix review comments/check failures (review stage) | address-pr-review | merge_candidate_id | `IN_REVIEW` only; returns to `pr-review` |
 
@@ -97,7 +97,7 @@ Every pr-review is a **full review of the entire current candidate**, including 
 
 The review must cover implementation correctness, scope/architecture, affected production paths, tests, failure/lifecycle/concurrency behavior, acceptance evidence, required CI, measurements, specialist risk where applicable, and documentation/claim accuracy.
 
-When lifecycle plan context is `NOT_APPLICABLE`, review against candidate intent, repository authority, tests/checks, and applicable requirements without requiring an AI-SDLC plan.
+When lifecycle plan context is `NOT_APPLICABLE`, review against candidate intent, repository authority, tests/checks, and applicable requirements without requiring an AI-SDLC plan. Exact-revision verification still runs, with `verification_target: merge_candidate` rather than a work item.
 
 Continue after finding blockers. Complete the review coverage and return every material blocker discovered in the pass. Group duplicate symptoms by root cause; do not hide independent findings and do not apply an arbitrary finding cap.
 

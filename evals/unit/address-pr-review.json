@@ -65,14 +65,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Known material rows are reconciled",
+            "points": 40,
+            "check": "output.status == READY_FOR_FULL_REREVIEW"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Candidate is in review",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.candidate_lifecycle_stage == IN_REVIEW"
+          },
+          {
+            "criterion": "Handoff is full pr-review",
+            "points": 30,
+            "check": "output.next_action == pr-review"
           }
         ],
         "total_points": 100
@@ -108,14 +113,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Authority conflict blocks remediation",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.status == BLOCKED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Next action is the decision activity",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == decision-activity"
           }
         ],
         "total_points": 100
@@ -151,14 +156,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Stage is still implementation",
+            "points": 40,
+            "check": "output.candidate_lifecycle_stage == IMPLEMENTATION_IN_PROGRESS"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Status returns to implementation",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.status == RETURN_TO_IMPLEMENTATION"
+          },
+          {
+            "criterion": "Next action is implementation",
+            "points": 30,
+            "check": "output.next_action == implementation"
           }
         ],
         "total_points": 100

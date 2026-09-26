@@ -62,6 +62,8 @@ plan_revision
 proposed_plan_reference: <plan_id>@<plan_revision>
 plan_content_ref: immutable/revision-addressable source for this exact plan revision
 plan_status: PROPOSED | BLOCKED
+accepted_plan_pointer: UNCHANGED
+next_action: plan-acceptance | work-item-design | decision-activity | spike | BLOCKED
 governing_revisions
 production_surfaces
 implementation_sequence

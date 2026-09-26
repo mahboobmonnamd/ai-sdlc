@@ -44,7 +44,7 @@ work-item-design
 
 verification can be invoked independently and is also consumed by pr-review.
 
-Evaluation layout: per-skill unit contracts under `evals/unit/`, multi-skill integration under `evals/integration/core-development-loop.json`, layout index at `evals/core-development-loop.json`. CI validates contract schema (including per-scenario `scoring.criteria`); behavioral evaluation remains `NOT_RUN` until executed with live skill adapters.
+Evaluation layout: per-skill unit contracts under `evals/unit/`, multi-skill integration under `evals/integration/core-development-loop.json`, layout index at `evals/core-development-loop.json`. CI validates contract schema and rejects self-certification checks. `tools/eval_judge.py` scores real output fields; the integration runner compares `observed_route` with `expected_route`. Behavioral evaluation remains `NOT_RUN` until a live skill adapter executes.
 
 See docs/WORKING-LOOP.md for invocation and governance semantics.
 

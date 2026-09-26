@@ -33,6 +33,13 @@ def _is_integration_contract(contract: dict) -> bool:
     return contract.get("category") == "integration" or contract.get("skill") == "core-development-loop"
 
 
+SELF_CERT_CHECKS = (
+    "required_behaviors_satisfied",
+    "forbidden_behaviors_absent",
+    "route_matched",
+)
+
+
 def validate_criteria(criteria: list, path: str) -> list[str]:
     errors: list[str] = []
     if not criteria:
@@ -52,6 +59,13 @@ def validate_criteria(criteria: list, path: str) -> list[str]:
                 f"{path}: criteria[{i}] missing check/verification expression "
                 "(required by EvaluationContractHarness.score_accuracy)"
             )
+            continue
+        for banned in SELF_CERT_CHECKS:
+            if banned in check:
+                errors.append(
+                    f"{path}: criteria[{i}] uses self-certification field {banned}; "
+                    "assert a real skill output field or compare observed_route to expected_route"
+                )
     return errors
 
 
@@ -92,9 +106,12 @@ def validate_contract(path: Path) -> list[str]:
         if field not in contract:
             errors.append(f"{path}: missing {field}")
 
+    if "scenarios" in contract and "integration_scenarios" in contract:
+        errors.append(
+            f"{path}: declare only one scenario collection; "
+            "integration_scenarios duplicates scenarios and can drift"
+        )
     scenarios = contract.get("scenarios") or []
-    if not scenarios and contract.get("integration_scenarios"):
-        scenarios = contract["integration_scenarios"]
     if not scenarios:
         errors.append(f"{path}: no scenarios")
 

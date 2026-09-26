@@ -59,14 +59,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Verdict is READY",
+            "points": 40,
+            "check": "output.verdict == READY"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Accepted plan is present",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.implementation_plan == PRESENT"
+          },
+          {
+            "criterion": "Handoff is implementation",
+            "points": 30,
+            "check": "output.next_capability == implementation"
           }
         ],
         "total_points": 100
@@ -108,14 +113,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Verdict is not ready",
+            "points": 40,
+            "check": "output.verdict == NOT_READY"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Gap table is present",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.gap_table == PRESENT"
+          },
+          {
+            "criterion": "Gap report body is present",
+            "points": 30,
+            "check": "output.gap_report_body == PRESENT"
           }
         ],
         "total_points": 100
@@ -151,14 +161,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Verdict is not ready",
+            "points": 40,
+            "check": "output.verdict == NOT_READY"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Compact plan is missing",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.implementation_plan == MISSING"
+          },
+          {
+            "criterion": "Route is implementation-planning",
+            "points": 30,
+            "check": "output.next_capability == implementation-planning"
           }
         ],
         "total_points": 100
@@ -198,14 +213,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Verdict is not ready",
+            "points": 40,
+            "check": "output.verdict == NOT_READY"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Plan is stale",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.implementation_plan == STALE"
+          },
+          {
+            "criterion": "Route refreshes the plan",
+            "points": 30,
+            "check": "output.next_capability == implementation-planning"
           }
         ],
         "total_points": 100
@@ -241,14 +261,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Accepted plan stays current",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.implementation_plan == PRESENT"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Coordination metadata did not stale the plan",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.plan_staleness == CURRENT"
           }
         ],
         "total_points": 100
@@ -284,14 +304,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Verdict is not ready",
+            "points": 40,
+            "check": "output.verdict == NOT_READY"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Plan is only proposed",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.implementation_plan == PROPOSED_ONLY"
+          },
+          {
+            "criterion": "Next capability is plan acceptance",
+            "points": 30,
+            "check": "output.next_capability == plan-acceptance"
           }
         ],
         "total_points": 100

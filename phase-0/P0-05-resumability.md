@@ -85,6 +85,9 @@ checkpoint:
   accepted_by: string | null (technical authority identity when plan is accepted)
   accepted_at: string | null (ISO8601 or acceptance-source reference)
   merge_candidate_id: string | null (existing PR/MR/change-list when implementation is already attached to one)
+  candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
+  stage_set_by: implementation | reconstructed | null
+  stage_set_at: timestamp | null
   phase: string (requirements | design | implementation | verification)
   stage: string (in_progress value, e.g., "analyzing_fr_001")
   
@@ -267,7 +270,16 @@ def detect_upstream_changes(checkpoint, context_model):
 
 When `phase=implementation`, checkpoint validation must resolve `accepted_plan_id` + `accepted_plan_revision` **and** acceptance evidence (`accepted_by` / `accepted_at` or equivalent). A merely `PROPOSED` plan without an accepted pointer must not resume production edits. Verify the plan remains current against its governing revisions. If the accepted plan changed or became stale, do not resume production edits from the old checkpoint; route through `implementation-planning`, plan acceptance, and `development-readiness` first.
 
-If `merge_candidate_id` exists, resume only on that same authorized candidate. Reviewer-feedback/check remediation routes to `address-pr-review`; another owner's or ambiguous candidate blocks resume.
+If `merge_candidate_id` exists, resume only on that same authorized candidate. Load `candidate_lifecycle_stage` from the checkpoint and from the durable candidate record (see P0-02). If the checkpoint stage and the candidate record disagree, the candidate record wins and the checkpoint is stale. If both are missing, reconstruct the stage: accepted scope still incomplete → `IMPLEMENTATION_IN_PROGRESS`; accepted scope complete and the candidate is in review → `IN_REVIEW`; otherwise `UNKNOWN`. Never default a missing stage to `IN_REVIEW` or to `address-pr-review`.
+
+Routing on resume:
+
+- `IMPLEMENTATION_IN_PROGRESS` → `implementation`, including failing CI and early reviewer comments needed to finish accepted scope.
+- `IN_REVIEW` and the request is reviewer-feedback or required-check remediation → `address-pr-review`, which returns to `pr-review`.
+- `UNKNOWN` → stop and reconcile the durable stage; do not start merge-readiness review.
+- Another owner's or ambiguous candidate blocks resume.
+
+Only `implementation` may transition the stage, and only by writing the durable candidate record (`stage_set_by: implementation`, `stage_set_at`). `pr-review` and `address-pr-review` read the stage; they do not promote `IMPLEMENTATION_IN_PROGRESS` to `IN_REVIEW`.
 
 ### Step 3: Reconstruct Work State
 
@@ -455,6 +467,12 @@ checkpoint:
   
   # Work Context
   work_item_id: string (WI-042)
+  accepted_plan_id: string | null
+  accepted_plan_revision: number | null
+  merge_candidate_id: string | null
+  candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
+  stage_set_by: implementation | reconstructed | null
+  stage_set_at: timestamp | null
   phase: string (requirements | design | implementation | verification)
   stage: string (current execution stage)
   

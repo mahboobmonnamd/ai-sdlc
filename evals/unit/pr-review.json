@@ -63,14 +63,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Review covers the full candidate",
+            "points": 40,
+            "check": "output.review_scope == FULL_CANDIDATE"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "No separate code-review skill",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.separate_code_review_skill == NOT_REQUIRED"
+          },
+          {
+            "criterion": "Verification uses the work item when available",
+            "points": 30,
+            "check": "output.verification_target == work_item"
           }
         ],
         "total_points": 100
@@ -110,14 +115,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Coverage is complete",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.review_coverage == COMPLETE"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Review continues after the first blocker",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.finding_stop_policy == CONTINUE_AFTER_BLOCKERS"
           }
         ],
         "total_points": 100
@@ -157,14 +162,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Re-review is full-candidate",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.review_scope == FULL_CANDIDATE"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Delta is context only",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.re_review_mode == FULL_NOT_DELTA"
           }
         ],
         "total_points": 100
@@ -200,14 +205,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Reviewed revision is the current head",
+            "points": 40,
+            "check": "output.reviewed_revision == def456"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Stale evidence revision is recorded",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.verification_evidence_revision == abc123"
+          },
+          {
+            "criterion": "Ready to merge is withheld",
+            "points": 30,
+            "check": "output.verdict != READY_TO_MERGE"
           }
         ],
         "total_points": 100
@@ -222,7 +232,8 @@
       "expected_behaviors": [
         "set lifecycle_accepted_plan to NOT_APPLICABLE",
         "continue full review against candidate intent repository authority tests and applicable requirements",
-        "do not return INCONCLUSIVE solely because a plan is missing"
+        "do not return INCONCLUSIVE solely because a plan is missing",
+        "invoke verification against the merge candidate and candidate intent"
       ],
       "forbidden_behaviors": [
         "block solely due to missing implementation plan",
@@ -234,7 +245,8 @@
         "required_behaviors": [
           "set lifecycle_accepted_plan to NOT_APPLICABLE",
           "continue full review against candidate intent repository authority tests and applicable requirements",
-          "do not return INCONCLUSIVE solely because a plan is missing"
+          "do not return INCONCLUSIVE solely because a plan is missing",
+          "invoke verification against the merge candidate and candidate intent"
         ],
         "forbidden_behaviors": [
           "block solely due to missing implementation plan",
@@ -245,14 +257,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Plan context is not applicable",
+            "points": 40,
+            "check": "output.lifecycle_accepted_plan == NOT_APPLICABLE"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Work item context is not applicable",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.lifecycle_work_item == NOT_APPLICABLE"
+          },
+          {
+            "criterion": "Verification uses the merge candidate",
+            "points": 30,
+            "check": "output.verification_target == merge_candidate"
           }
         ],
         "total_points": 100
@@ -288,14 +305,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Required plan is missing",
+            "points": 40,
+            "check": "output.lifecycle_accepted_plan == REQUIRED_BUT_MISSING"
           },
           {
-            "criterion": "Forbidden behaviors absent",
-            "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "criterion": "Verdict is inconclusive or blocked",
+            "points": 60,
+            "check": "output.verdict in ['INCONCLUSIVE', 'BLOCKED_BY_DECISION']"
           }
         ],
         "total_points": 100

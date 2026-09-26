@@ -59,14 +59,19 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
-            "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "criterion": "Slice is ready for planning",
+            "points": 40,
+            "check": "output.readiness_for_planning == READY"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Next action is implementation-planning",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == implementation-planning"
+          },
+          {
+            "criterion": "Design does not claim implementation ownership",
+            "points": 30,
+            "check": "output.ownership_claim == NOT_PERFORMED"
           }
         ],
         "total_points": 100
@@ -102,14 +107,14 @@
       "scoring": {
         "criteria": [
           {
-            "criterion": "Required behaviors satisfied",
+            "criterion": "Item is not implementation-ready",
             "points": 70,
-            "check": "output.required_behaviors_satisfied == true"
+            "check": "output.readiness_for_planning == BLOCKED"
           },
           {
-            "criterion": "Forbidden behaviors absent",
+            "criterion": "Next action is the decision activity",
             "points": 30,
-            "check": "output.forbidden_behaviors_absent == true"
+            "check": "output.next_action == decision-activity"
           }
         ],
         "total_points": 100
