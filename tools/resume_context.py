@@ -14,11 +14,16 @@ from tools.plan_acceptance import verify_accepted_plan
 _UNACCEPTED = {
     "accepted_plan_missing",
     "acceptance_not_from_protected_operation",
+    "actor_not_authenticated",
     "actor_not_technical_authority",
     "acceptance_provenance_missing",
     "plan_missing",
+    "plan_revision_unresolved",
+    "plan_work_item_mismatch",
     "plan_status_not_accepted",
     "acceptance_not_bound_to_revision",
+    "plan_identity_missing",
+    "plan_identity_not_revision_addressed",
 }
 
 
@@ -60,6 +65,10 @@ def validate_implementation_resume_context(checkpoint: dict, context: dict) -> d
     if not claim["ok"]:
         return claim
 
+    binding = _check_candidate_binding(checkpoint, context)
+    if not binding["ok"]:
+        return binding
+
     stage = _resolve_candidate_stage(checkpoint, context)
     if not stage["ok"]:
         return stage
@@ -90,18 +99,56 @@ def reconstruct_implementation_fields(checkpoint: dict, resume_check: dict) -> d
     }
 
 
+def _actor(checkpoint: dict, context: dict):
+    return checkpoint.get("actor") or context.get("actor")
+
+
 def _check_claim(checkpoint: dict, context: dict) -> dict:
     claims = context.get("claims") or {}
     claim = claims.get(checkpoint.get("work_item_id"))
     if not claim or claim.get("active_work_claim") == "NOT_APPLICABLE":
         return {"ok": True}
     owner = claim.get("owner")
-    actor = checkpoint.get("actor") or context.get("actor")
-    if owner and actor and owner != actor:
+    actor = _actor(checkpoint, context)
+    if not owner or not actor:
+        return _block(
+            "unknown_actor",
+            "active claim has no authenticated actor",
+            "stop; do not resume without an authenticated implementer",
+        )
+    if owner != actor:
         return _block(
             "blocked_by_other_claim",
             owner,
             "stop; do not resume another implementer's candidate",
+        )
+    return {"ok": True}
+
+
+def _check_candidate_binding(checkpoint: dict, context: dict) -> dict:
+    candidate_id = checkpoint.get("merge_candidate_id")
+    if not candidate_id:
+        return {"ok": True}
+    durable = (context.get("candidates") or {}).get(candidate_id)
+    if not isinstance(durable, dict) or durable.get("work_item_id") != checkpoint.get("work_item_id"):
+        return _block(
+            "candidate_work_item_mismatch",
+            candidate_id,
+            "stop; the candidate is not bound to this work item",
+        )
+    owner = durable.get("owner")
+    actor = _actor(checkpoint, context)
+    if not owner or not actor:
+        return _block(
+            "unknown_actor",
+            "candidate owner or resuming actor is missing",
+            "stop; do not resume without an authenticated implementer",
+        )
+    if owner != actor:
+        return _block(
+            "candidate_owner_mismatch",
+            owner,
+            "stop; do not resume a candidate owned by someone else",
         )
     return {"ok": True}
 

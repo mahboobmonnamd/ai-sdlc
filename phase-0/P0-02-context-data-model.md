@@ -257,7 +257,7 @@ merge_candidate:
   id: "PR-99"
   work_item_id: "WI-042"          # null when lifecycle_work_item is NOT_APPLICABLE
   candidate_lifecycle_stage: "IMPLEMENTATION_IN_PROGRESS"  # or IN_REVIEW | UNKNOWN
-  owner: "dev-a"                        # must match the active claim when a claim policy exists
+  owner: "dev-a"                        # must equal the authenticated actor resuming this work item
   stage_set_by: "implementation"  # only implementation may transition the stage
   stage_set_at: "2026-09-26T12:00:00Z"
   stage_reason: "accepted scope still incomplete"

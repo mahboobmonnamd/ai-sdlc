@@ -204,12 +204,14 @@ def validate_checkpoint_for_resume(checkpoint, context_model):
                 "impact": "Previous analysis invalid; must restart"
             }
         else:
-            return {
+            upstream_caution = {
                 "resumable": True,
                 "reason": "resume_with_caution",
                 "upstream_changed": upstream_changes,
                 "impact": "Some changes; proceed but watch for issues"
             }
+    else:
+        upstream_caution = None
     
     # Check 2: Are downstream artifacts conflicted?
     downstream_conflicts = detect_downstream_conflicts(checkpoint, context_model)
@@ -240,6 +242,10 @@ def validate_checkpoint_for_resume(checkpoint, context_model):
             "detail": implementation_context.get("detail"),
             "action": implementation_context.get("action"),
         }
+
+    if upstream_caution:
+        upstream_caution["implementation_context"] = implementation_context
+        return upstream_caution
 
     # All checks passed
     return {
@@ -379,7 +385,14 @@ def decide_resume_or_restart(checkpoint, validation_result, context_model):
                 "parent_checkpoint": checkpoint.id
             }
 
-        elif reason in ("candidate_stage_mismatch", "unknown_candidate_stage", "blocked_by_other_claim"):
+        elif reason in (
+            "candidate_stage_mismatch",
+            "unknown_candidate_stage",
+            "blocked_by_other_claim",
+            "unknown_actor",
+            "candidate_work_item_mismatch",
+            "candidate_owner_mismatch",
+        ):
             return {
                 "decision": "escalate",
                 "reason": reason,
