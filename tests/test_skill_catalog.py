@@ -289,6 +289,9 @@ class SkillCatalogTests(unittest.TestCase):
         )
         self.assertIn("does not waive any PR-review gate", skill)
         self.assertIn("do not route directly to release readiness", skill)
+        self.assertIn("`IN_REVIEW` → `address-pr-review`, then full `pr-review`", skill)
+        self.assertIn("`IMPLEMENTATION_IN_PROGRESS` → `implementation`", skill)
+        self.assertIn("`UNKNOWN` → stop; do not guess a route", skill)
 
     def test_implementation_requires_concrete_candidate_before_pr_review(self):
         skill = (ROOT / "skills" / "implementation" / "SKILL.md").read_text(

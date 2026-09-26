@@ -38,12 +38,14 @@ Use after implementation when acceptance evidence must be proven, when invoked a
 
 Load:
 
-- original intended outcome and accepted requirements;
-- work-item acceptance criteria and non-goals;
-- governing specifications/decisions;
+- original intended outcome;
+- when `verification_target` is `work_item`: work-item acceptance criteria and non-goals;
+- when `verification_target` is `merge_candidate`: candidate intent, repository authority, tests/checks, and applicable requirements; do not require a work item;
+- governing specifications/decisions when they apply;
 - implementation/review evidence and known limitations;
 - required test, integration, demo, measurement, security, accessibility, operational, or documentation evidence;
-- applicable rigor profile.
+- applicable rigor profile;
+- `candidate_lifecycle_stage` when a merge candidate exists.
 
 ## Stop or escalate when
 
@@ -104,6 +106,10 @@ next_action
 - VERIFIED when invoked by `pr-review` → return criterion-level evidence to that `pr-review`.
 - Standalone VERIFIED with an existing merge candidate or a project/rigor policy that requires PR review → `pr-review`; do not route directly to release readiness.
 - Standalone VERIFIED only when no PR-review gate applies → `release-readiness` or project completion workflow.
-- Implementation defect on an open merge candidate → `address-pr-review`, then full `pr-review`; before a merge candidate exists → `implementation`.
+- Implementation defect on an open merge candidate:
+  - `IN_REVIEW` → `address-pr-review`, then full `pr-review`;
+  - `IMPLEMENTATION_IN_PROGRESS` → `implementation`;
+  - `UNKNOWN` → stop; do not guess a route;
+  - no merge candidate yet → `implementation`.
 - Acceptance/authority defect → upstream requirements/decision skill, then `development-readiness`.
 - Missing evidence → obtain the required test/measurement/specialist evidence and re-run verification.
