@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -90,14 +91,23 @@ def validate_catalog(root: Path):
             if section not in text:
                 errors.append(f"{label}: missing required section {section!r}")
 
-        lower = text.lower()
         for forbidden in FORBIDDEN_GENERIC_TERMS:
-            if forbidden in lower:
+            if contains_forbidden_term(text, forbidden):
                 errors.append(
                     f"{label}: generic skill contains project/vendor-specific term {forbidden!r}"
                 )
 
     return errors
+
+
+def contains_forbidden_term(text: str, term: str) -> bool:
+    """Match a forbidden term on word boundaries.
+
+    Substring matching made short terms such as pty fail inside unrelated
+    words. A term may contain spaces (github issue, metal renderer).
+    """
+    pattern = r"(?<![a-z0-9])" + re.escape(term.lower()) + r"(?![a-z0-9])"
+    return re.search(pattern, text.lower()) is not None
 
 
 def collect_warnings(root: Path):
@@ -110,7 +120,9 @@ def collect_warnings(root: Path):
         if line_count > REVIEW_TRIGGER_SKILL_LINES:
             label = str(path.relative_to(root))
             warnings.append(
-                f"{label}: {line_count} lines exceeds the {REVIEW_TRIGGER_SKILL_LINES}-line progressive-disclosure review trigger; consider moving supporting material to references, but do not compress or remove safety/authority semantics merely to satisfy size"
+                f"{label}: {line_count} lines exceeds the {REVIEW_TRIGGER_SKILL_LINES}-line progressive-disclosure review trigger. "
+                "Move examples and extended tables to skills/<name>/references/ and keep invocation, stop conditions, "
+                "authority rules, and handoff in SKILL.md. Do not delete safety text to get under the line count."
             )
     return warnings
 
