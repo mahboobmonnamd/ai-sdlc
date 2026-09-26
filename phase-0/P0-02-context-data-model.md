@@ -225,14 +225,28 @@ work_item:
   id: "WI-042"
   kind: "work_item"
   accepted_plan:
+    work_item_id: "WI-042"
     plan_id: "PLAN-WI-042"
     plan_revision: 3
-    accepted_by: "tech-lead@example.com"   # project-defined technical authority identity
-    accepted_at: "2026-09-26T12:00:00Z"    # when acceptance was recorded
-    # optional: acceptance_source (PR comment, ticket transition, signed decision, etc.)
+    accepted_by: "tech-lead@example.com"    # identity from a host principal
+    authenticated_by: "host-session"        # must be listed in policy.authenticators
+    authority_assertion: "session-accept-3"
+    accepted_at: "2026-09-26T12:00:00Z"
+    acceptance_source: "decision-record:ADR-accept-3"
+    operation: "plan_acceptance"            # only accept_plan() may write this pointer
+plans:
+  PLAN-WI-042:
+    revisions:
+      3:
+        id: "PLAN-WI-042"
+        work_item_id: "WI-042"
+        plan_revision: 3
+        status: "accepted"
+        accepted_revision: 3
+        validation_status: "current"
 ```
 
-`accepted_plan.plan_id + accepted_plan.plan_revision` is the resolution key used by readiness, implementation, resumability, and (when lifecycle plan context is `AVAILABLE`) PR review. Updating ordinary coordination metadata must not change this pointer. Accepting a refreshed plan advances the pointer only after the project-defined technical authority accepts that plan revision and records `accepted_by` / `accepted_at` (or project-equivalent evidence fields). A `PROPOSED` plan without that evidence must not pass readiness.
+`accepted_plan` is a protected pointer. Only `accept_plan()` in `tools/plan_acceptance.py` may write it. The host passes a principal `{identity, authenticator, assertion_id}` that its own session already authenticated. A bare email or other identity string is rejected. `identity` must be in `technical_authorities`, and `authenticator` must be in `authenticators`. The accepted body is stored at `(plan_id, plan_revision)` and must name the same work item. Verification reads that revision, not whatever object is currently stored under the plan id. Filling the fields from a planning skill is not acceptance. This follow-up adopts the schema `2.0.0` already recorded in this document, including the 1.x migration that refuses fabricated acceptance evidence. It does not add a general capability or trusted-principal system.
 
 ### Candidate lifecycle stage
 
