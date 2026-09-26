@@ -1,0 +1,172 @@
+{
+  "contract_id": "EVAL-WORK-ITEM-DESIGN-001",
+  "contract_version": "0.9.0",
+  "skill": "work-item-design",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-09-26",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "P0-07 unit contract for work-item-design core development-loop behaviors.",
+  "metadata": {
+    "title": "work-item-design unit behaviors",
+    "description": "Single-skill unit scenarios for work-item-design. Schema-validated; behavioral execution remains NOT_RUN until harnessed against a live skill adapter.",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers",
+    "scope": "work-item-design"
+  },
+  "target_capability": {
+    "description": "Given authoritative inputs, work-item-design produces the expected governance/routing behaviors.",
+    "preconditions": [
+      "skill instructions from the candidate revision are loaded",
+      "authoritative identifiers are available when required"
+    ],
+    "postconditions": [
+      "required behaviors are satisfied",
+      "forbidden behaviors are absent"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "WORK-001",
+      "skill": "work-item-design",
+      "input": "A broad accepted feature contains three independently reviewable vertical outcomes.",
+      "expected_behaviors": [
+        "design independently reviewable slices",
+        "write 3-5 observable acceptance conditions per item",
+        "keep ownership policy outside generic work-item design",
+        "route ready slices to implementation-planning"
+      ],
+      "forbidden_behaviors": [
+        "collapse all outcomes into one mega-item",
+        "claim implementation ownership"
+      ],
+      "scenario_id": "WORK-001",
+      "name": "WORK-001",
+      "description": "A broad accepted feature contains three independently reviewable vertical outcomes.",
+      "expected_output": {
+        "required_behaviors": [
+          "design independently reviewable slices",
+          "write 3-5 observable acceptance conditions per item",
+          "keep ownership policy outside generic work-item design",
+          "route ready slices to implementation-planning"
+        ],
+        "forbidden_behaviors": [
+          "collapse all outcomes into one mega-item",
+          "claim implementation ownership"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Slice is ready for planning",
+            "points": 40,
+            "check": "output.readiness_for_planning == READY"
+          },
+          {
+            "criterion": "Next action is implementation-planning",
+            "points": 30,
+            "check": "output.next_action == implementation-planning"
+          },
+          {
+            "criterion": "Design does not claim implementation ownership",
+            "points": 30,
+            "check": "output.ownership_claim == NOT_PERFORMED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "WORK-002",
+      "skill": "work-item-design",
+      "input": "An existing work item has unresolved product behavior and an unclear trust boundary.",
+      "expected_behaviors": [
+        "use the explicit work_item_id",
+        "stop rather than invent behavior or architecture",
+        "route to the appropriate decision activity"
+      ],
+      "forbidden_behaviors": [
+        "hide the decision inside acceptance criteria",
+        "label the item implementation-ready"
+      ],
+      "scenario_id": "WORK-002",
+      "name": "WORK-002",
+      "description": "An existing work item has unresolved product behavior and an unclear trust boundary.",
+      "expected_output": {
+        "required_behaviors": [
+          "use the explicit work_item_id",
+          "stop rather than invent behavior or architecture",
+          "route to the appropriate decision activity"
+        ],
+        "forbidden_behaviors": [
+          "hide the decision inside acceptance criteria",
+          "label the item implementation-ready"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Item is not implementation-ready",
+            "points": 70,
+            "check": "output.readiness_for_planning == BLOCKED"
+          },
+          {
+            "criterion": "Next action is the decision activity",
+            "points": 30,
+            "check": "output.next_action == decision-activity"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": [],
+    "note": "Scenario inputs are self-contained until an executable adapter supplies fixtures."
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Required/forbidden behavior checks",
+        "measurement": "scenario accuracy via scoring.criteria",
+        "weight": 0.7,
+        "threshold": 0.9
+      },
+      {
+        "dimension": "auditability",
+        "description": "Decision is explainable when audit fields exist",
+        "measurement": "scenario auditability score",
+        "weight": 0.2,
+        "threshold": null
+      },
+      {
+        "dimension": "latency",
+        "description": "Evaluation latency when measured",
+        "measurement": "milliseconds",
+        "weight": 0.1,
+        "threshold": null
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null,
+    "note": "Populate only from a reproducible harness run."
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null,
+    "note": "Schema/unit validation of this contract may be RUN in CI; behavioral evaluation stays NOT_RUN until executed against a live skill."
+  }
+}

@@ -1,183 +1,126 @@
 ---
 name: pr-review
-description: Orchestrate an independent merge-readiness review of an exact pull-request or equivalent merge-candidate revision across code review, verification, authority, scope, evidence, risk, checks, measurements, and residual risk.
+description: Review one exact merge candidate for implementation correctness and merge readiness; not for editing/remediating the candidate, which belongs to address-pr-review.
 ---
 
 # PR review
 
+## Invocation contract
+
+Required argument:
+
+```text
+merge_candidate_id: authoritative PR/MR/change-list identifier
+```
+
+Any request to review/re-review an existing merge candidate routes here. **There is no separate generic `code-review` skill.** If the user asks to fix review comments or failing required checks on a candidate already in review stage, use `address-pr-review`.
+
+This skill remains independently usable (PRD UX-008): a caller may invoke it on a merge candidate without adopting the full AI-SDLC work-item lifecycle suite.
+
 ## When to use
 
-Use after implementation has produced a merge candidate and before merge/release handoff when the question is: “Is this exact revision genuinely ready to merge?”
-
-This is the user-facing final PR review capability. The caller should not need to separately invoke `code-review`, `verification`, or every specialist review first. This skill orchestrates or consumes those capabilities as required by project policy, risk, and evidence freshness, then synthesizes one merge-readiness verdict.
-
-Use `code-review` directly instead when the narrower question is only whether an implementation/diff contains defects or regressions and no merge-readiness decision is requested.
-
-Use the same procedure for a pull request, merge request, change list, patch stack, or other merge candidate. Do not require a particular host or VCS.
+Use whenever an existing merge candidate needs independent review. Every invocation, including re-review, covers the entire current candidate. Prefer candidates whose `candidate_lifecycle_stage` is `IN_REVIEW` (implementation complete enough that merge-readiness review is the intent). Do not use this as the primary route for unfinished feature implementation.
 
 ## Do not use
 
-- Do not infer acceptance from green checks, reviewer confidence, work-item checkboxes, or a persuasive change description.
-- Do not treat implementation plausibility as proof that mandatory acceptance criteria are satisfied.
-- Do not reuse measurements, reviews, or checks from a different revision unless governing policy explicitly permits that evidence to carry forward.
-- Do not silently reinterpret a benchmark, test, demo, or environment limitation to make an acceptance criterion pass.
-- Do not require every possible specialist review for every change; derive rigor from project rules and material risk.
-- Do not merge, approve, or mutate the change unless the task explicitly grants that authority. The default action is a review verdict and handoff.
-- Do not make new product, architecture, security, compliance, performance-budget, or scope decisions during review.
-- Do not improve, reformat, or extend the change in a review-only pass.
-- Do not duplicate specialist procedures inside this skill when an applicable reusable review capability exists; orchestrate and synthesize them.
+- Do not infer readiness from green CI, resolved threads, reviewer confidence, or plausible code.
+- Do not limit re-review to the latest delta or old findings.
+- Do not stop at the first blocker or an arbitrary finding count.
+- Do not remediate code in a review-only pass.
+- Do not treat a missing plan as an automatic review failure when lifecycle plan context is `NOT_APPLICABLE`.
+
+## Lifecycle context (conditional)
+
+Resolve optional lifecycle bindings with explicit states. Use these labels:
+
+```text
+lifecycle_work_item: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
+lifecycle_accepted_plan: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
+```
+
+Rules:
+
+1. When the candidate is owned by an AI-SDLC work-item workflow, or project/rigor policy requires a plan for this change class, treat the accepted plan as required.
+2. When no owning work item / accepted plan applies (external contributor PR, dependency bump, docs/config-only change, legacy PR, or project policy that does not require a plan), set the corresponding state to `NOT_APPLICABLE` and continue.
+3. `AVAILABLE` means the binding exists and is resolvable (for plans: exact accepted `plan_id + plan_revision` with acceptance evidence, current governing revisions).
+4. `REQUIRED_BUT_MISSING` means policy/workflow requires the binding but it cannot be resolved → return `INCONCLUSIVE` or `BLOCKED_BY_DECISION` (prefer `INCONCLUSIVE` when access/resolution failed; `BLOCKED_BY_DECISION` when an authority/policy decision is needed to proceed). Do not invent a plan.
+5. `NOT_APPLICABLE` must not make the review inconclusive. Review against candidate intent, repository authority, tests/checks, and applicable requirements instead.
+
+Privacy gating for external indexes and exact-revision verification remain mandatory regardless of lifecycle context.
 
 ## Required context
 
-Load the smallest authoritative set that can establish:
+Always load: candidate identity/base/current revision, actual diff plus materially affected production paths, tests/checks/CI, applicable measurements/specialist evidence, documentation/PR claims, and prior findings on re-review.
 
-- the merge candidate identity, base, exact current revision, and changed scope;
-- the owning work item and its acceptance/definition-of-done rules;
-- governing requirements, specifications, decisions, and project review rules;
-- the actual diff/change set plus surrounding production code needed to trace affected paths;
-- relevant tests, fixtures, failure coverage, build/check results, and workflow/check status;
-- claimed performance/resource measurements and their methodology where applicable;
-- security/privacy/accessibility/operability evidence where applicable;
-- documentation, change description, release notes, or other claims that will become historical record;
-- prior `code-review`, `verification`, and specialist-review outputs when they exist.
-
-Treat previous verdicts as evidence inputs, not authority. Reconstruct the required outcome from authoritative sources before accepting implementation rationale.
-
-Where the host exposes immutable revision identifiers, record the exact reviewed revision before analysis and resolve it again before the final verdict.
+Conditionally load when `AVAILABLE`: owning work item, accepted implementation plan `plan_id` + `plan_revision` + governing revisions + acceptance evidence, acceptance/Done rules, and governing authority from that lifecycle. When `NOT_APPLICABLE`, reconstruct intent from the candidate description, repository norms, and any linked tracker/issue text that is present without requiring the full suite.
 
 ## Stop or escalate when
 
-Return a blocking or inconclusive verdict when:
+Block or return inconclusive for authority/scope conflicts, weakened evidence, stale revision evidence, unclassified temporary/duplicate production paths, missing required specialist evidence, environment-limited mandatory evidence without an authorized substitute, or insufficient access to trace the real production path.
 
-- the owning work item, accepted requirements, or authority hierarchy is missing, contradictory, or stale;
-- the merge candidate revision changes and the unreviewed delta could affect the verdict;
-- implementation contradicts approved architecture, scope, trust boundaries, or ownership;
-- mandatory acceptance criteria lack reproducible evidence;
-- checks/tests passed only on an older revision and no policy permits that evidence to carry forward;
-- tests were weakened, skipped, narrowed, mocked around the production path, or otherwise fail to prove the claimed outcome;
-- a benchmark label does not match its actual start/stop boundary, mixes rejected/deferred work into successful samples without disclosure, or otherwise overstates what was measured;
-- a required measurement was attempted in an incapable environment and no valid alternate evidence exists;
-- documentation/change-description claims exceed what the implementation and evidence establish;
-- material security, privacy, compliance, accessibility, performance, concurrency, lifecycle, migration, compatibility, or operability risk lacks the specialist review required by project rules;
-- the change contains unrelated high-risk work, temporary production paths, duplicate authorities, or unclassified exploratory code;
-- the reviewer cannot inspect enough of the production path to distinguish real behavior from a test-only or mock path.
+For lifecycle bindings: only `REQUIRED_BUT_MISSING` plan/work-item context blocks or returns inconclusive for that reason. A `NOT_APPLICABLE` missing plan does not.
 
-Do not convert an environmental limitation into a false pass. Classify it explicitly and determine whether the mandatory criterion is satisfied by alternate evidence, remains inconclusive, or is waived by an existing authoritative rule.
+A changed candidate revision invalidates the prior merge-readiness verdict.
 
 ## Procedure
 
-1. **Freeze review identity.** Record the candidate identifier, base, exact revision, mergeability/state when available, changed-file/change-set size, and any relevant dependency revision. Do not rely on a human-written “final revision” if the host exposes the actual current revision.
-
-2. **Reconstruct authority.** Read the owning work item, acceptance criteria, definition of done, governing requirements/decisions, and project-specific review rules. Build the acceptance matrix before reading implementation claims. Separate:
-   - what the product/system must do;
-   - what architecture/security/performance constraints forbid or require;
-   - what evidence is required to prove completion.
-
-3. **Confirm scope.** Compare the actual change set with explicit in-scope and out-of-scope boundaries. Flag unrelated cleanup, hidden migrations, dependency changes, generated artifacts, temporary paths, or future-scope implementation that changes review risk.
-
-4. **Run or consume `code-review`.** For non-trivial production changes, ensure an independent `code-review` covers the exact applicable revision and relevant surrounding code. If an existing code-review result is current and adequate, consume it; otherwise invoke/rerun it. Treat code-review approval as evidence for implementation quality, not as merge readiness. Independently follow up any acceptance-critical or high-risk path whose correctness is not fully established by the focused review.
-
-5. **Run or consume `verification`.** Map every mandatory acceptance criterion to reproducible evidence. If current verification exists for the applicable revision and scope, consume it; otherwise invoke/rerun `verification`. Classify each mandatory row as:
-   - `PROVEN` — reproducible evidence directly supports the criterion on the applicable revision/environment;
-   - `FAILED` — evidence demonstrates the criterion is not met;
-   - `INCONCLUSIVE` — evidence is absent, stale, indirect, contradictory, or insufficient;
-   - `ENVIRONMENT_UNSUPPORTED` — the attempted environment cannot exercise the required capability. This is not a pass by itself.
-
-6. **Audit tests and checks.** Verify relevant tests/checks actually ran against the reviewed revision and represent the claimed behavior. Inspect important tests instead of treating names/counts as proof. Look for weakened assertions, ignored/skipped coverage, mock-only validation, stale caches/artifacts, or workflow conditions that bypass the important path.
-
-7. **Audit measurements.** For every material performance/resource claim, identify:
-   - exact timer/counter start;
-   - exact stop;
-   - workload and state sampled;
-   - warm-up/steady-state treatment where relevant;
-   - sample count/statistical method where relevant;
-   - build/configuration/environment;
-   - exact revision;
-   - whether instrumentation changes the measured path;
-   - whether the printed label truthfully describes the boundary.
-   Reject or downgrade mislabeled, contaminated, stale, inherited-without-authority, or non-reproducible measurements.
-
-8. **Review environment-limited evidence.** If a required capability cannot run in the default automation environment, require explicit classification plus project-authorized alternate evidence, such as a controlled physical-device, hardware, privileged, networked, or interactive-environment run. Confirm that the environmental limitation does not hide unrelated failures.
-
-9. **Run or consume specialist reviews by risk.** Apply project-required specialist review only where material. At minimum consider security/privacy, performance/resources, concurrency/lifecycle, data migration/integrity, accessibility, reliability/operability, public API/protocol compatibility, and supply chain. Reuse a current specialist result when it covers the exact applicable revision and risk; otherwise invoke/rerun the specialist capability. Missing required specialist review is blocking; irrelevant specialist ceremony is not.
-
-10. **Review claims and historical record.** Compare the change description, work-item state, documentation, release notes, benchmark tables, and comments with the actual reviewed revision. Stale revision IDs, old numbers, unsupported completion claims, or misleading scope statements must not survive final acceptance.
-
-11. **Adversarially search for unrepresented states.** Green automation proves only represented behavior. Identify important state combinations, race/failure modes, rollback/recovery paths, partial-write/partial-commit behavior, repeated persistent failures, and lifecycle transitions appropriate to the risk. Either show they are tested, prove them impossible by construction, or classify the residual risk.
-
-12. **Re-check the exact revision.** Immediately before final verdict, resolve the merge candidate again. If the revision changed, determine whether the delta is trivially metadata-only under project policy or invalidate affected review/evidence and inspect the new delta. Never state “ready to merge” for an unreviewed revision.
-
-13. **Synthesize, do not average.** A single unresolved mandatory blocker keeps the verdict from passing even if every other category is strong. Distinguish implementation defects from evidence/metadata gaps so remediation is narrow and honest. Rank blocking findings and residual risks by severity and do not soften them. Quote the exact evidence line. For a tiny mechanical diff, do not invent a top-10 list. If a source cannot be established, write `unknown`; never invent a citation. Done is the work item’s checkable conditions, not “production-ready.”
+1. Freeze candidate identity: base, exact revision, state/mergeability, changed surfaces, and `candidate_lifecycle_stage` when known (`IMPLEMENTATION_IN_PROGRESS` | `IN_REVIEW`). If the stage is still `IMPLEMENTATION_IN_PROGRESS`, do not treat this as merge-readiness review; route back to `implementation` (or report that full PR review is premature).
+2. Classify lifecycle context (`AVAILABLE` / `NOT_APPLICABLE` / `REQUIRED_BUT_MISSING`) for work item and accepted plan. When `AVAILABLE`, reconstruct work-item outcome, resolve the accepted-plan reference, then load immutable content for that exact `plan_id + plan_revision`; if that exact revision is not resolvable under a required binding, return inconclusive/blocked rather than falling back to latest. Verify governing revisions are still current. Do not choose an arbitrary related/latest plan. When `NOT_APPLICABLE`, reconstruct candidate intent and applicable repository/requirement authority without a plan. When `REQUIRED_BUT_MISSING`, stop with the inconclusive/blocked outcome above.
+3. Build full review coverage: changed files, affected surrounding paths, ownership/API/data/trust boundaries, failure/lifecycle/concurrency paths, checks/evidence, and material risk domains.
+4. Review implementation correctness and permanent-production intent across that full map.
+5. Verify architecture/authority was not silently changed.
+6. Audit tests and required checks for weakened assertions, skipped/bypassed paths, mocks/fakes that replace production behavior, stale artifacts, and revision mismatch.
+7. Run or consume `verification` for exact-revision evidence. Choose a legal verification target from lifecycle context:
+   - `lifecycle_work_item = AVAILABLE` → `verification_target: work_item` with that `work_item_id`;
+   - `lifecycle_work_item = NOT_APPLICABLE` → `verification_target: merge_candidate`, using this `merge_candidate_id` plus reconstructed candidate intent, repository authority, tests/checks, and applicable requirements. Do not invent a work item, and do not skip verification;
+   - `REQUIRED_BUT_MISSING` → already stopped; do not call verification with a fabricated target.
+   For revision-sensitive evidence require `verified_revision == reviewed_revision` unless project policy explicitly authorizes carry-forward. Reconsider every mandatory criterion as `PROVEN | FAILED | INCONCLUSIVE | ENVIRONMENT_UNSUPPORTED`.
+8. Audit material measurements by actual boundary, workload, environment/configuration, statistics, instrumentation, and exact revision.
+9. Run/consume only specialist reviews required by project policy or material risk.
+10. Compare PR/docs/work-item (when available) claims with the exact implementation and evidence.
+11. Adversarially inspect important unrepresented failure/race/recovery/lifecycle states.
+12. Continue after blockers and report **all material blockers discovered in this pass**; group duplicate symptoms by root cause without hiding independent defects.
+13. On re-review, verify every prior finding, then run the **entire procedure again over the entire current candidate**. Prior findings are a regression checklist; the remediation delta is context only.
+14. Re-resolve the exact revision before verdict. If it changed, restart the full review.
+15. Synthesize one verdict; a single unresolved mandatory blocker prevents readiness.
 
 ## Output contract
 
-Return a compact but auditable result with this structure:
-
 ```text
 verdict: READY_TO_MERGE | CONDITIONAL | CHANGES_REQUIRED | BLOCKED_BY_DECISION | INCONCLUSIVE
-reviewed_revision: immutable revision identifier when available
-base_revision_or_target: identifier when available
-
-blocking_findings:
-  - severity (ranked, blunt)
-  - subsystem/file/path when available
-  - violated requirement or acceptance criterion
-  - concrete failure/evidence gap with quoted evidence or `unknown`
-  - narrow remediation direction
-
-non_blocking_findings:
-  - correctness/maintainability/performance/security/evidence/documentation improvements
-
-acceptance_matrix:
-  authority_and_scope
-  architecture_and_ownership
-  code_review
-  production_correctness
-  failure_concurrency_lifecycle
-  verification_and_acceptance_evidence
-  tests_and_checks
-  security_privacy_compliance_if_applicable
-  performance_resources_if_applicable
-  accessibility_operability_if_applicable
-  exact_revision_evidence
-  documentation_claim_accuracy
-  residual_risk
-
-evidence_matrix:
-  criterion -> PROVEN | FAILED | INCONCLUSIVE | ENVIRONMENT_UNSUPPORTED -> evidence reference
-
-measurement_table_if_applicable:
-  metric/requirement
-  target
-  measured statistics
-  environment/configuration
-  revision
-  methodology assessment
-  PASS | FAIL | INCONCLUSIVE
-
-residual_risks:
-  only risks that remain after applying project acceptance policy
-
-merge_recommendation:
-  YES | NO | ONLY_AFTER_LISTED_CONDITIONS
+merge_candidate_id
+reviewed_revision
+base_revision_or_target
+candidate_lifecycle_stage: IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
+lifecycle_work_item: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
+lifecycle_accepted_plan: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
+verification_target: work_item | merge_candidate
+review_scope: FULL_CANDIDATE | PREMATURE
+review_coverage: COMPLETE | INCOMPLETE
+finding_stop_policy: CONTINUE_AFTER_BLOCKERS
+re_review_mode: FULL_NOT_DELTA | NOT_A_REREVIEW
+separate_code_review_skill: NOT_REQUIRED
+verification_evidence_revision: <exact revision> | NOT_REVISION_SENSITIVE | INCONCLUSIVE
+blocking_findings
+review_coverage
+prior_finding_disposition
+non_blocking_findings
+acceptance_matrix
+evidence_matrix
+measurement_table_if_applicable
+residual_risks
+merge_recommendation: YES | NO | ONLY_AFTER_LISTED_CONDITIONS
 ```
 
-Verdict semantics:
-
-- `READY_TO_MERGE` — no blocking finding remains; every mandatory criterion is proven or explicitly handled by existing project policy; exact-revision checks/evidence are sufficient.
-- `CONDITIONAL` — implementation is acceptable but only narrowly defined non-code evidence/metadata/administrative conditions remain and project policy permits merge after those conditions are satisfied without code changes.
-- `CHANGES_REQUIRED` — code/tests/configuration/evidence-generation logic must change before merge.
-- `BLOCKED_BY_DECISION` — authority/specification/product/security/compliance decision is unresolved and cannot be invented during review.
-- `INCONCLUSIVE` — required evidence/access/environment is insufficient to determine readiness honestly.
-
-Never report `READY_TO_MERGE` when a mandatory evidence row is `FAILED` or `INCONCLUSIVE`. `ENVIRONMENT_UNSUPPORTED` may coexist with readiness only when authoritative policy defines valid alternate evidence and that alternate evidence is `PROVEN` for the reviewed revision.
+`READY_TO_MERGE` requires no blocking finding and sufficient exact-revision evidence for every mandatory criterion. Environment limitation alone is never a pass.
 
 ## Handoff
 
-- `READY_TO_MERGE` → merge/release authority may proceed under project policy; this skill does not perform the merge by default.
-- `CONDITIONAL` → satisfy the listed non-code conditions, re-check the exact revision and affected evidence, then hand off to merge/release authority.
-- Implementation/test/measurement-instrumentation defect → `implementation`, then rerun affected `code-review`, specialist review, `verification`, and this `pr-review` as required by risk.
-- Missing/weak acceptance evidence without implementation defect → `verification`, then rerun this `pr-review`.
-- Scope/authority conflict → `work-item-design` or the project decision workflow, then `development-readiness` before implementation resumes.
-- Specialist gap → required specialist review, then rerun affected acceptance rows and this `pr-review`.
-- Revision changed → review the new delta and rerun invalidated checks/evidence before issuing another merge-readiness verdict.
+- Ready → merge/release authority; this skill does not merge by default.
+- Implementation/test/measurement defect on an `IN_REVIEW` candidate → `address-pr-review`, then full `pr-review`.
+- Candidate still `IMPLEMENTATION_IN_PROGRESS` → `implementation` (not merge-readiness remediation).
+- Missing acceptance evidence when plan context is `AVAILABLE` or required → `verification`/applicable specialist activity, then full `pr-review`.
+- Scope/authority conflict → design/decision workflow + `development-readiness` when an owning work item exists.
+- Revision changed → full-review the new candidate.
+
+There is no hard review-round cap. Convergence target: one complete finding pass + one full re-review after batched remediation when feasible.

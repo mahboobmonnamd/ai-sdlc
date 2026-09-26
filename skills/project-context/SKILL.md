@@ -1,9 +1,19 @@
 ---
 name: project-context
-description: Retrieve the smallest trustworthy project context needed for an SDLC task without treating summaries or agent memory as project truth.
+description: Retrieve the smallest trustworthy project context needed for an SDLC task; not for replacing authoritative sources or sending repository content to unauthorized external indexes.
 ---
 
 # Project context
+
+## Invocation contract
+
+Required input:
+
+```text
+query: task-specific project concepts, identifiers, or source relationships to retrieve
+```
+
+Optional inputs may include a project root/index location or a structured code-index provider explicitly configured or authorized by the consuming project/user. Keep the query narrow; do not use this skill as a repository dump.
 
 ## When to use
 
@@ -16,6 +26,7 @@ Use when a task depends on project-specific requirements, architecture, decision
 - Do not persist transient reasoning, secrets, speculative conclusions, or unverified assumptions as facts.
 - Do not silently reconcile conflicting authoritative sources.
 - Do not invent a path, ID, or citation. If it cannot be established, write `unknown`.
+- Do not send repository content to an external/hosted index or persistence service merely because it is available. External repository transmission requires explicit project/user authorization; local providers remain subject to project trust policy.
 
 ## Required context
 
@@ -33,23 +44,24 @@ Project context is a navigation/index layer. It never overrides authoritative re
 ## Procedure
 
 1. Determine the smallest concepts needed for the current task.
-2. If the project has `.sdlc/graph/context-index.json`, query it with the reference tool when available:
+2. If a project-authorized structured code-index/knowledge-graph provider is available, prefer it over broad file reading for architecture overview, symbol/call/dependency lookup, change impact, and hotspot discovery. Before using a non-local provider, require explicit authorization for repository transmission. Treat every graph as navigation evidence and confirm consequential claims against source code and accepted project authority.
+3. If the project has `.sdlc/graph/context-index.json`, query it with the reference tool when available:
 
    ```sh
    python3 <ai-sdlc-root>/tools/project_context.py --root <project-root> query <terms>
    ```
 
-3. Validate the derived index before relying on it for consequential architecture, planning, or implementation decisions:
+4. Validate the derived index before relying on it for consequential architecture, planning, or implementation decisions:
 
    ```sh
    python3 <ai-sdlc-root>/tools/project_context.py --root <project-root> validate
    ```
 
-4. Load compact context first: node/entity ID, kind, summary, relationships, source paths, and staleness status.
-5. Follow only the relationships needed to understand the current task. Prefer one-hop expansion before broad search.
-6. Read the authoritative source artifacts returned for any node that materially constrains a decision or implementation.
-7. If the index is missing, stale, contradictory, or incomplete, search `.sdlc/context/` and authoritative project artifacts directly.
-8. Persist new durable context only when it is backed by an authoritative source and the project's context-curation rules permit it. Unverified guesses are not facts.
+5. Load compact context first: node/entity ID, kind, summary, relationships, source paths, and staleness status.
+6. Follow only the relationships needed to understand the current task. Prefer one-hop expansion before broad search.
+7. Read the authoritative source artifacts returned for any node that materially constrains a decision or implementation.
+8. If the index is missing, stale, contradictory, or incomplete, search `.sdlc/context/` and authoritative project artifacts directly.
+9. Persist new durable context only when it is backed by an authoritative source and the project's context-curation rules permit it. Unverified guesses are not facts.
 
 ## Output contract
 
@@ -60,8 +72,11 @@ query_terms
 matched_entities: id + kind + concise summary
 relationships_needed
 source_paths
-staleness_or_conflict_status
-unknowns
+staleness_or_conflict_status: CURRENT | STALE | CONFLICT | UNKNOWN
+authority_basis: AUTHORITATIVE_SOURCE | SUMMARY_ONLY | UNKNOWN
+unknowns: REPORTED | NONE
+external_transmission: NOT_SENT | AUTHORIZED | BLOCKED
+authorization_required: EXPLICIT | NOT_APPLICABLE
 fallback_or_next_search (when needed)
 ```
 

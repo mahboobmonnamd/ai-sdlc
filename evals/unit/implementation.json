@@ -1,0 +1,430 @@
+{
+  "contract_id": "EVAL-IMPLEMENTATION-001",
+  "contract_version": "0.9.0",
+  "skill": "implementation",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-09-26",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "P0-07 unit contract for implementation core development-loop behaviors.",
+  "metadata": {
+    "title": "implementation unit behaviors",
+    "description": "Single-skill unit scenarios for implementation. Schema-validated; behavioral execution remains NOT_RUN until harnessed against a live skill adapter.",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers",
+    "scope": "implementation"
+  },
+  "target_capability": {
+    "description": "Given authoritative inputs, implementation produces the expected governance/routing behaviors.",
+    "preconditions": [
+      "skill instructions from the candidate revision are loaded",
+      "authoritative identifiers are available when required"
+    ],
+    "postconditions": [
+      "required behaviors are satisfied",
+      "forbidden behaviors are absent"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "IMPL-001",
+      "skill": "implementation",
+      "input": "A ready work item has a current accepted plan, no open merge candidate, and the project ownership policy shows it unclaimed.",
+      "expected_behaviors": [
+        "require the explicit work_item_id",
+        "complete read-only governance preflight",
+        "acquire and re-read the project-defined claim before edits",
+        "follow the accepted plan",
+        "handoff to host/project merge-candidate creation or resolution, then pr-review"
+      ],
+      "forbidden_behaviors": [
+        "start coding before claim verification",
+        "silently revise the plan",
+        "self-certify merge readiness"
+      ],
+      "scenario_id": "IMPL-001",
+      "name": "IMPL-001",
+      "description": "A ready work item has a current accepted plan, no open merge candidate, and the project ownership policy shows it unclaimed.",
+      "expected_output": {
+        "required_behaviors": [
+          "require the explicit work_item_id",
+          "complete read-only governance preflight",
+          "acquire and re-read the project-defined claim before edits",
+          "follow the accepted plan",
+          "handoff to host/project merge-candidate creation or resolution, then pr-review"
+        ],
+        "forbidden_behaviors": [
+          "start coding before claim verification",
+          "silently revise the plan",
+          "self-certify merge readiness"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Implementation completed for review",
+            "points": 40,
+            "check": "output.status == IMPLEMENTED_FOR_REVIEW"
+          },
+          {
+            "criterion": "Accepted plan was followed",
+            "points": 30,
+            "check": "output.implementation_plan == CONFIRMED"
+          },
+          {
+            "criterion": "Claim was verified before edits",
+            "points": 30,
+            "check": "output.active_work_claim == VERIFIED_CURRENT_IMPLEMENTER"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPL-002",
+      "skill": "implementation",
+      "input": "The work item is already claimed by developer-x while the current implementer is developer-y.",
+      "expected_behaviors": [
+        "stop before branch/worktree/files/production edits",
+        "return BLOCKED",
+        "report the current owner when available"
+      ],
+      "forbidden_behaviors": [
+        "steal or clear the claim",
+        "start a parallel implementation"
+      ],
+      "scenario_id": "IMPL-002",
+      "name": "IMPL-002",
+      "description": "The work item is already claimed by developer-x while the current implementer is developer-y.",
+      "expected_output": {
+        "required_behaviors": [
+          "stop before branch/worktree/files/production edits",
+          "return BLOCKED",
+          "report the current owner when available"
+        ],
+        "forbidden_behaviors": [
+          "steal or clear the claim",
+          "start a parallel implementation"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Status is BLOCKED",
+            "points": 40,
+            "check": "output.status == BLOCKED"
+          },
+          {
+            "criterion": "Other owner blocks the claim",
+            "points": 30,
+            "check": "output.active_work_claim == BLOCKED_BY_OTHER"
+          },
+          {
+            "criterion": "No production edits",
+            "points": 30,
+            "check": "output.production_edits == NOT_PERFORMED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPL-003",
+      "skill": "implementation",
+      "input": "The work item is ready and planned. An open merge candidate already exists with candidate_lifecycle_stage IN_REVIEW, and the user asks to fix reviewer comments on it.",
+      "expected_behaviors": [
+        "require candidate_lifecycle_stage IN_REVIEW before review remediation",
+        "do not create a second implementation path",
+        "route to address-pr-review for the existing merge candidate"
+      ],
+      "forbidden_behaviors": [
+        "open another PR",
+        "use new implementation workflow to patch review comments"
+      ],
+      "scenario_id": "IMPL-003",
+      "name": "IMPL-003",
+      "description": "The work item is ready and planned. An open merge candidate already exists with candidate_lifecycle_stage IN_REVIEW, and the user asks to fix reviewer comments on it.",
+      "expected_output": {
+        "required_behaviors": [
+          "require candidate_lifecycle_stage IN_REVIEW before review remediation",
+          "do not create a second implementation path",
+          "route to address-pr-review for the existing merge candidate"
+        ],
+        "forbidden_behaviors": [
+          "open another PR",
+          "use new implementation workflow to patch review comments"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Stage is IN_REVIEW",
+            "points": 40,
+            "check": "output.candidate_lifecycle_stage == IN_REVIEW"
+          },
+          {
+            "criterion": "Review-stage remediation routes to address-pr-review",
+            "points": 30,
+            "check": "output.next_action == address-pr-review"
+          },
+          {
+            "criterion": "Existing candidate is preserved",
+            "points": 30,
+            "check": "output.implementation_mode == RESUME_EXISTING_CANDIDATE"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPL-004",
+      "skill": "implementation",
+      "input": "Implementation is complete and no merge candidate exists yet.",
+      "expected_behaviors": [
+        "return a host/project merge-candidate creation or resolution handoff",
+        "do not invent a merge_candidate_id",
+        "route to pr-review only after a concrete candidate exists"
+      ],
+      "forbidden_behaviors": [
+        "invoke pr-review without a merge_candidate_id",
+        "fabricate a pull-request identifier"
+      ],
+      "scenario_id": "IMPL-004",
+      "name": "IMPL-004",
+      "description": "Implementation is complete and no merge candidate exists yet.",
+      "expected_output": {
+        "required_behaviors": [
+          "return a host/project merge-candidate creation or resolution handoff",
+          "do not invent a merge_candidate_id",
+          "route to pr-review only after a concrete candidate exists"
+        ],
+        "forbidden_behaviors": [
+          "invoke pr-review without a merge_candidate_id",
+          "fabricate a pull-request identifier"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "No candidate id is invented",
+            "points": 70,
+            "check": "output.merge_candidate == NONE"
+          },
+          {
+            "criterion": "Handoff creates or resolves the candidate",
+            "points": 30,
+            "check": "output.next_action == host-project-merge-candidate"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPL-005",
+      "skill": "implementation",
+      "input": "The current developer owns work item WI-42, whose tracker state is IN_PROGRESS after implementation began. An open authorized PR for WI-42 already exists, implementation is incomplete, the accepted plan is still current, and the request is to continue feature implementation rather than address reviewer comments.",
+      "expected_behaviors": [
+        "accept the authorized IN_PROGRESS-equivalent state for resume rather than requiring the tracker label READY",
+        "resume implementation on the same existing candidate",
+        "re-verify current ownership, accepted plan revision, acceptance, dependencies, and authority",
+        "do not create a second candidate",
+        "remain in implementation until the accepted scope is complete"
+      ],
+      "forbidden_behaviors": [
+        "block merely because the work item is no longer labeled READY",
+        "block merely because an open candidate exists",
+        "route to address-pr-review without review-remediation intent",
+        "create a parallel PR"
+      ],
+      "scenario_id": "IMPL-005",
+      "name": "IMPL-005",
+      "description": "The current developer owns work item WI-42, whose tracker state is IN_PROGRESS after implementation began. An open authorized PR for WI-42 already exists, implementation is incomplete, the accepted plan is still current, and the request is to continue feature implementation rather than address reviewer comments.",
+      "expected_output": {
+        "required_behaviors": [
+          "accept the authorized IN_PROGRESS-equivalent state for resume rather than requiring the tracker label READY",
+          "resume implementation on the same existing candidate",
+          "re-verify current ownership, accepted plan revision, acceptance, dependencies, and authority",
+          "do not create a second candidate",
+          "remain in implementation until the accepted scope is complete"
+        ],
+        "forbidden_behaviors": [
+          "block merely because the work item is no longer labeled READY",
+          "block merely because an open candidate exists",
+          "route to address-pr-review without review-remediation intent",
+          "create a parallel PR"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Same candidate resumes",
+            "points": 40,
+            "check": "output.implementation_mode == RESUME_EXISTING_CANDIDATE"
+          },
+          {
+            "criterion": "Stage stays in progress",
+            "points": 30,
+            "check": "output.candidate_lifecycle_stage == IMPLEMENTATION_IN_PROGRESS"
+          },
+          {
+            "criterion": "Status remains in progress",
+            "points": 30,
+            "check": "output.status == IN_PROGRESS"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPL-006",
+      "scenario_id": "IMPL-006",
+      "name": "IMPL-006",
+      "skill": "implementation",
+      "input": "The current developer owns WI-42 with an open authorized draft PR. Accepted-scope implementation is still incomplete (candidate_lifecycle_stage=IMPLEMENTATION_IN_PROGRESS). Required CI is failing and a reviewer left early comments. The request is to continue the feature and clear the failures.",
+      "expected_behaviors": [
+        "keep candidate_lifecycle_stage as IMPLEMENTATION_IN_PROGRESS",
+        "remain in implementation for unfinished scope and CI or early-feedback fixes",
+        "do not hand off to full merge-readiness pr-review yet",
+        "do not use address-pr-review as the primary route while implementation is incomplete"
+      ],
+      "forbidden_behaviors": [
+        "route to full pr-review while implementation is incomplete",
+        "treat early CI or comments as forcing address-pr-review then pr-review",
+        "create a parallel PR"
+      ],
+      "description": "The current developer owns WI-42 with an open authorized draft PR. Accepted-scope implementation is still incomplete (candidate_lifecycle_stage=IMPLEMENTATION_IN_PROGRESS). Required CI is failing and a reviewer left early comments. The request is to continue the feature and clear the failures.",
+      "expected_output": {
+        "required_behaviors": [
+          "keep candidate_lifecycle_stage as IMPLEMENTATION_IN_PROGRESS",
+          "remain in implementation for unfinished scope and CI or early-feedback fixes",
+          "do not hand off to full merge-readiness pr-review yet",
+          "do not use address-pr-review as the primary route while implementation is incomplete"
+        ],
+        "forbidden_behaviors": [
+          "route to full pr-review while implementation is incomplete",
+          "treat early CI or comments as forcing address-pr-review then pr-review",
+          "create a parallel PR"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Stage stays in progress",
+            "points": 40,
+            "check": "output.candidate_lifecycle_stage == IMPLEMENTATION_IN_PROGRESS"
+          },
+          {
+            "criterion": "Remediation stays in implementation",
+            "points": 30,
+            "check": "output.next_action == implementation"
+          },
+          {
+            "criterion": "Status remains in progress",
+            "points": 30,
+            "check": "output.status == IN_PROGRESS"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPL-007",
+      "scenario_id": "IMPL-007",
+      "name": "IMPL-007",
+      "skill": "implementation",
+      "input": "WI-42 has an open merge candidate whose candidate_lifecycle_stage is UNKNOWN. The user asks to continue implementation.",
+      "expected_behaviors": [
+        "stop before branch, worktree, file, or production edits",
+        "return BLOCKED with next_action reconcile-candidate-stage",
+        "do not choose implementation, address-pr-review, or pr-review"
+      ],
+      "forbidden_behaviors": [
+        "continue implementation while the stage is UNKNOWN",
+        "route to address-pr-review",
+        "route to pr-review"
+      ],
+      "description": "WI-42 has an open merge candidate whose candidate_lifecycle_stage is UNKNOWN. The user asks to continue implementation.",
+      "expected_output": {
+        "required_behaviors": [
+          "stop before branch, worktree, file, or production edits",
+          "return BLOCKED with next_action reconcile-candidate-stage",
+          "do not choose implementation, address-pr-review, or pr-review"
+        ],
+        "forbidden_behaviors": [
+          "continue implementation while the stage is UNKNOWN",
+          "route to address-pr-review",
+          "route to pr-review"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Stage stays UNKNOWN",
+            "points": 40,
+            "check": "output.candidate_lifecycle_stage == UNKNOWN"
+          },
+          {
+            "criterion": "Status is BLOCKED",
+            "points": 30,
+            "check": "output.status == BLOCKED"
+          },
+          {
+            "criterion": "Next action reconciles the stage",
+            "points": 30,
+            "check": "output.next_action == reconcile-candidate-stage"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": [],
+    "note": "Scenario inputs are self-contained until an executable adapter supplies fixtures."
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Required/forbidden behavior checks",
+        "measurement": "scenario accuracy via scoring.criteria",
+        "weight": 0.7,
+        "threshold": 0.9
+      },
+      {
+        "dimension": "auditability",
+        "description": "Decision is explainable when audit fields exist",
+        "measurement": "scenario auditability score",
+        "weight": 0.2,
+        "threshold": null
+      },
+      {
+        "dimension": "latency",
+        "description": "Evaluation latency when measured",
+        "measurement": "milliseconds",
+        "weight": 0.1,
+        "threshold": null
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null,
+    "note": "Populate only from a reproducible harness run."
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null,
+    "note": "Schema/unit validation of this contract may be RUN in CI; behavioral evaluation stays NOT_RUN until executed against a live skill."
+  }
+}

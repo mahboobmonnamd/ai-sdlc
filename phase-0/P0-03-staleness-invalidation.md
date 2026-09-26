@@ -47,7 +47,7 @@ Timeline:
 │  └─ WI-042 proceeds with old spec
 │  └─ VER-199 tests against wrong spec
 │
-├─ T2: Code review: "Why does JWT have OAuth support?"
+├─ T2: PR review: "Why does JWT have OAuth support?"
 │  └─ Investigation: "What changed?"
 │  └─ Blame: "Who changed requirement?"
 │  └─ Rework: Re-implement, re-test, re-verify
@@ -57,22 +57,30 @@ Timeline:
 **With staleness tracking:**
 ```
 Timeline:
-├─ T0: FR-001 → SPEC-087 → WI-042 → VER-199 (all current)
+├─ T0: FR-001 → SPEC-087 → WI-042 → PLAN-WI-042 → VER-199 (all current)
 │
 ├─ T1: FR-001 updated to "Support OAuth too"
 │  └─ Staleness cascade fires automatically:
 │     ├─ SPEC-087.validation_status = stale (FR-001 changed)
 │     ├─ WI-042.validation_status = stale (SPEC-087 stale)
+│     ├─ PLAN-WI-042.validation_status = stale (WI-042/SPEC-087 changed)
 │     └─ VER-199.validation_status = stale (WI-042 stale)
 │  └─ Routing triggered for each:
 │     ├─ WI-042 → Gate 4: "artifact_stale" → Revalidate SPEC-087 first
+│     ├─ PLAN-WI-042 → Gate 4: "artifact_stale" → refresh plan (PROPOSED), then re-accept
 │     └─ VER-199 → Gate 4: "artifact_stale" → Revalidate WI-042 first
 │
 ├─ T2: Engineer revalidates SPEC-087
 │  └─ "Oh, FR-001 now requires OAuth support"
-│  └─ Updates SPEC-087 + WI-042 plan
-│  └─ WI-042 can proceed with correct spec
+│  └─ Updates SPEC-087 + WI-042
+│  └─ Refreshes PLAN-WI-042 as PROPOSED and advances plan_revision
+│  └─ Technical authority re-accepts the plan (accepted_by/accepted_at) before readiness
+│  └─ WI-042 can proceed only after the refreshed plan is accepted and current
 ```
+
+### Planning-semantic projection
+
+An `implementation_plan` depends on the **planning-relevant semantic projection** of its work item plus governing specs/decisions. Coordination-only updates such as assignee/claim changes, moving a ticket from READY to IN_PROGRESS, or adding comments do not by themselves stale the plan. Scope, acceptance, dependency, authority, specification, or governing-decision changes do.
 
 ### Design Constraints
 
@@ -248,10 +256,16 @@ Step 3: cascade_stale(SPEC-002, FR-001, depth=1)
 Step 4: cascade_stale(WI-042, SPEC-002, depth=2)
 ├─ WI-042.validation_status = stale
 ├─ WI-042.invalidated_by = [ADR-003, FR-001, SPEC-002]
-├─ Find downstream: [VER-087] (depends_on WI-042)
-└─ Call cascade_stale(VER-087, SPEC-002, depth=3)
+├─ Find downstream: [PLAN-WI-042, VER-087]
+├─ Call cascade_stale(PLAN-WI-042, WI-042, depth=3)
+└─ Call cascade_stale(VER-087, WI-042, depth=3)
 
-Step 5: cascade_stale(VER-087, SPEC-002, depth=3)
+Step 5: cascade_stale(PLAN-WI-042, WI-042, depth=3)
+├─ PLAN-WI-042.validation_status = stale
+├─ PLAN-WI-042.invalidated_by = [ADR-003, FR-001, SPEC-002, WI-042]
+└─ No downstream → cascade complete for plan
+
+Step 6: cascade_stale(VER-087, WI-042, depth=3)
 ├─ VER-087.validation_status = stale
 ├─ VER-087.invalidated_by = [ADR-003, FR-001, SPEC-002, WI-042]
 └─ No downstream → cascade complete
@@ -262,6 +276,7 @@ Final State:
 ├─ FR-002: stale ❌ (ADR-003 changed)
 ├─ SPEC-002: stale ❌ (FR-001, FR-002 changed)
 ├─ WI-042: stale ❌ (SPEC-002 changed)
+├─ PLAN-WI-042: stale ❌ (WI-042/SPEC-002 changed)
 └─ VER-087: stale ❌ (WI-042 changed)
 
 Audit Trail:

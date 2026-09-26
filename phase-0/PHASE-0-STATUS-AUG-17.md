@@ -303,3 +303,24 @@ Phase 1 team reviews:
 **Phase 0 Status: ON TRACK for Sep 16 Phase 1 kickoff.**
 
 Next workstreams ready to start: Aug 24.
+
+---
+
+## Amendment — 2026-09-26
+
+This Aug 17 snapshot remains the record of what was complete on 2026-08-17
+(14 entity kinds, 12 relationship types, schema strategy locked at 1.0.0).
+
+On 2026-09-26 the context schema was extended in a **major** revision:
+
+- schema version `1.0.0` → `2.0.0` (Semantic Versioning major: mandatory
+  `implementation_plan` / `accepted_plan` semantics are not compatible with
+  1.0 readers);
+- entity kinds: 14 → 15 (`implementation_plan` added);
+- relationship types: 12 → 13 (`plans` added);
+- plan creation remains distinct from plan acceptance (`proposed` vs accepted
+  pointer with `accepted_by` / `accepted_at`).
+
+See current `phase-0/P0-02-context-data-model.md` for the live schema. Do not
+reinterpret the Aug 17 checkboxes above as already including these September
+semantics.

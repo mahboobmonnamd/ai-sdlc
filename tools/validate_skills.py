@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 REQUIRED_SECTIONS = (
+    "## Invocation contract",
     "## When to use",
     "## Do not use",
     "## Required context",
@@ -12,6 +13,8 @@ REQUIRED_SECTIONS = (
     "## Output contract",
     "## Handoff",
 )
+
+REVIEW_TRIGGER_SKILL_LINES = 120
 
 FORBIDDEN_GENERIC_TERMS = (
     "seyal",
@@ -70,6 +73,10 @@ def validate_catalog(root: Path):
             errors.append(f"{label}: frontmatter name is required")
         if not description:
             errors.append(f"{label}: frontmatter description is required")
+        elif "not for" not in description.lower():
+            errors.append(
+                f"{label}: description must include the closest negative routing boundary using 'not for ...'"
+            )
         if name and name != path.parent.name:
             errors.append(
                 f"{label}: name {name!r} must match directory {path.parent.name!r}"
@@ -93,12 +100,30 @@ def validate_catalog(root: Path):
     return errors
 
 
+def collect_warnings(root: Path):
+    warnings = []
+    skills_dir = root / "skills"
+    if not skills_dir.is_dir():
+        return warnings
+    for path in sorted(skills_dir.glob("*/SKILL.md")):
+        line_count = len(path.read_text(encoding="utf-8").splitlines())
+        if line_count > REVIEW_TRIGGER_SKILL_LINES:
+            label = str(path.relative_to(root))
+            warnings.append(
+                f"{label}: {line_count} lines exceeds the {REVIEW_TRIGGER_SKILL_LINES}-line progressive-disclosure review trigger; consider moving supporting material to references, but do not compress or remove safety/authority semantics merely to satisfy size"
+            )
+    return warnings
+
+
 def main():
     parser = argparse.ArgumentParser(description="Validate AI-SDLC skill catalog structure")
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
 
     errors = validate_catalog(args.root)
+    warnings = collect_warnings(args.root)
+    for warning in warnings:
+        print(f"[skill-catalog] WARN: {warning}", file=sys.stderr)
     if errors:
         for error in errors:
             print(f"[skill-catalog] ERROR: {error}", file=sys.stderr)

@@ -1,0 +1,370 @@
+{
+  "contract_id": "EVAL-PR-REVIEW-001",
+  "contract_version": "0.9.0",
+  "skill": "pr-review",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-09-26",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "P0-07 unit contract for pr-review core development-loop behaviors.",
+  "metadata": {
+    "title": "pr-review unit behaviors",
+    "description": "Single-skill unit scenarios for pr-review. Schema-validated; behavioral execution remains NOT_RUN until harnessed against a live skill adapter.",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers",
+    "scope": "pr-review"
+  },
+  "target_capability": {
+    "description": "Given authoritative inputs, pr-review produces the expected governance/routing behaviors.",
+    "preconditions": [
+      "skill instructions from the candidate revision are loaded",
+      "authoritative identifiers are available when required"
+    ],
+    "postconditions": [
+      "required behaviors are satisfied",
+      "forbidden behaviors are absent"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "PRREVIEW-001",
+      "skill": "pr-review",
+      "input": "A user says 'review PR 42'. The non-trivial candidate has implementation, tests, CI and acceptance evidence but no prior separate code review.",
+      "expected_behaviors": [
+        "route directly to pr-review",
+        "review implementation correctness inside pr-review",
+        "review the entire current candidate",
+        "evaluate verification and required risk evidence",
+        "return one merge-readiness verdict"
+      ],
+      "forbidden_behaviors": [
+        "ask the user to choose between code-review and pr-review",
+        "require a separate generic code-review skill",
+        "review the diff only"
+      ],
+      "scenario_id": "PRREVIEW-001",
+      "name": "PRREVIEW-001",
+      "description": "A user says 'review PR 42'. The non-trivial candidate has implementation, tests, CI and acceptance evidence but no prior separate code review.",
+      "expected_output": {
+        "required_behaviors": [
+          "route directly to pr-review",
+          "review implementation correctness inside pr-review",
+          "review the entire current candidate",
+          "evaluate verification and required risk evidence",
+          "return one merge-readiness verdict"
+        ],
+        "forbidden_behaviors": [
+          "ask the user to choose between code-review and pr-review",
+          "require a separate generic code-review skill",
+          "review the diff only"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Review covers the full candidate",
+            "points": 40,
+            "check": "output.review_scope == FULL_CANDIDATE"
+          },
+          {
+            "criterion": "No separate code-review skill",
+            "points": 30,
+            "check": "output.separate_code_review_skill == NOT_REQUIRED"
+          },
+          {
+            "criterion": "Verification uses the work item when available",
+            "points": 30,
+            "check": "output.verification_target == work_item"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-002",
+      "skill": "pr-review",
+      "input": "A candidate contains four independent material defects and the first severe defect appears early.",
+      "expected_behaviors": [
+        "continue after the first blocker",
+        "complete the review coverage map",
+        "report all material blockers discovered in the pass",
+        "group duplicate symptoms without hiding independent defects"
+      ],
+      "forbidden_behaviors": [
+        "stop after the first blocker",
+        "cap findings arbitrarily",
+        "defer already discovered blockers to later rounds"
+      ],
+      "scenario_id": "PRREVIEW-002",
+      "name": "PRREVIEW-002",
+      "description": "A candidate contains four independent material defects and the first severe defect appears early.",
+      "expected_output": {
+        "required_behaviors": [
+          "continue after the first blocker",
+          "complete the review coverage map",
+          "report all material blockers discovered in the pass",
+          "group duplicate symptoms without hiding independent defects"
+        ],
+        "forbidden_behaviors": [
+          "stop after the first blocker",
+          "cap findings arbitrarily",
+          "defer already discovered blockers to later rounds"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Coverage is complete",
+            "points": 70,
+            "check": "output.review_coverage == COMPLETE"
+          },
+          {
+            "criterion": "Review continues after the first blocker",
+            "points": 30,
+            "check": "output.finding_stop_policy == CONTINUE_AFTER_BLOCKERS"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-003",
+      "skill": "pr-review",
+      "input": "A previous review found three blockers. The remediation revision fixes those lines but introduces a new defect elsewhere in the affected path.",
+      "expected_behaviors": [
+        "verify disposition of prior blockers",
+        "perform a full review of the entire current candidate",
+        "surface the new defect",
+        "treat the remediation delta as context only"
+      ],
+      "forbidden_behaviors": [
+        "review only prior comment lines",
+        "approve because old threads are resolved",
+        "perform delta-only re-review"
+      ],
+      "scenario_id": "PRREVIEW-003",
+      "name": "PRREVIEW-003",
+      "description": "A previous review found three blockers. The remediation revision fixes those lines but introduces a new defect elsewhere in the affected path.",
+      "expected_output": {
+        "required_behaviors": [
+          "verify disposition of prior blockers",
+          "perform a full review of the entire current candidate",
+          "surface the new defect",
+          "treat the remediation delta as context only"
+        ],
+        "forbidden_behaviors": [
+          "review only prior comment lines",
+          "approve because old threads are resolved",
+          "perform delta-only re-review"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Re-review is full-candidate",
+            "points": 70,
+            "check": "output.review_scope == FULL_CANDIDATE"
+          },
+          {
+            "criterion": "Delta is context only",
+            "points": 30,
+            "check": "output.re_review_mode == FULL_NOT_DELTA"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-004",
+      "skill": "pr-review",
+      "input": "The current PR head is def456, while supplied verification evidence says verified_revision abc123 and project policy does not permit carry-forward.",
+      "expected_behaviors": [
+        "reject the stale verification evidence for exact-revision acceptance",
+        "obtain or rerun verification for def456",
+        "withhold READY_TO_MERGE until mandatory exact-revision evidence is proven"
+      ],
+      "forbidden_behaviors": [
+        "accept verification from abc123 as if it proved def456",
+        "ignore verified_revision"
+      ],
+      "scenario_id": "PRREVIEW-004",
+      "name": "PRREVIEW-004",
+      "description": "The current PR head is def456, while supplied verification evidence says verified_revision abc123 and project policy does not permit carry-forward.",
+      "expected_output": {
+        "required_behaviors": [
+          "reject the stale verification evidence for exact-revision acceptance",
+          "obtain or rerun verification for def456",
+          "withhold READY_TO_MERGE until mandatory exact-revision evidence is proven"
+        ],
+        "forbidden_behaviors": [
+          "accept verification from abc123 as if it proved def456",
+          "ignore verified_revision"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Reviewed revision is the current head",
+            "points": 40,
+            "check": "output.reviewed_revision == def456"
+          },
+          {
+            "criterion": "Stale evidence revision is recorded",
+            "points": 30,
+            "check": "output.verification_evidence_revision == abc123"
+          },
+          {
+            "criterion": "Ready to merge is withheld",
+            "points": 30,
+            "check": "output.verdict != READY_TO_MERGE"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-005",
+      "scenario_id": "PRREVIEW-005",
+      "name": "PRREVIEW-005",
+      "skill": "pr-review",
+      "input": "An external contributor opened a docs-only PR with no AI-SDLC work item or implementation plan. Project policy does not require a plan for docs changes. candidate_lifecycle_stage is IN_REVIEW.",
+      "expected_behaviors": [
+        "set lifecycle_accepted_plan to NOT_APPLICABLE",
+        "continue full review against candidate intent repository authority tests and applicable requirements",
+        "do not return INCONCLUSIVE solely because a plan is missing",
+        "invoke verification against the merge candidate and candidate intent"
+      ],
+      "forbidden_behaviors": [
+        "block solely due to missing implementation plan",
+        "invent an owning work item or plan",
+        "skip exact-revision verification"
+      ],
+      "description": "An external contributor opened a docs-only PR with no AI-SDLC work item or implementation plan. Project policy does not require a plan for docs changes. candidate_lifecycle_stage is IN_REVIEW.",
+      "expected_output": {
+        "required_behaviors": [
+          "set lifecycle_accepted_plan to NOT_APPLICABLE",
+          "continue full review against candidate intent repository authority tests and applicable requirements",
+          "do not return INCONCLUSIVE solely because a plan is missing",
+          "invoke verification against the merge candidate and candidate intent"
+        ],
+        "forbidden_behaviors": [
+          "block solely due to missing implementation plan",
+          "invent an owning work item or plan",
+          "skip exact-revision verification"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Plan context is not applicable",
+            "points": 40,
+            "check": "output.lifecycle_accepted_plan == NOT_APPLICABLE"
+          },
+          {
+            "criterion": "Work item context is not applicable",
+            "points": 30,
+            "check": "output.lifecycle_work_item == NOT_APPLICABLE"
+          },
+          {
+            "criterion": "Verification uses the merge candidate",
+            "points": 30,
+            "check": "output.verification_target == merge_candidate"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-006",
+      "scenario_id": "PRREVIEW-006",
+      "name": "PRREVIEW-006",
+      "skill": "pr-review",
+      "input": "A feature PR is owned by an AI-SDLC work item whose project policy requires an accepted plan, but accepted_plan is missing.",
+      "expected_behaviors": [
+        "set lifecycle_accepted_plan to REQUIRED_BUT_MISSING",
+        "return INCONCLUSIVE or BLOCKED_BY_DECISION",
+        "do not fall back to an arbitrary latest plan"
+      ],
+      "forbidden_behaviors": [
+        "proceed to READY_TO_MERGE without the required plan",
+        "treat the missing plan as NOT_APPLICABLE when policy requires one"
+      ],
+      "description": "A feature PR is owned by an AI-SDLC work item whose project policy requires an accepted plan, but accepted_plan is missing.",
+      "expected_output": {
+        "required_behaviors": [
+          "set lifecycle_accepted_plan to REQUIRED_BUT_MISSING",
+          "return INCONCLUSIVE or BLOCKED_BY_DECISION",
+          "do not fall back to an arbitrary latest plan"
+        ],
+        "forbidden_behaviors": [
+          "proceed to READY_TO_MERGE without the required plan",
+          "treat the missing plan as NOT_APPLICABLE when policy requires one"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Required plan is missing",
+            "points": 40,
+            "check": "output.lifecycle_accepted_plan == REQUIRED_BUT_MISSING"
+          },
+          {
+            "criterion": "Verdict is inconclusive or blocked",
+            "points": 60,
+            "check": "output.verdict in ['INCONCLUSIVE', 'BLOCKED_BY_DECISION']"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": [],
+    "note": "Scenario inputs are self-contained until an executable adapter supplies fixtures."
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Required/forbidden behavior checks",
+        "measurement": "scenario accuracy via scoring.criteria",
+        "weight": 0.7,
+        "threshold": 0.9
+      },
+      {
+        "dimension": "auditability",
+        "description": "Decision is explainable when audit fields exist",
+        "measurement": "scenario auditability score",
+        "weight": 0.2,
+        "threshold": null
+      },
+      {
+        "dimension": "latency",
+        "description": "Evaluation latency when measured",
+        "measurement": "milliseconds",
+        "weight": 0.1,
+        "threshold": null
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null,
+    "note": "Populate only from a reproducible harness run."
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null,
+    "note": "Schema/unit validation of this contract may be RUN in CI; behavioral evaluation stays NOT_RUN until executed against a live skill."
+  }
+}

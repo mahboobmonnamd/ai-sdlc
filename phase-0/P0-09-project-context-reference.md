@@ -76,7 +76,7 @@ Migrate a skill only when:
 4. the consuming repository can pin/version it deterministically; and
 5. migration does not weaken product-specific engineering gates.
 
-Good migration candidates include generic issue refinement, implementation workflow, code review, verification, documentation lifecycle, security/performance review orchestration, and project-context retrieval. Domain skills such as terminal conformance, VT TDD, Metal rendering, or a product's architecture invariants remain with the product.
+Good migration candidates include generic issue refinement, implementation workflow, PR review/remediation, verification, documentation lifecycle, security/performance review orchestration, and project-context retrieval. Domain skills such as terminal conformance, VT TDD, Metal rendering, or a product's architecture invariants remain with the product.
 
 ## 6. Seyal as reference consumer
 

@@ -1,54 +1,67 @@
 # Consumer absorption map
 
-How consuming projects should take the working-loop changes after this repository lands them. Generic skills remain the authority for reusable procedure. Consumers keep domain, tracker, and product gates.
+Generic AI-SDLC skills own reusable workflow semantics. Consuming projects keep tracker identity, branch/worktree mechanics, product/domain gates, and posting/mutation policy.
 
-This pass updates **AI-SDLC only**. Do not copy these paragraphs into a consumer `AGENTS.md`. After the next reviewed pin, fold only the consumer-specific rows.
+This change intentionally removes the overlapping generic code-review entrypoint and introduces explicit planning and review-remediation stages.
 
 ## Pin sequence
 
-```text
-ai-sdlc working-loop change
+~~~text
+ai-sdlc workflow change
   → review/merge in ai-sdlc
-  → consuming OSS project updates the exact bootstrap pin
-  → consumer facades stay thin; add a delta only when the generic rule is insufficient
-  → commercial overlays inherit the OSS pin; they do not shadow generic skills
-```
+  → consumer updates exact framework pin
+  → consumer facades map tracker-native identifiers to generic arguments
+  → consumer adds only project-specific governance deltas
+~~~
 
-Do not edit a pinned `oss/` checkout from a commercial change. Do not create Cursor-only `.cursor/rules` copies of these procedures.
+Do not copy the generic procedure into always-on agent rules or create parallel consumer skills that compete for the same intent.
 
-## Map: rewritten loop → generic skill → later consumer delta
+## Core generic → consumer mapping
 
-| Loop rule | AI-SDLC skill (this change) | Later consumer absorption | Do not absorb |
-| --- | --- | --- | --- |
-| Clarify only when it changes the result | `work-item-design`, skip-gated in `implementation` | Issue-refinement / implementation facade: keep “ask before assuming”; add skip-if-specified if still missing | Always-on AGENTS.md “ask 5 questions” |
-| Vertical slice + parent/sub-items | `work-item-design` | Issue-refinement: recommend child items per slice; parent may remain the exclusive-claim surface | Forcing a pause between slices when the user asked for e2e |
-| Working software, permanent path | `implementation`, `development-readiness` | Implementation facade already forbids POC-on-production; keep that stricter rule | Fake UI/data to look finished |
-| Duplicate until third copy, except authority splits | `implementation` | Keep consumer cohesion/hot-path rules; they already forbid duplicate state engines | Using YAGNI to justify a second VT/runtime/renderer |
-| Cut scope, not time | `work-item-design`, `development-readiness`, `implementation` | Implementation plan-first: name dropped slice instead of stretching | Shrinking acceptance after seeing the code |
-| Quoted proof | `implementation`, `verification`, `pr-review` | Verification adapter: require command/output quotes in handoff | Treating green CI as the quote |
-| Smallest change only | `implementation`, `code-review` | Already present (“do not refactor unrelated”); keep | Drive-by formatting |
-| Three approaches for material forks | `implementation` | Architecture-change already compares alternatives; do not duplicate that workflow into implementation PRs | Three approaches for mechanical fixes |
-| Write `unknown` | `project-context`, all loop skills | Keep “don’t hide confusion”; add the token where facades still paraphrase | Invented citations |
-| Expensive-to-reverse + shortcuts | `implementation`, `development-readiness` | Architecture-change for irreversible authority; implementation handoff for shortcuts | Silent shortcuts as architecture |
-| Blunt ranked review, don’t improve | `code-review`, `pr-review` | PR-review facade: keep blocking findings; don’t add a mandatory top-10 on tiny diffs | Running review hostility during implementation |
-| Slice/failure/critical tests only | `implementation`, `code-review` | Keep test-first for core/VT behavior; do not import “tests only after it broke” | Dropping fixture/conformance requirements |
-| 3–5 checkable Done conditions | `work-item-design`, `verification` | Issue protocol acceptance checkboxes; never “production-ready” as Done | Vague professional language |
+| Generic capability | Consumer facade responsibility |
+| --- | --- |
+| project-context(query) | Map project indexes/sources; keep authoritative-source precedence |
+| work-item-design(work_item_id/outcome) | Map tracker issue/ticket semantics and project issue protocol |
+| implementation-planning(work_item_id) | Persist/reference durable proposed plan identity/revision; do not self-accept; add project-specific file/module/test/build constraints without changing accepted authority |
+| plan acceptance (project-defined) | Advance `accepted_plan` only with technical-authority evidence (`accepted_by` / `accepted_at`) |
+| development-readiness(work_item_id) | Apply project Ready rules; persist gap report only under explicit user authorization |
+| implementation(work_item_id) | Map tracker-native ID, claim semantics, deterministic branch/worktree, open-merge-candidate detection, and post-implementation merge-candidate creation/resolution |
+| verification(work_item_id or merge_candidate_id, revision) | Work-item criteria, or candidate-intent evidence when lifecycle work item is NOT_APPLICABLE |
+| pr-review(merge_candidate_id) | Add project architecture/hot-path/specialist requirements; this is the only review entrypoint |
+| address-pr-review(merge_candidate_id) | Map review threads/checks and candidate update authority; batch all known remediation |
 
-## Consumer skills that should stay domain-owned
+## Required consumer behavior for issue-based implementation facades
 
-These should **not** receive the generic working-loop text. They already have stronger or different jobs:
+When a project exposes an issue-number command such as implement-issue:
 
-- architecture-change / ADR workflow
-- domain TDD, conformance, fuzzing, renderer, performance, security
-- native UI/accessibility/visual-regression
-- documentation authoring/validation
-- milestone aggregation
-- tracker identity, assignee, branch, and PR templates
+1. require the issue number as the explicit argument;
+2. fetch the issue fresh;
+3. if another developer already owns/claims it, stop before branch/worktree/files/edits;
+4. require a current **accepted** implementation plan with durable `plan_id` + `plan_revision` and acceptance evidence (`accepted_by` / `accepted_at`); a `PROPOSED` plan alone is insufficient;
+5. resolve open PR/merge-candidate state: if none, start new implementation; if the same authorized candidate exists and implementation is incomplete, resume implementation on that same candidate; if another/ambiguous owner or multiple active candidates exist, stop and reconcile;
+6. if an open PR exists, route by durable `candidate_lifecycle_stage`: `IMPLEMENTATION_IN_PROGRESS` stays in implementation even when CI is failing or early comments exist; `IN_REVIEW` plus reviewer-feedback/check remediation routes to address-pr-review; a missing stage is reconstructed from persisted candidate state and must not be assumed `IN_REVIEW`;
+7. after completed implementation with no candidate, create or resolve the concrete PR/merge candidate under consumer policy before invoking pr-review;
+8. if readiness fails, show the generic gap table and prepare the project-specific gap report artifact;
+9. do not post tracker comments without explicit user confirmation.
 
-If a reusable defect is found while operating those skills, fix the generic catalog here rather than growing a second implementation/review skill in the consumer.
+A consumer may choose a deterministic local filename for the preview artifact. That filename convention belongs to the consumer, not the generic framework.
 
-## Suggested follow-up work items (not this change)
+## Review semantics
 
-1. Pin the merged AI-SDLC revision in the OSS consumer bootstrap.
-2. Diff each facade against `docs/WORKING-LOOP.md`. Add only missing skip conditions; delete restated generic procedure.
-3. Keep commercial overlays as a composition delta. Do not shadow `implementation`, `work-item-design`, `code-review`, `verification`, or `pr-review`.
+A consumer must not reintroduce code-review as a competing generic facade. pr-review already owns implementation correctness, architecture/scope review, evidence/CI, specialist risk, and final merge readiness.
+
+Every re-review remains full-candidate. address-pr-review owns remediation only for an `IN_REVIEW` candidate and then returns to full pr-review. If the durable stage is `IMPLEMENTATION_IN_PROGRESS`, it returns to implementation instead.
+
+## Do not absorb into generic skills
+
+Keep these consumer-owned:
+
+- tracker identity/assignee/claim mechanics;
+- branch/worktree naming;
+- PR templates and exact tracker comment APIs;
+- product/domain architecture;
+- platform-specific test commands;
+- specialist domain skills;
+- merge permissions and human approval policy.
+
+Reusable workflow defects should be fixed in AI-SDLC rather than copied into project-specific facades.

@@ -1,0 +1,260 @@
+{
+  "contract_id": "EVAL-VERIFICATION-001",
+  "contract_version": "0.9.0",
+  "skill": "verification",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-09-26",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "P0-07 unit contract for verification core development-loop behaviors.",
+  "metadata": {
+    "title": "verification unit behaviors",
+    "description": "Single-skill unit scenarios for verification. Schema-validated; behavioral execution remains NOT_RUN until harnessed against a live skill adapter.",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers",
+    "scope": "verification"
+  },
+  "target_capability": {
+    "description": "Given authoritative inputs, verification produces the expected governance/routing behaviors.",
+    "preconditions": [
+      "skill instructions from the candidate revision are loaded",
+      "authoritative identifiers are available when required"
+    ],
+    "postconditions": [
+      "required behaviors are satisfied",
+      "forbidden behaviors are absent"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "VERIFY-001",
+      "skill": "verification",
+      "input": "One mandatory acceptance criterion has no reproducible test, demo, measurement, or source evidence.",
+      "expected_behaviors": [
+        "use work_item_id and applicable revision",
+        "return INCONCLUSIVE or FAILED as appropriate",
+        "mark the criterion as not passing",
+        "state the missing evidence"
+      ],
+      "forbidden_behaviors": [
+        "infer a pass from review confidence",
+        "invent evidence"
+      ],
+      "scenario_id": "VERIFY-001",
+      "name": "VERIFY-001",
+      "description": "One mandatory acceptance criterion has no reproducible test, demo, measurement, or source evidence.",
+      "expected_output": {
+        "required_behaviors": [
+          "use work_item_id and applicable revision",
+          "return INCONCLUSIVE or FAILED as appropriate",
+          "mark the criterion as not passing",
+          "state the missing evidence"
+        ],
+        "forbidden_behaviors": [
+          "infer a pass from review confidence",
+          "invent evidence"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Verdict is failed or inconclusive",
+            "points": 70,
+            "check": "output.verdict in ['FAILED', 'INCONCLUSIVE']"
+          },
+          {
+            "criterion": "Target is the work item",
+            "points": 30,
+            "check": "output.verification_target == work_item"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "VERIFY-002",
+      "skill": "verification",
+      "input": "Every mandatory acceptance criterion maps to reproducible passing evidence on the applicable revision.",
+      "expected_behaviors": [
+        "return VERIFIED",
+        "show criterion-level evidence",
+        "preserve deferred/non-goal classification"
+      ],
+      "forbidden_behaviors": [
+        "add new acceptance criteria",
+        "claim evidence from another revision without authority"
+      ],
+      "scenario_id": "VERIFY-002",
+      "name": "VERIFY-002",
+      "description": "Every mandatory acceptance criterion maps to reproducible passing evidence on the applicable revision.",
+      "expected_output": {
+        "required_behaviors": [
+          "return VERIFIED",
+          "show criterion-level evidence",
+          "preserve deferred/non-goal classification"
+        ],
+        "forbidden_behaviors": [
+          "add new acceptance criteria",
+          "claim evidence from another revision without authority"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Verdict is verified",
+            "points": 70,
+            "check": "output.verdict == VERIFIED"
+          },
+          {
+            "criterion": "Criterion-level evidence is present",
+            "points": 30,
+            "check": "output.criteria_evidence == PRESENT"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "VERIFY-003",
+      "skill": "verification",
+      "input": "Standalone verification passes for a project whose policy requires PR review before release.",
+      "expected_behaviors": [
+        "return VERIFIED with criterion-level evidence",
+        "route next to pr-review rather than release-readiness",
+        "preserve the project's required review gate"
+      ],
+      "forbidden_behaviors": [
+        "route directly to release-readiness",
+        "treat VERIFIED as permission to bypass required PR review"
+      ],
+      "scenario_id": "VERIFY-003",
+      "name": "VERIFY-003",
+      "description": "Standalone verification passes for a project whose policy requires PR review before release.",
+      "expected_output": {
+        "required_behaviors": [
+          "return VERIFIED with criterion-level evidence",
+          "route next to pr-review rather than release-readiness",
+          "preserve the project's required review gate"
+        ],
+        "forbidden_behaviors": [
+          "route directly to release-readiness",
+          "treat VERIFIED as permission to bypass required PR review"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Verdict is verified",
+            "points": 40,
+            "check": "output.verdict == VERIFIED"
+          },
+          {
+            "criterion": "Next action is pr-review",
+            "points": 60,
+            "check": "output.next_action == pr-review"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "VERIFY-004",
+      "skill": "verification",
+      "input": "Verification begins on revision abc123, but the merge candidate moves to def456 before final verdict.",
+      "expected_behaviors": [
+        "record abc123 as the revision initially evaluated",
+        "detect the revision change before final verdict",
+        "treat revision-sensitive evidence as stale",
+        "refuse VERIFIED until applicable evidence is gathered for def456"
+      ],
+      "forbidden_behaviors": [
+        "return VERIFIED for def456 using only abc123 evidence",
+        "omit the verified revision from the result"
+      ],
+      "scenario_id": "VERIFY-004",
+      "name": "VERIFY-004",
+      "description": "Verification begins on revision abc123, but the merge candidate moves to def456 before final verdict.",
+      "expected_output": {
+        "required_behaviors": [
+          "record abc123 as the revision initially evaluated",
+          "detect the revision change before final verdict",
+          "treat revision-sensitive evidence as stale",
+          "refuse VERIFIED until applicable evidence is gathered for def456"
+        ],
+        "forbidden_behaviors": [
+          "return VERIFIED for def456 using only abc123 evidence",
+          "omit the verified revision from the result"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Evidence was gathered for abc123",
+            "points": 40,
+            "check": "output.evidence_revision_evaluated == abc123"
+          },
+          {
+            "criterion": "Head moved to def456",
+            "points": 30,
+            "check": "output.head_revision == def456"
+          },
+          {
+            "criterion": "Verified is refused for the new head",
+            "points": 30,
+            "check": "output.verdict != VERIFIED"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": [],
+    "note": "Scenario inputs are self-contained until an executable adapter supplies fixtures."
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Required/forbidden behavior checks",
+        "measurement": "scenario accuracy via scoring.criteria",
+        "weight": 0.7,
+        "threshold": 0.9
+      },
+      {
+        "dimension": "auditability",
+        "description": "Decision is explainable when audit fields exist",
+        "measurement": "scenario auditability score",
+        "weight": 0.2,
+        "threshold": null
+      },
+      {
+        "dimension": "latency",
+        "description": "Evaluation latency when measured",
+        "measurement": "milliseconds",
+        "weight": 0.1,
+        "threshold": null
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null,
+    "note": "Populate only from a reproducible harness run."
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null,
+    "note": "Schema/unit validation of this contract may be RUN in CI; behavioral evaluation stays NOT_RUN until executed against a live skill."
+  }
+}

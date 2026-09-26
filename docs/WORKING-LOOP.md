@@ -1,125 +1,130 @@
 # Working loop
 
-Task-selected execution discipline for the existing development-loop skills. This is **not** a skill, **not** an always-on agent constitution, and **not** a replacement for product/architecture authority.
+Task-selected execution discipline for the core development-loop skills. This is **not** an always-on agent constitution and does not replace product/architecture authority.
 
-Agents must not paste this file into project `AGENTS.md`, always-apply rules, or a parallel skill that claims the same work as `work-item-design`, `implementation`, `code-review`, `verification`, or `pr-review`. Load only the row that matches the current activity. Multiple coding agents (Cursor, Claude, Codex, Copilot, and others) discover the same portable `skills/*/SKILL.md` files; keep this vendor-agnostic.
+## Canonical workflow
 
-## Why this exists
+~~~text
+work-item-design <work-item|outcome>
+        ↓
+implementation-planning <work-item>     → plan_status PROPOSED
+        ↓
+project-defined plan acceptance         → accepted_plan + accepted_by/accepted_at
+        ↓
+development-readiness <work-item>
+        ↓ READY
+implementation <work-item>
+        ↓ candidate_lifecycle_stage = IMPLEMENTATION_IN_PROGRESS
+host/project creates or resolves merge candidate
+        ↓ accepted scope complete → IN_REVIEW
+pr-review <merge-candidate>
+        ├─ READY_TO_MERGE → merge/release authority
+        └─ CHANGES_REQUIRED
+                  ↓
+         address-pr-review <merge-candidate>
+                  ↓
+              pr-review          ← full candidate review (IN_REVIEW only)
+~~~
 
-A useful working loop tells an agent *when* to clarify, how thin a slice may be, what proof looks like, and what “done” means. Dumping those prompts into every session pollutes routing: clarifying questions fire on mechanical fixes, review-only hostility fires during implementation, and “tests only after it broke” fights evidence-first production work.
+verification is an independently reusable evidence skill and is also consumed/orchestrated by pr-review. A standalone VERIFIED result never bypasses a PR-review gate required by project or rigor policy. project-context is a retrieval utility used by any stage.
 
-The existing catalog already owns most of this. This document records what was absorbed, what was rewritten, and what was rejected, so later consumer pins do not re-add the discarded wording.
+There is intentionally **no standalone generic code-review skill**. A request to review a PR/merge candidate routes to pr-review, which owns implementation correctness plus merge-readiness evidence. A request to fix existing review comments on an **IN_REVIEW** candidate routes to address-pr-review.
 
-## Selector
+`pr-review` and `address-pr-review` remain independently usable (PRD UX-008). Lifecycle work-item/plan context is conditional: `AVAILABLE` | `NOT_APPLICABLE` | `REQUIRED_BUT_MISSING`. A missing plan that is `NOT_APPLICABLE` does not make review inconclusive.
 
-| Current activity | Skill | Load |
-| --- | --- | --- |
-| Ambiguous request, missing acceptance, oversized ticket | `work-item-design` then `development-readiness` | Before |
-| Ready implementation | `implementation` | Before (skip-gated) + During |
-| Focused diff/defect review | `code-review` | During (smallest-change) + After |
-| “Is the outcome actually true?” | `verification` | After |
-| “Is this exact revision mergeable?” | `pr-review` | After |
-| Compact source retrieval | `project-context` | Any phase, sources only |
+## Skill selector and invocation
 
-If the user names a skill, use that skill. Do not run the Before, During, and After columns as one checklist.
+| User intent | Skill | Required input | Key governance |
+| --- | --- | --- | --- |
+| Retrieve project authority/context | project-context | query | Summaries are navigation, not authority |
+| Refine/create executable work item | work-item-design | work_item_id or accepted outcome | No implementation ownership claim |
+| Produce implementation plan | implementation-planning | work_item_id | Outputs `PROPOSED`; does not accept the plan |
+| Accept a proposed plan | project-defined technical authority | plan_id + plan_revision | Records `accepted_by` / `accepted_at`; advances `accepted_plan` |
+| Decide whether implementation may start | development-readiness | work_item_id | Requires accepted plan + acceptance evidence; non-ready must expose gaps |
+| Implement new/incomplete work | implementation | work_item_id | Ready + accepted plan; stage `IMPLEMENTATION_IN_PROGRESS` until scope complete |
+| Prove acceptance outcome | verification | work_item_id or merge_candidate_id (+ revision when applicable) | Work-item criteria, or candidate intent when no work item applies; assertion is not evidence |
+| Review/re-review merge candidate | pr-review | merge_candidate_id | Full review; plan required only when policy/workflow requires it |
+| Fix review comments/check failures (review stage) | address-pr-review | merge_candidate_id | `IN_REVIEW` only; returns to `pr-review` |
 
-## Before — design and readiness
+If the user names a skill, use that skill unless doing so would violate its explicit stop condition.
 
-Use in `work-item-design` and `development-readiness`. Implementation may use a subset only when the task is still under-specified.
+## Readiness and implementation governance
 
-### Clarify only when it changes the result
+Implementation is allowed only after all four are established. This order is canonical across rigor profiles; lightweight work may use a compact plan, but the plan still exists before readiness:
 
-If the request, work item, and authority already specify the outcome, **ask nothing**. If a material choice remains, ask the fewest questions that would change the work (typically 1–5), each with concrete options, then wait. Do not ritualize five questions.
+1. the exact work item is identified and current;
+2. no other implementer owns/claims it under project policy;
+3. an **accepted** implementation plan exists (not merely a `PROPOSED` plan), with `accepted_by` / `accepted_at` (or equivalent) on the accepted-plan pointer;
+4. no conflicting merge candidate already owns this implementation lifecycle. An authorized existing candidate for the same unfinished work item is a continuation surface, not a blocker.
 
-Existing catalog already said: don’t invent product/architecture decisions; ask before assuming scope. The new rule only adds skip conditions and optioned questions.
+After implementation begins, merge-candidate creation/resolution is host/project integration, not hidden work inside `implementation`. While `candidate_lifecycle_stage` is `IMPLEMENTATION_IN_PROGRESS`, continue `implementation` on that candidate—including CI failures and early feedback needed to finish accepted scope. Do **not** enter full merge-readiness `pr-review` or review-stage `address-pr-review` until accepted-scope implementation is complete and the stage is `IN_REVIEW`.
 
-### One vertical slice
+When readiness fails, development-readiness returns a table with:
 
-A work item is one narrow path from input to an observable result, not a horizontal layer (schema now, API later, UI later).
+| Gap | What's missing | Proposed cure (when inferable) | Concerns / decision needed |
+| --- | --- | --- | --- |
 
-- If a parent item contains multiple independently reviewable slices, recommend child/sub-items, one per slice. Keep a parent as the ownership/claim surface when the consuming project uses exclusive active-work claims.
-- If the user asks for the full end-to-end outcome in this session, still design the slices, but do **not** require a pause after slice one before designing or implementing slice two.
-- If the user asks to see slice N before slice N+1, stop after the named slice with something they can run.
+It also produces tracker-comment-ready full text. The consuming tracker facade decides file naming/posting mechanics and must obtain explicit user authorization before posting.
 
-Existing catalog already forbade mega-items and required independently reviewable outcomes. This adds parent/sub-item guidance and the e2e vs pause distinction.
+### Existing merge-candidate routing
 
-### Working software on the permanent path
+```text
+open candidate for same work item?
+  ├─ no → implementation may create work; host/project later creates/resolves candidate
+  ├─ yes + authorized owner + IMPLEMENTATION_IN_PROGRESS
+  │         (incomplete scope; CI/early comments may exist)
+  │       → continue implementation on SAME candidate
+  │         (do not route to address-pr-review / full pr-review yet)
+  ├─ yes + IN_REVIEW + review comments/check remediation → address-pr-review → pr-review
+  └─ yes + other/ambiguous owner or multiple candidates → BLOCK and reconcile
+```
 
-Every implementation pass must end with an exercisable path for this slice: a command, test, API, UI, or other observable behavior a human can run. Rough is allowed. Fake data, disposable prototypes, or a second production path are not allowed on a mergeable branch.
+Never create a second candidate merely because implementation spans sessions.
 
-Existing production-vs-POC guardrail stays stricter and wins.
+Mixed state (implementation incomplete **and** failing CI or reviewer feedback): remain under `implementation` until accepted scope is complete; expected route must not be full merge-readiness `pr-review` while stage is `IMPLEMENTATION_IN_PROGRESS`.
 
-### Simplest thing that works
+## Implementation discipline
 
-Build only what the current slice needs. Do not extract an abstraction for a second use; duplicate until a third independent copy. **Exception:** do not duplicate authoritative state, ownership, or a second engine/path. That exception already exists and is stronger than YAGNI.
+Build only the accepted slice and permanent production path. Do not silently change architecture, weaken acceptance, create temporary parallel implementations, or perform unrelated cleanup.
 
-### Cut scope, not time
+When a material design fork appears that accepted authority does not resolve, stop and route backward. A proposed plan is not permission to invent an architecture decision; an accepted plan is not permission either.
 
-If the requested outcome cannot finish in one implementation session, name what to drop or split. Do not keep the parent ambition and stretch. `READY` applies to the named slice, not the unscoped remainder.
+For claimed progress, show reproducible proof: exact command/check plus a quoted result or source. Write unknown when evidence cannot be established.
 
-## During — execute the slice
+## PR review discipline
 
-Use in `implementation`. `code-review` uses only the smallest-change and unknown/source rules.
+Every pr-review is a **full review of the entire current candidate**, including re-review after remediation.
 
-### Proof, not a completion claim
+The review must cover implementation correctness, scope/architecture, affected production paths, tests, failure/lifecycle/concurrency behavior, acceptance evidence, required CI, measurements, specialist risk where applicable, and documentation/claim accuracy.
 
-Do not say the work is done. Show the check: command or test name, and a quoted exact line of output or source. Estimates stay labeled estimates.
+When lifecycle plan context is `NOT_APPLICABLE`, review against candidate intent, repository authority, tests/checks, and applicable requirements without requiring an AI-SDLC plan. Exact-revision verification still runs, with `verification_target: merge_candidate` rather than a work item.
 
-### Change only the approved surface
+Continue after finding blockers. Complete the review coverage and return every material blocker discovered in the pass. Group duplicate symptoms by root cause; do not hide independent findings and do not apply an arbitrary finding cap.
 
-Make the smallest possible change. Do not rewrite, reformat, or improve anything outside the work item. Existing “touch only what you must” stays; this makes unrelated cleanup an explicit defect.
+## Review remediation discipline
 
-### Compare three approaches only for material forks
+address-pr-review is the only core **review-stage** remediation entrypoint.
 
-When a real design fork exists, compare at least three approaches, mark uncertainty as `unknown`, pick one, and say why. Skip this for mechanical, specified, or single-obvious-path changes. Unresolved architecture is still a readiness/decision route, not an implementation vote.
+Before editing it inventories:
 
-### Write `unknown` instead of inventing a source
+- all unresolved review threads/comments;
+- all prior material review findings;
+- all required failing checks/CI.
 
-If a path, ID, measurement, or citation is not established, write `unknown`. Never invent a source. Existing authority rules already forbade silent invention; this makes the token explicit.
+It then fixes the complete known material set as one bounded batch, searches the approved surface for sibling instances of each root cause, reruns relevant checks, and—only when stage is `IN_REVIEW`—hands the exact new candidate back to pr-review.
 
-### Flag expensive-to-reverse decisions
+If the candidate is still `IMPLEMENTATION_IN_PROGRESS`, return to `implementation` instead of full merge-readiness `pr-review`.
 
-Call out public contracts, data formats, authority splits, and hard dependencies before coding them. Existing architecture-escalation remains the stop condition; this is the warning label on the path that *is* allowed.
+Do not fix one comment and immediately request re-review while other known blockers remain.
 
-### Mark shortcuts
+## Re-review semantics
 
-If a shortcut is taken (skipped generalization, duplicated logic, narrowed demo), record `shortcut:` in the handoff. Shortcuts are not secret architecture.
+Prior findings are a regression checklist, not the review boundary. The latest delta is context, not scope.
 
-## After — review and prove
+Expensive checks or measurements may be reused only when governing policy proves they remain valid for the current revision. Every acceptance row and risk domain is still reconsidered.
 
-Use in `code-review`, `verification`, and `pr-review`. Do not run this hostility during implementation unless the user asked for review.
+The convergence target is one complete finding pass plus one full re-review after batched remediation when feasible. There is no hard round cap that can hide correctness or evidence problems.
 
-### Be blunt; do not improve
+## Checkable Done
 
-Find weaknesses. Rank them by severity. Do not soften. Do not “fix up” the change in a review-only pass. For a non-trivial change, surface the worst issues (up to 10). For a tiny mechanical diff, do not invent a top-10 list.
-
-### Tests are for this slice, failures, and marked-critical behavior
-
-**Rejected as written:** “tests only for what already broke” / “don’t write a test suite.”
-
-That wording would weaken evidence-first core behavior and let untested acceptance ship. The absorbed rule is:
-
-- Keep or add tests that prove this slice’s acceptance criteria.
-- Add a regression for anything that has failed once.
-- Add coverage the user marked critical.
-- Do not add an opportunistic suite for unrelated code “while here.”
-- Do not weaken existing tests.
-
-### Definition of done is checkable
-
-Done is 3–5 concrete observable conditions from the work item. Never “professional,” “production-ready,” or “looks good.” Verification maps those conditions to quoted evidence.
-
-## What was not absorbed
-
-| Requested prompt | Why it stays out of always-on / generic production |
-| --- | --- |
-| Always ask 5 questions before doing anything | Pollutes mechanical work; skip-gated clarification is enough |
-| Pause after every slice even when the user asked for e2e | Conflicts with finishing the requested outcome |
-| Duplicate freely with no exception | Would create split-brain state/engines; existing production-path rule wins |
-| Tests only after a failure | Conflicts with evidence-first acceptance; rewritten above |
-| Always dump a top-10 failure list | Noise on tiny diffs; review-only and severity-ranked |
-| New always-apply Cursor rules | Vendor-specific and duplicates portable skills |
-
-## Rigor
-
-Lightweight profiles may skip unused specialist ceremony. They may not skip: specified-or-ask clarification, one coherent slice, quoted proof for claimed completion, `unknown` instead of invented sources, or checkable Done. High-rigor consuming projects may require more tests and reviews than this loop; they must not require less evidence than the skill they invoked.
+Done comes from concrete observable work-item acceptance conditions. Never substitute “production-ready”, “looks good”, green CI alone, or reviewer confidence for acceptance evidence.

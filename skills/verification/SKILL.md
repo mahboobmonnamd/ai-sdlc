@@ -1,13 +1,29 @@
 ---
 name: verification
-description: Prove whether the requested outcome and acceptance criteria are actually satisfied using traceable evidence, independently from implementation and code-review confidence.
+description: Prove acceptance outcomes with revision-traceable evidence; not for fixing implementation defects or bypassing a PR-review gate required by project policy.
 ---
 
 # Verification
 
+## Invocation contract
+
+Required input is one verification target, plus revision when the evidence is revision-sensitive:
+
+```text
+verification_target: work_item | merge_candidate
+work_item_id: required when verification_target is work_item
+merge_candidate_id: required when verification_target is merge_candidate
+candidate_intent: required when verification_target is merge_candidate; reconstructed from the candidate description, repository authority, and applicable requirements
+candidate_revision: exact implementation revision when verification is revision-sensitive
+```
+
+Use `work_item` when an owning work item is available. Use `merge_candidate` when `pr-review` classified `lifecycle_work_item` as `NOT_APPLICABLE` (external, docs, dependency, legacy, or other no-work-item candidates). Do not invent a work item to satisfy this skill. Do not require `work_item_id` for that target.
+
+A consuming project may omit `candidate_revision` only when its evidence model is explicitly not revision-sensitive. Never guess a revision when the host exposes one. When a revision is supplied, verification must return that exact verified revision.
+
 ## When to use
 
-Use after implementation and applicable review are complete, or whenever someone asks whether a feature/change is actually done, accepted, or proven against its intended outcome.
+Use after implementation when acceptance evidence must be proven, when invoked as the evidence stage inside `pr-review`, or whenever someone asks whether a feature/change is actually done, accepted, or proven against its intended outcome. Verification does not require a prior PR-review verdict, but a standalone VERIFIED result does not waive any PR-review gate required by project or rigor policy.
 
 ## Do not use
 
@@ -22,12 +38,14 @@ Use after implementation and applicable review are complete, or whenever someone
 
 Load:
 
-- original intended outcome and accepted requirements;
-- work-item acceptance criteria and non-goals;
-- governing specifications/decisions;
+- original intended outcome;
+- when `verification_target` is `work_item`: work-item acceptance criteria and non-goals;
+- when `verification_target` is `merge_candidate`: candidate intent, repository authority, tests/checks, and applicable requirements; do not require a work item;
+- governing specifications/decisions when they apply;
 - implementation/review evidence and known limitations;
 - required test, integration, demo, measurement, security, accessibility, operational, or documentation evidence;
-- applicable rigor profile.
+- applicable rigor profile;
+- `candidate_lifecycle_stage` when a merge candidate exists.
 
 ## Stop or escalate when
 
@@ -43,17 +61,19 @@ Verification cannot pass when:
 
 ## Procedure
 
-1. Translate every applicable acceptance criterion into one or more evidence items before considering the implementation result.
-2. Map each evidence item to its authoritative source so success cannot be redefined opportunistically.
-3. Gather or execute the strongest practical evidence appropriate to the risk profile: tests, integration behavior, fixtures, reproducible demos, measurements, failure injection, specialist reviews, documentation checks, or operational checks.
-4. Verify negative behavior and important failure conditions where they are part of the contract, not only the successful path.
-5. Compare measured values with explicit targets/budgets when performance, reliability, capacity, or resource constraints are acceptance requirements.
-6. Check that deferred/non-goal behavior remains accurately classified and has not been falsely claimed complete.
-7. Confirm the production path contains only permanent-intent implementation for the accepted scope. An MVP may be narrow, but verification must fail if completion depends on disposable POC code or a competing temporary implementation.
-8. Distinguish implementation defects from missing/invalid acceptance criteria or authority decisions.
-9. Record PASS/FAIL/INCONCLUSIVE per criterion with evidence references. Quote the exact command, test, output line, or measurement. An absent evidence item is not a pass. Agent assertion is not evidence.
-10. Produce a final verdict only from the criterion-level evidence, not from overall confidence. Done is the work item’s 3–5 checkable conditions, never “production-ready” or “looks good.”
-11. Preserve the evidence needed for a later human/agent to reproduce or audit the verdict.
+1. Resolve and record `candidate_revision` before gathering revision-sensitive evidence. If no revision applies under project policy, record `NOT_REVISION_SENSITIVE`.
+2. Translate every applicable acceptance criterion into one or more evidence items before considering the implementation result. For `verification_target: work_item`, criteria come from the work item. For `verification_target: merge_candidate`, criteria come from candidate intent, repository authority, tests/checks, and applicable requirements.
+3. Map each evidence item to its authoritative source so success cannot be redefined opportunistically.
+4. Gather or execute the strongest practical evidence appropriate to the risk profile: tests, integration behavior, fixtures, reproducible demos, measurements, failure injection, specialist reviews, documentation checks, or operational checks.
+5. Verify negative behavior and important failure conditions where they are part of the contract, not only the successful path.
+6. Compare measured values with explicit targets/budgets when performance, reliability, capacity, or resource constraints are acceptance requirements.
+7. Check that deferred/non-goal behavior remains accurately classified and has not been falsely claimed complete.
+8. Confirm the production path contains only permanent-intent implementation for the accepted scope. An MVP may be narrow, but verification must fail if completion depends on disposable POC code or a competing temporary implementation.
+9. Distinguish implementation defects from missing/invalid acceptance criteria or authority decisions.
+10. Record PASS/FAIL/INCONCLUSIVE per criterion with evidence references. Quote the exact command, test, output line, or measurement. An absent evidence item is not a pass. Agent assertion is not evidence.
+11. Produce a final verdict only from the criterion-level evidence, not from overall confidence. Done is the work item’s 3–5 checkable conditions, never “production-ready” or “looks good.”
+12. Preserve the evidence needed for a later human/agent to reproduce or audit the verdict.
+13. Re-resolve the candidate revision before final verdict when the host exposes one. If it changed, revision-sensitive evidence is stale and the result cannot be VERIFIED until evidence is gathered for the new revision.
 
 ## Output contract
 
@@ -61,6 +81,13 @@ Return:
 
 ```text
 verdict: VERIFIED | FAILED | INCONCLUSIVE | BLOCKED_BY_DECISION
+verification_target: work_item | merge_candidate
+verified_revision: <exact revision> | NOT_REVISION_SENSITIVE
+revision_sensitivity: REVISION_SENSITIVE | NOT_REVISION_SENSITIVE
+evidence_revision_evaluated: <revision evidence was gathered for> | NOT_REVISION_SENSITIVE
+head_revision: <current candidate head when known> | UNKNOWN
+criteria_evidence: PRESENT | MISSING
+next_action: pr-review | implementation | address-pr-review | release-readiness | obtain-evidence | decision-activity
 criteria:
   - criterion
     result: PASS | FAIL | INCONCLUSIVE
@@ -72,11 +99,17 @@ known_deferred_or_non_goal_behavior
 next_action
 ```
 
-`VERIFIED` requires every mandatory acceptance criterion to have sufficient passing evidence.
+`VERIFIED` requires every mandatory acceptance criterion to have sufficient passing evidence and, when revision-sensitive, `verified_revision` to equal the revision actually evaluated.
 
 ## Handoff
 
-- VERIFIED → `release-readiness` or project completion workflow.
-- Implementation defect → `implementation`, then `code-review`/`verification` as appropriate.
+- VERIFIED when invoked by `pr-review` → return criterion-level evidence to that `pr-review`.
+- Standalone VERIFIED with an existing merge candidate or a project/rigor policy that requires PR review → `pr-review`; do not route directly to release readiness.
+- Standalone VERIFIED only when no PR-review gate applies → `release-readiness` or project completion workflow.
+- Implementation defect on an open merge candidate:
+  - `IN_REVIEW` → `address-pr-review`, then full `pr-review`;
+  - `IMPLEMENTATION_IN_PROGRESS` → `implementation`;
+  - `UNKNOWN` → stop; do not guess a route;
+  - no merge candidate yet → `implementation`.
 - Acceptance/authority defect → upstream requirements/decision skill, then `development-readiness`.
 - Missing evidence → obtain the required test/measurement/specialist evidence and re-run verification.

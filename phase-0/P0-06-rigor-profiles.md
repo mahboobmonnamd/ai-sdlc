@@ -86,10 +86,13 @@ Project C chooses "Standard"
 
 **Skill Sequence:**
 1. Requirement Analysis (optional detail level)
-2. Specification Writer (optional; dev can use acceptance criteria)
-3. Implementation (may write own tests)
-4. Verification (light)
-5. Code Review (peer only)
+2. Specification Writer (optional; acceptance criteria may be sufficient)
+3. Work Item Design
+4. Implementation Planning (compact; no separate design document required)
+5. Plan Acceptance (project-defined technical authority; records accepted_by / accepted_at; advances accepted_plan)
+6. Development Readiness
+7. Implementation
+8. PR Review (peer; consumes light verification evidence)
 
 **Verification Gates:**
 - Unit tests > 60% coverage (not 80%)
@@ -122,10 +125,13 @@ Project C chooses "Standard"
 **Skill Sequence:**
 1. Requirement Analysis (full)
 2. Specification Writer (required)
-3. Implementation
-4. Verification (comprehensive)
-5. Code Review (tech lead + peer)
-6. Regression Testing
+3. Work Item Design
+4. Implementation Planning
+5. Plan Acceptance (project-defined technical authority; records accepted_by / accepted_at; advances accepted_plan)
+6. Development Readiness
+7. Implementation
+8. Regression Testing
+9. PR Review (tech lead + peer; consumes comprehensive verification evidence)
 
 **Verification Gates:**
 - Unit tests > 80% coverage
@@ -160,12 +166,15 @@ Project C chooses "Standard"
 **Skill Sequence:**
 1. Requirement Analysis (formal)
 2. Specification Writer (formal, detailed)
-3. Implementation (with traceability)
-4. Verification (formal, with compliance checks)
-5. Code Review (formal, documented)
-6. Security Review
-7. Compliance Review
-8. External Audit (if required)
+3. Work Item Design
+4. Implementation Planning (formal, traceable)
+5. Plan Acceptance (project-defined technical authority; records accepted_by / accepted_at; advances accepted_plan)
+6. Development Readiness
+7. Implementation (with traceability)
+8. Security Review
+9. Compliance Review
+10. PR Review (formal, documented; consumes formal verification and specialist evidence)
+11. External Audit (if required)
 
 **Verification Gates:**
 - Unit tests > 95% coverage
@@ -222,7 +231,7 @@ Outcome: Pick profile based on intersection of all factors
 ### How Gate 4 Changes Per Profile
 
 ```python
-def check_gate_4_artifact_quality(artifact, context_model):
+def check_gate_4_artifact_quality(artifact, context_model, activity):
     """
     Gate 4 behavior changes based on rigor_profile.
     """
@@ -247,9 +256,16 @@ def check_gate_4_artifact_quality(artifact, context_model):
         }
     }
     
-    required_artifacts = requirements.get(rigor_profile, {}).get(artifact.kind, [])
+    required_artifacts = list(
+        requirements.get(rigor_profile, {}).get(artifact.kind, [])
+    )
+
+    # Final implementation readiness always requires a current accepted plan.
+    # Plan depth varies by profile; plan existence/currentness does not.
+    if activity == "implementation" and artifact.kind == "work_item":
+        required_artifacts.append("implementation_plan")
     
-    # Check if all required artifacts present
+    # Check if all required artifacts present/current
     for required_kind in required_artifacts:
         upstream = context_model.find_by_relationship(
             kind=required_kind,
@@ -313,28 +329,37 @@ High-Rigor Profile:
 Lightweight:
 ├─ Requirement Analysis (optional detail)
 ├─ Specification Writer (optional)
+├─ Work Item Design (required)
+├─ Implementation Planning (required, compact)
+├─ Plan Acceptance (required; project technical authority)
+├─ Development Readiness (required)
 ├─ Implementation (required)
-├─ Verification (light, optional)
-└─ Code Review (peer, required)
+└─ PR Review (required; consumes light verification evidence)
 
 Standard:
 ├─ Requirement Analysis (required, full detail)
 ├─ Specification Writer (required)
+├─ Work Item Design (required)
+├─ Implementation Planning (required)
+├─ Plan Acceptance (required; project technical authority)
+├─ Development Readiness (required)
 ├─ Implementation (required)
-├─ Verification (required, comprehensive)
-├─ Code Review (tech lead + peer)
 ├─ Regression Tester
-└─ Performance Profiler (optional)
+├─ Performance Profiler (optional)
+└─ PR Review (required; consumes comprehensive verification evidence)
 
 High-Rigor:
 ├─ Requirement Analysis (required, formal)
 ├─ Specification Writer (required, formal)
+├─ Work Item Design (required)
+├─ Implementation Planning (required, formal/traceable)
+├─ Plan Acceptance (required; project technical authority)
+├─ Development Readiness (required)
 ├─ Implementation (required, with traceability)
-├─ Verification (required, formal)
-├─ Code Review (required, formal and documented)
 ├─ Security Reviewer (required)
 ├─ Compliance Reviewer (required)
 ├─ Performance Auditor (required)
+├─ PR Review (required, formal; consumes formal verification + specialist evidence)
 └─ External Auditor (optional, per compliance)
 ```
 
@@ -400,13 +425,14 @@ def change_rigor_profile(project_id, new_profile, context_model):
 │ Requirement (FR)   │ ✅ Required  │ ✅ Required  │ ✅ Required      │
 │ Requirement (NFR)  │ ❌ Optional  │ ✅ Required  │ ✅ Required      │
 │ Acceptance Criteria│ ✅ Required  │ ✅ Required  │ ✅ Required      │
+│ Implementation Plan│ ✅ Compact   │ ✅ Required  │ ✅ Formal        │
 │ Specification      │ ❌ Optional  │ ✅ Required  │ ✅ Required      │
 │ Architecture Review│ ❌ Skip      │ ❌ Optional  │ ✅ Required      │
 │ Security Review    │ ❌ Skip      │ ❌ Optional  │ ✅ Required      │
 │ Risk Assessment    │ ❌ Skip      │ ✅ Optional  │ ✅ Required      │
 │ Verification Plan  │ ✅ Informal  │ ✅ Required  │ ✅ Required      │
 │ Test Cases         │ ✅ Basic     │ ✅ Detailed  │ ✅ Comprehensive │
-│ Code Review        │ ✅ Peer      │ ✅ Tech Lead │ ✅ Formal Board  │
+│ PR Review          │ ✅ Peer      │ ✅ Tech Lead │ ✅ Formal Board   │
 │ Performance Audit  │ ❌ Skip      │ ❌ Optional  │ ✅ Required      │
 │ Compliance Check   │ ❌ Skip      │ ❌ Skip      │ ✅ Required      │
 │ External Audit     │ ❌ Skip      │ ❌ Skip      │ 🔶 Conditional  │

@@ -332,3 +332,18 @@ After P0-02 is locked, next: **P0-01: Routing & Precedence**
 **Phase 0 Start:** 2026-08-17  
 **Phase 0 Target Completion:** 2026-09-13  
 **Phase 1 Start:** 2026-09-16 (conditional on P0 pass gate)
+
+---
+
+## Amendment — 2026-09-26
+
+The Week 1 checklist item “Lock schema version 1.0.0” remains the Aug 17
+historical target for Phase 0 kickoff. It is **not** rewritten as complete for
+the September plan-semantics lock.
+
+Current schema (as of 2026-09-26): version **2.0.0** with mandatory
+`implementation_plan` / `accepted_plan` (including acceptance evidence) and
+raised `minimum_reader_version` / `minimum_writer_version` of `2.0.0`. See
+`P0-02-context-data-model.md`. Entity list and relationship set in the
+“Logical Data Model” section above describe the original Phase 0 kickoff
+scope; the live model adds `implementation_plan` and `plans`.

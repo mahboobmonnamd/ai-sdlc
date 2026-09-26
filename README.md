@@ -2,78 +2,95 @@
 
 AI-SDLC is an open, generic suite of reusable Agent Skills for disciplined AI-assisted software development.
 
-Its goal is not to make agents write more code. Its goal is to make AI-assisted development behave more like strong software engineering: reduce ambiguity before implementation, preserve explicit decision authority, keep work scoped, require evidence, and separate implementation confidence from verification.
+Its goal is to make AI-assisted development behave like strong software engineering: reduce ambiguity before implementation, preserve explicit decision authority, keep work scoped, require evidence, and make routing between planning, implementation, review, remediation, and verification deterministic.
 
 ## Model
 
-```text
+~~~text
 SKILL   = how a reusable SDLC activity is performed
 CONTEXT = what is currently true about a project
 TOOL    = deterministic retrieval/validation/evidence support
-AGENT   = optional future coordinator; not required for core skills
-```
+AGENT   = optional coordinator; not required for core skills
+~~~
 
-Project requirements, approved decisions, specifications, code, tests, and explicit human/product authority remain authoritative. AI-SDLC context is navigation/provenance support, never a replacement source of truth.
+Project requirements, approved decisions, specifications, code, tests, tracker state, and explicit human/product authority remain authoritative. AI-SDLC context is navigation/provenance support, never a replacement source of truth.
 
 ## Current skill catalog
 
-The first reference slice contains:
+- project-context — retrieve the smallest trustworthy project context;
+- work-item-design — create/refine one independently reviewable work item;
+- implementation-planning — produce/version a durable **proposed** implementation plan without accepting it or changing product authority;
+- development-readiness — decide whether implementation may begin (requires accepted plan + acceptance evidence) and produce actionable gaps when it may not;
+- implementation — execute or resume one identified, ready, planned work item on its authorized candidate, with ownership/candidate lifecycle governance;
+- verification — prove acceptance outcomes from reproducible evidence;
+- pr-review — perform the complete full-candidate implementation + merge-readiness review (usable standalone; plan required only when policy/workflow requires it);
+- address-pr-review — batch-remediate review-stage PR review/check failures, then hand back to full PR review (or to implementation if still incomplete).
 
-- `project-context` — retrieve the smallest trustworthy project context;
-- `development-readiness` — decide whether implementation may begin and route blockers;
-- `work-item-design` — create one implementation-ready, independently reviewable unit of work;
-- `implementation` — execute ready work without silently changing authority or scope;
-- `code-review` — perform focused implementation/diff defect and regression review;
-- `verification` — prove acceptance outcomes separately from implementation/review confidence;
-- `pr-review` — orchestrate code review, verification, applicable specialist review, exact-revision checks, measurements, documentation, and residual risk into a final merge-readiness verdict.
+There is intentionally no separate generic code-review skill. Keeping implementation-defect review inside pr-review removes ambiguous routing when a user simply asks to “review PR N”.
 
-This is intentionally not the complete PRD catalog yet.
+## Core workflow
 
-Working-loop prompts (clarify, slice, proof, smallest change, checkable Done) are **not** a separate skill. They are skip-gated inside the skills above. See [`docs/WORKING-LOOP.md`](docs/WORKING-LOOP.md). Do not copy that file into always-on project rules. Consuming projects should absorb only the thin deltas in [`docs/CONSUMER-ABSORPTION.md`](docs/CONSUMER-ABSORPTION.md).
+~~~text
+work-item-design
+→ implementation-planning          (PROPOSED plan)
+→ plan acceptance                  (project technical authority)
+→ development-readiness
+→ implementation                   (IMPLEMENTATION_IN_PROGRESS)
+→ host/project merge-candidate handoff
+→ pr-review                        (IN_REVIEW)
+   ├─ READY_TO_MERGE
+   └─ CHANGES_REQUIRED → address-pr-review → pr-review
+~~~
+
+verification can be invoked independently and is also consumed by pr-review.
+
+Evaluation layout: per-skill unit contracts under `evals/unit/`, multi-skill integration under `evals/integration/core-development-loop.json`, layout index at `evals/core-development-loop.json`. CI validates contract schema and rejects self-certification checks. `tools/eval_judge.py` scores real output fields; the integration runner compares `observed_route` with `expected_route`. Behavioral evaluation remains `NOT_RUN` until a live skill adapter executes.
+
+See docs/WORKING-LOOP.md for invocation and governance semantics.
 
 ## Quality model
 
 Every publishable skill must have:
 
-- clear positive and negative routing boundaries;
+- a clear invocation contract and required identifier/input;
+- positive and negative routing boundaries;
 - required evidence/context;
 - explicit stop/escalation behavior;
+- a deterministic procedure/workflow;
 - a reproducible output/verdict contract;
-- right-sized rigor rather than universal ceremony;
+- an explicit handoff/next activity;
 - evaluation scenarios with expected and forbidden behaviors;
 - deterministic catalog validation in CI;
 - no dependency on one product, tracker, language, framework, or agent vendor.
 
 Run:
 
-```sh
+~~~sh
 make check
-```
+~~~
 
 ## skills.sh
 
-The target distribution is skills.sh / the open Agent Skills ecosystem. Once the publication gate in [`docs/PUBLISHING.md`](docs/PUBLISHING.md) passes, users will be able to install the repository with:
+The target distribution is skills.sh / the open Agent Skills ecosystem. Once publication gates pass:
 
-```sh
+~~~sh
 npx skills add mahboobmonnamd/ai-sdlc
-```
+~~~
 
-Individual skill selection can use the skills CLI's supported `--skill` option where appropriate.
-
-**Current status: not yet declared publish-ready.** The repository is still proving the initial skill loop against evaluation contracts and a real reference consumer.
+**Current status: not yet declared publish-ready.**
 
 ## Reference consumer
 
-Seyal is the first demanding reference consumer. It keeps product/domain-specific knowledge and skills in its own repository while consuming generic AI-SDLC capabilities through a reviewed pin. Generic capabilities must remain useful without Seyal.
+Seyal is the first demanding reference consumer. It keeps tracker/product/domain-specific governance in its own thin facades while consuming generic AI-SDLC capabilities through a reviewed pin. Generic capabilities must remain useful without Seyal.
 
 ## Design authority
 
-- [`docs/ai-native-sdlc-skills-prd-v0.2.md`](docs/ai-native-sdlc-skills-prd-v0.2.md)
-- Phase-0 design records under [`phase-0/`](phase-0/)
-- Evaluation standard: [`phase-0/P0-07-evaluation-standard.md`](phase-0/P0-07-evaluation-standard.md)
-- Task-selected working loop: [`docs/WORKING-LOOP.md`](docs/WORKING-LOOP.md)
-- Consumer pin/absorption map: [`docs/CONSUMER-ABSORPTION.md`](docs/CONSUMER-ABSORPTION.md)
+- docs/ai-native-sdlc-skills-prd-v0.2.md
+- Phase-0 design records under phase-0/
+- Evaluation standard: phase-0/P0-07-evaluation-standard.md
+- Core workflow: docs/WORKING-LOOP.md
+- Consumer absorption map: docs/CONSUMER-ABSORPTION.md
 
 ## Contribution principle
 
-Do not add a skill merely because a workflow could be written as a prompt. Add or change a skill only when it represents a coherent reusable capability, has a clear routing boundary, and can be evaluated against realistic failure cases. Prefer updating an existing skill over adding a parallel always-on checklist.
+Do not add a skill merely because a workflow can be written as a prompt. Add/change a skill only when it represents a coherent reusable capability with a clear routing boundary and realistic evaluation cases. Prefer one obvious user-facing skill per lifecycle intent over overlapping skills that force agents to guess.

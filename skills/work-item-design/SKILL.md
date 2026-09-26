@@ -1,67 +1,85 @@
 ---
 name: work-item-design
-description: Turn an accepted outcome into one implementation-ready, independently reviewable work item with explicit scope, dependencies, acceptance criteria, risks, and verification evidence.
+description: Turn an accepted outcome into one independently reviewable work item; not for implementation planning, ownership claiming, or inventing unresolved product/architecture decisions.
 ---
 
 # Work item design
 
+## Invocation contract
+
+Use one of:
+
+```text
+work_item_id: authoritative existing work-item identifier to refine
+```
+
+or, when creating a new work item:
+
+```text
+outcome: accepted product/system outcome to decompose into a work item
+```
+
+Do not guess an existing tracker identifier. If neither an existing work item nor an accepted outcome can be established, stop.
+
 ## When to use
 
-Use when requirements, decisions, or a milestone are sufficiently understood but the executable unit of work is vague, oversized, under-specified, or unsafe to hand to an implementation agent.
+Use when requirements/decisions are understood but the executable unit of work is vague, oversized, under-specified, or unsafe to hand to planning/implementation.
 
 ## Do not use
 
-- Do not invent missing product behavior or architectural decisions.
-- Do not turn a broad milestone into one oversized implementation item merely to avoid decomposition.
-- Do not prescribe a tracker, branch naming convention, repository workflow, or technology unless the consuming project already requires it.
+- Do not invent missing product behavior or architecture decisions.
+- Do not collapse a broad milestone into one oversized item merely to avoid decomposition.
+- Do not prescribe tracker, branch, or repository mechanics unless the consuming project requires them.
 - Do not mix unrelated cleanup with the requested outcome.
 - Do not ritualize clarifying questions when the outcome is already specified.
-- Do not use “production-ready”, “professional”, or “looks good” as acceptance.
+- Do not use vague acceptance such as “production-ready”, “professional”, or “looks good”.
+- Do not claim or assign implementation ownership; that belongs to the consuming project's implementation governance.
 
 ## Required context
 
 Load:
 
 - accepted outcome/requirement and measurable success behavior;
-- governing decisions/specifications and known constraints;
-- dependency and current-work state;
+- governing decisions/specifications and constraints;
+- dependency/current-work state;
 - relevant component/ownership boundaries;
-- known risks and applicable rigor profile;
+- known risks and rigor profile;
 - verification expectations.
 
-Use `development-readiness` when it is unclear whether upstream authority is sufficient.
+If upstream authority itself is uncertain, stop and route to the corresponding requirements/decision activity. Final `development-readiness` runs only after this work item and its implementation plan exist.
 
 ## Stop or escalate when
 
-Stop work-item design and route elsewhere when:
+Stop and route elsewhere when:
 
-- product behavior or acceptance intent is unresolved;
+- product behavior/acceptance intent is unresolved;
 - architecture/ownership/trust-boundary decisions are missing;
-- feasibility is materially unknown and needs a spike;
-- authoritative sources conflict or are stale;
-- the proposed item cannot be independently verified without bundling unrelated work.
+- feasibility materially needs a spike;
+- authoritative sources conflict/stale;
+- the item cannot be independently verified without bundling unrelated work.
 
 ## Procedure
 
-1. Define one coherent outcome that can be reviewed and verified independently. Prefer one thin vertical path from input to an observable result over horizontal layers.
-2. If the request, accepted outcome, and authority already specify the work, do not ask clarifying questions. If a material choice remains, ask the fewest questions that would change the design (typically 1–5), each with concrete options, then wait.
-3. State why the work exists and which accepted outcome it advances.
-4. Link or identify exact authoritative requirements/decisions/specifications rather than paraphrasing them into a competing source of truth. If a source cannot be established, write `unknown`; never invent one.
-5. Define explicit in-scope behavior and explicit out-of-scope boundaries.
-6. Identify dependencies, blockers, owning component/boundary, and any sequencing constraints.
-7. Write 3–5 measurable acceptance criteria in terms of observable outcomes, not implementation activity.
-8. Define the evidence required to prove completion: tests, fixtures, integration checks, measurements, demos, specialist review, or other verification as applicable. Require evidence for this slice’s acceptance, for anything that already failed, and for user-marked critical behavior; do not demand an unrelated test suite.
-9. Classify security/privacy/performance/accessibility/documentation/operability impacts and route specialist work only when relevant.
-10. Check parallelizability. If multiple items would mutate the same authoritative state or unstable boundary, make the dependency/order explicit instead of assuming concurrency is safe.
-11. Right-size the item. Split when outcomes, authorities, or verification methods are independently reviewable; keep together when splitting would create artificial partial states. If a parent item contains multiple slices, recommend child/sub-items (one per slice) and keep the parent as the ownership/claim surface when the project uses exclusive active-work claims. If the user asked for the full end-to-end outcome in one session, still name the slices, but do not require a pause after slice one. If they asked to see slice N before N+1, stop after the named slice.
-12. If the requested outcome cannot finish in one implementation session, name what to drop or split. Cut scope, not time.
-13. End with a readiness statement. Do not label the item implementation-ready while a blocking decision or evidence gap remains.
+1. Resolve the existing `work_item_id` or accepted `outcome`.
+2. Define one coherent outcome that can be reviewed and verified independently; prefer a thin vertical path from input to observable result.
+3. Ask clarifying questions only for material unresolved choices, using the fewest questions that change the design.
+4. Link exact authoritative requirements/decisions/specifications. If a source cannot be established, write `unknown`.
+5. Define explicit in-scope and out-of-scope boundaries.
+6. Identify dependencies, blockers, owning component/boundary, and sequencing constraints.
+7. Write 3–5 measurable acceptance criteria in observable terms.
+8. Define evidence required to prove completion: tests, fixtures, integrations, measurements, demos, specialist review, or other checks as applicable.
+9. Classify security/privacy/performance/accessibility/documentation/operability impacts.
+10. Check parallelizability. If multiple items touch the same authority or unstable seam, encode the dependency/order.
+11. Right-size the work. Split independently reviewable slices into child/sub-items. A parent planning item must not implicitly lock all children; the consuming project's ownership policy decides claim scope, and independently implementable children should remain independently claimable unless authority says otherwise.
+12. If the requested outcome cannot finish in one implementation unit, name what to split/drop. Cut scope, not acceptance.
+13. End with a readiness-for-planning statement. Do not call the item implementation-ready while authority, acceptance, dependency, or feasibility blockers remain.
 
 ## Output contract
 
-Return a work-item definition containing at minimum:
+Return:
 
 ```text
+work_item_id_or_new_item
 outcome
 why
 source_authority
@@ -69,20 +87,22 @@ in_scope
 out_of_scope
 dependencies_and_blockers
 ownership_boundary
-acceptance_criteria (3–5 checkable conditions)
+acceptance_criteria: 3-5 checkable conditions
 required_evidence
 slice_plan_or_child_items
-scope_to_drop_if_session_bound
 risk_and_specialist_impacts
 verification_procedure
-readiness: READY | REFINEMENT_REQUIRED | BLOCKED
-blocking_reason (when not READY)
+readiness_for_planning: READY | REFINEMENT_REQUIRED | BLOCKED
+next_action: implementation-planning | decision-activity | spike | split
+ownership_claim: NOT_PERFORMED
+blocking_reason
+unknowns
 ```
 
 ## Handoff
 
-- READY → `implementation-planning`/`test-design`/`implementation` according to project workflow.
-- Missing authority or acceptance → `development-readiness` and the appropriate upstream artifact/decision skill.
-- Material feasibility unknown → `technical-spike`.
-- Oversized work → recursively design smaller dependent work items before implementation.
-- Session cannot finish the parent outcome → return the named first slice as READY and the remainder as explicit follow-on items.
+- READY → `implementation-planning`, then project-defined plan acceptance, then `development-readiness`.
+- Missing authority/acceptance → appropriate upstream decision/requirements activity, then re-run work-item design.
+- Material feasibility unknown → isolated non-mergeable spike.
+- Oversized work → recursively design smaller dependent work items.
+- A proposed plan is not readiness. After plan acceptance records `accepted_plan`, run `development-readiness` before `implementation`.
