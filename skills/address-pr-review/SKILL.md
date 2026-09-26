@@ -50,7 +50,7 @@ Enforce an accepted plan only when project policy or the owning workflow require
 Load:
 
 - exact merge-candidate identifier, base, and current immutable revision when available;
-- `candidate_lifecycle_stage` (`IMPLEMENTATION_IN_PROGRESS` | `IN_REVIEW`);
+- `candidate_lifecycle_stage` (`IMPLEMENTATION_IN_PROGRESS` | `IN_REVIEW` | `UNKNOWN`);
 - lifecycle work-item/plan context states above; when `AVAILABLE`, the owning work item and accepted implementation plan with acceptance evidence;
 - **complete** unresolved review-thread/comment set, including older threads;
 - prior `pr-review` findings and their dispositions;
@@ -68,6 +68,7 @@ Stop and route rather than editing when:
 - the merge candidate does not exist or is closed/merged;
 - the current actor is not authorized to modify the candidate;
 - `candidate_lifecycle_stage` is `IMPLEMENTATION_IN_PROGRESS` or implementation of accepted scope is otherwise incomplete → route to `implementation`;
+- `candidate_lifecycle_stage` is `UNKNOWN` → stop and reconcile the durable stage (`status: BLOCKED`, `next_action: reconcile-candidate-stage`); do not remediate, and do not route to `implementation` or `pr-review`;
 - the candidate revision changes while the remediation inventory is being built and the inventory can no longer be trusted;
 - a finding requires a new product/architecture/security/compliance decision;
 - remediation would materially expand the owning work item's accepted scope (when a work item applies);
@@ -78,7 +79,7 @@ Stop and route rather than editing when:
 
 ## Procedure
 
-1. Resolve `merge_candidate_id`, record the current revision, modification authority, and `candidate_lifecycle_stage`. If stage is `IMPLEMENTATION_IN_PROGRESS` (or accepted-scope work is incomplete), stop and hand off to `implementation` without performing merge-readiness remediation.
+1. Resolve `merge_candidate_id`, record the current revision, modification authority, and `candidate_lifecycle_stage`. If stage is `UNKNOWN`, stop and reconcile the durable stage before any remediation or handoff to `implementation` or `pr-review`. If stage is `IMPLEMENTATION_IN_PROGRESS` (or accepted-scope work is incomplete), stop and hand off to `implementation` without performing merge-readiness remediation.
 2. Classify lifecycle work-item/plan context (`AVAILABLE` | `NOT_APPLICABLE` | `REQUIRED_BUT_MISSING`). When `REQUIRED_BUT_MISSING`, stop blocked/inconclusive. When `AVAILABLE`, load the accepted plan at the exact revision. When `NOT_APPLICABLE`, proceed without a plan.
 3. Fetch the **complete current review state**: unresolved review threads/comments, prior blocking findings, and all required-check/CI failures. Do not stop after the newest comment.
 4. Build one remediation ledger:
@@ -95,6 +96,7 @@ Stop and route rather than editing when:
 11. Hand off by stage:
     - `IN_REVIEW` → hand the **entire current candidate** to `pr-review` (full review; prior findings are a regression checklist).
     - If stage is discovered to still be `IMPLEMENTATION_IN_PROGRESS` after bounded check/feedback fixes → return to `implementation`, **not** full merge-readiness `pr-review`.
+    - If stage is `UNKNOWN` → stop with `reconcile-candidate-stage`; do not hand off to `implementation` or `pr-review`.
 
 ## Output contract
 
@@ -119,7 +121,7 @@ scope_assessment
 new_authority_or_scope_gaps
 unknowns
 status: READY_FOR_FULL_REREVIEW | RETURN_TO_IMPLEMENTATION | BLOCKED
-next_action
+next_action: pr-review | implementation | decision-activity | reconcile-candidate-stage | BLOCKED
 ```
 
 `READY_FOR_FULL_REREVIEW` requires every known material review/check item to be resolved or explicitly blocked and reported, and the candidate stage to be `IN_REVIEW`.
@@ -128,6 +130,7 @@ next_action
 
 - `IN_REVIEW` and all known material findings/check failures reconciled → `pr-review` on the full current candidate.
 - `IMPLEMENTATION_IN_PROGRESS` or incomplete accepted-scope work → `implementation` (even if CI/feedback was touched); do not enter full merge-readiness `pr-review` yet.
+- `UNKNOWN` → stop and reconcile the durable stage. Do not remediate, and do not hand off to `implementation` or `pr-review`.
 - Authority/scope decision required → corresponding decision/work-item activity, then readiness before further production changes when a work item applies.
 - Candidate missing/closed/merged → stop; do not create a replacement implementation path automatically.
 - New unrelated work discovered → record a separate work item; do not expand this remediation candidate.

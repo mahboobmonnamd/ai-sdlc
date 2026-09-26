@@ -84,5 +84,5 @@ A proposed plan is an input to acceptance and then `development-readiness`. It i
 
 - PROPOSED → project-defined technical-authority **plan acceptance** (records `accepted_by` / `accepted_at` and advances `accepted_plan`), then `development-readiness`.
 - Scope/acceptance defect → `work-item-design`.
-- Product/architecture/other authority gap → explicit decision activity, then refresh the plan.
+- Product/architecture/other authority gap → explicit decision activity, then refresh the plan, then project-defined plan acceptance, then `development-readiness`.
 - Material feasibility unknown → isolated non-mergeable spike, then refresh the plan.

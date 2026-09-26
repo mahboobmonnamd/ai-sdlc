@@ -414,6 +414,55 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertIn("IN_REVIEW", remediation)
         self.assertIn("RETURN_TO_IMPLEMENTATION", remediation)
 
+    def test_unknown_stage_stops_and_recovery_routes_include_acceptance(self):
+        implementation = (
+            ROOT / "skills" / "implementation" / "SKILL.md"
+        ).read_text(encoding="utf-8")
+        remediation = (
+            ROOT / "skills" / "address-pr-review" / "SKILL.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN", implementation)
+        self.assertIn("next_action: reconcile-candidate-stage", implementation)
+        self.assertIn("Do not route to `implementation`, `address-pr-review`, or `pr-review`", implementation)
+        self.assertIn("do not route to `implementation` or `pr-review`", remediation)
+        self.assertIn("next_action: reconcile-candidate-stage", remediation)
+        contract = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
+        flow3 = next(scenario for scenario in contract["scenarios"] if scenario["id"] == "FLOW-003")
+        flow4 = next(scenario for scenario in contract["scenarios"] if scenario["id"] == "FLOW-004")
+        flow4b = next(scenario for scenario in contract["scenarios"] if scenario["id"] == "FLOW-004B")
+        self.assertEqual(
+            [
+                "development-readiness",
+                "work-item-design",
+                "implementation-planning",
+                "plan-acceptance",
+                "development-readiness",
+            ],
+            flow3["expected_route"],
+        )
+        self.assertEqual(
+            [
+                "implementation-planning",
+                "decision-escalation",
+                "implementation-planning",
+                "plan-acceptance",
+                "development-readiness",
+            ],
+            flow4["expected_route"],
+        )
+        self.assertEqual(
+            [
+                "implementation",
+                "decision-escalation",
+                "implementation-planning",
+                "plan-acceptance",
+                "development-readiness",
+                "implementation",
+            ],
+            flow4b["expected_route"],
+        )
+        self.assertNotIn("implementation-planning-or-implementation", json.dumps(contract))
+
     def test_schema_version_is_major_for_mandatory_plan_semantics(self):
         model = (ROOT / "phase-0" / "P0-02-context-data-model.md").read_text(
             encoding="utf-8"

@@ -129,6 +129,7 @@
         "development-readiness",
         "work-item-design",
         "implementation-planning",
+        "plan-acceptance",
         "development-readiness"
       ],
       "required_artifacts": [
@@ -160,17 +161,55 @@
     },
     {
       "id": "FLOW-004",
-      "description": "A material authority decision is discovered during planning or implementation.",
+      "description": "A material authority decision is discovered during planning. Return through a refreshed plan and acceptance before readiness.",
       "expected_route": [
-        "implementation-planning-or-implementation",
+        "implementation-planning",
         "decision-escalation",
+        "implementation-planning",
+        "plan-acceptance",
         "development-readiness"
       ],
       "forbidden_behaviors": [
-        "silently decide the authority change in code"
+        "silently decide the authority change in the plan",
+        "enter development-readiness before plan acceptance",
+        "start production edits"
       ],
       "scenario_id": "FLOW-004",
       "name": "FLOW-004",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Observed route equals expected_route",
+            "points": 70,
+            "check": "output.observed_route == expected.expected_route"
+          },
+          {
+            "criterion": "Observed route is non-empty",
+            "points": 30,
+            "check": "output.observed_route != []"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-004B",
+      "description": "A material authority decision is discovered during implementation. Return through planning, acceptance, and readiness before more production implementation.",
+      "expected_route": [
+        "implementation",
+        "decision-escalation",
+        "implementation-planning",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation"
+      ],
+      "forbidden_behaviors": [
+        "silently decide the authority change in code",
+        "resume production implementation before the refreshed plan is accepted",
+        "skip development-readiness after acceptance"
+      ],
+      "scenario_id": "FLOW-004B",
+      "name": "FLOW-004B",
       "scoring": {
         "criteria": [
           {

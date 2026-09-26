@@ -173,6 +173,56 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "ADDR-004",
+      "scenario_id": "ADDR-004",
+      "name": "ADDR-004",
+      "skill": "address-pr-review",
+      "input": "merge_candidate_id PR-99 has candidate_lifecycle_stage UNKNOWN. The user asks to address the review comments.",
+      "expected_behaviors": [
+        "stop before remediation edits",
+        "return BLOCKED with next_action reconcile-candidate-stage",
+        "do not route to implementation or pr-review"
+      ],
+      "forbidden_behaviors": [
+        "remediate while the stage is UNKNOWN",
+        "hand off to implementation",
+        "hand off to pr-review"
+      ],
+      "description": "merge_candidate_id PR-99 has candidate_lifecycle_stage UNKNOWN. The user asks to address the review comments.",
+      "expected_output": {
+        "required_behaviors": [
+          "stop before remediation edits",
+          "return BLOCKED with next_action reconcile-candidate-stage",
+          "do not route to implementation or pr-review"
+        ],
+        "forbidden_behaviors": [
+          "remediate while the stage is UNKNOWN",
+          "hand off to implementation",
+          "hand off to pr-review"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Stage stays UNKNOWN",
+            "points": 40,
+            "check": "output.candidate_lifecycle_stage == UNKNOWN"
+          },
+          {
+            "criterion": "Status is BLOCKED",
+            "points": 30,
+            "check": "output.status == BLOCKED"
+          },
+          {
+            "criterion": "Next action reconciles the stage",
+            "points": 30,
+            "check": "output.next_action == reconcile-candidate-stage"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

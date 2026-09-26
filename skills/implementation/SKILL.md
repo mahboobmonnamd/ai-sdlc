@@ -40,12 +40,13 @@ Load the work item, accepted implementation-plan identity/revision and acceptanc
 ## Candidate lifecycle stage
 
 ```text
-candidate_lifecycle_stage: IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | NONE
+candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
 ```
 
 - `NONE` — no open candidate yet.
 - `IMPLEMENTATION_IN_PROGRESS` — accepted scope is not complete; stay in `implementation` even if CI fails or early comments exist.
 - `IN_REVIEW` — accepted-scope implementation is complete and merge-readiness review is the intent; review feedback/required-check remediation routes to `address-pr-review`, which returns to `pr-review`.
+- `UNKNOWN` — a candidate exists but its stage cannot be determined. Stop and reconcile the durable stage before any branch, worktree, file, or production edit. Do not route to `implementation`, `address-pr-review`, or `pr-review`.
 
 ## Implementation governance preflight
 
@@ -58,6 +59,7 @@ Before branch/worktree/files/production edits:
    - same work item + current implementer/authorized owner + implementation incomplete → `RESUME_EXISTING_CANDIDATE` with stage `IMPLEMENTATION_IN_PROGRESS`; an IN_PROGRESS-equivalent tracker state is valid and must not be rejected merely because it is no longer labeled READY; keep CI/early-feedback fixes here;
    - same candidate + stage `IN_REVIEW` + request is reviewer feedback or required-check remediation → route to `address-pr-review`;
    - candidate owned by another implementer or ownership is ambiguous → stop;
+   - stage is `UNKNOWN`, or a candidate exists and the stage cannot be reconstructed → stop and reconcile the durable stage; do not edit and do not choose `implementation`, `address-pr-review`, or `pr-review`;
    - multiple active candidates for the same work item → stop and reconcile; never create another.
 4. Resolve the work item's/project registry's accepted-plan reference, then load immutable content for that exact `plan_id + plan_revision`; require acceptance evidence (`accepted_by` / `accepted_at` or equivalent). If the exact revision cannot be resolved, or the pointer lacks acceptance evidence (for example only a `PROPOSED` plan exists), stop instead of falling back to latest. Require it to be current for its planning-relevant governing revisions. Do not select an arbitrary related/latest plan. On RESUME, also revalidate acceptance/dependencies/authority so prior readiness has not gone stale.
 5. If the project defines exclusive claiming, acquire/verify it for NEW work or re-verify it when RESUMING.
@@ -66,11 +68,11 @@ If the project defines no claim mechanism, do not invent one.
 
 ## Stop or escalate when
 
-Stop for missing/ambiguous/closed work item, NEW work that is not READY, stale resume prerequisites, missing/stale/unaccepted plan, ownership collision, ambiguous/multiple candidates, scope/authority conflict, missing dependency, untestable acceptance, material feasibility unknown, or a required temporary/parallel production path.
+Stop for missing/ambiguous/closed work item, NEW work that is not READY, stale resume prerequisites, missing/stale/unaccepted plan, ownership collision, `UNKNOWN` candidate stage, ambiguous/multiple candidates, scope/authority conflict, missing dependency, untestable acceptance, material feasibility unknown, or a required temporary/parallel production path. On `UNKNOWN`, return `status: BLOCKED`, `production_edits: NOT_PERFORMED`, and `next_action: reconcile-candidate-stage`.
 
 ## Procedure
 
-1. Run the governance preflight and record whether this is `NEW` or `RESUME_EXISTING_CANDIDATE`, plus `candidate_lifecycle_stage`.
+1. Run the governance preflight and record whether this is `NEW` or `RESUME_EXISTING_CANDIDATE`, plus `candidate_lifecycle_stage`. If the stage is `UNKNOWN`, stop here. Do not edit.
 2. Reconstruct the accepted scope and exact accepted plan revision; do not silently revise either.
 3. Identify the smallest evidence/test that would fail before the intended behavior exists.
 4. Implement the smallest coherent permanent production change on the authorized branch/candidate.
@@ -94,12 +96,12 @@ accepted_by
 accepted_at
 implementation_plan: CONFIRMED | MISSING | STALE | PROPOSED_ONLY
 merge_candidate: NONE | OPEN:<id> | UNKNOWN
-candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW
+candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
 merge_candidate_ownership: CURRENT_IMPLEMENTER | OTHER_IMPLEMENTER | UNKNOWN | NOT_APPLICABLE
 active_work_claim: NOT_APPLICABLE | VERIFIED_CURRENT_IMPLEMENTER | BLOCKED_BY_OTHER | CLAIM_FAILED
 production_edits: NOT_PERFORMED | PERFORMED
 edits_started_before_claim_reread: true | false
-next_action: implementation | address-pr-review | host-project-merge-candidate | pr-review | implementation-planning | development-readiness | plan-acceptance
+next_action: implementation | address-pr-review | host-project-merge-candidate | pr-review | implementation-planning | development-readiness | plan-acceptance | reconcile-candidate-stage
 implemented_scope
 changed_surfaces
 tests_or_evidence_added
@@ -116,5 +118,6 @@ next_action
 - Completed implementation with existing candidate → mark `IN_REVIEW`, then `pr-review <merge_candidate_id>`.
 - Completed implementation without candidate → host/project creates or resolves the candidate in review stage, then `pr-review`.
 - Review-stage candidate (`IN_REVIEW`) with reviewer feedback/check failures → `address-pr-review`.
+- `UNKNOWN` stage → stop and reconcile the durable candidate stage (`next_action: reconcile-candidate-stage`). Do not edit, and do not hand off to `implementation`, `address-pr-review`, or `pr-review`.
 - Missing/stale/unaccepted plan → `implementation-planning` (or `work-item-design` if scope/acceptance is weak), then project-defined plan acceptance, then `development-readiness`.
-- Authority/scope/feasibility problem → appropriate upstream decision/design/spike, then readiness again.
+- Authority/scope/feasibility problem during implementation → decision activity, then `implementation-planning`, then project-defined plan acceptance, then `development-readiness`, then `implementation`. Do not resume production edits before that path.
