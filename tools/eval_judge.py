@@ -36,6 +36,56 @@ def strip_self_cert_fields(actual: dict | None) -> dict:
     return {key: value for key, value in actual.items() if key not in SELF_CERT_FIELDS}
 
 
+def contract_pass_threshold(scenario: dict, contract: dict | None) -> float | None:
+    """Read the pass bar from the scenario, then the contract. Do not invent one."""
+    sources = (
+        (scenario or {}).get("scoring") or {},
+        (contract or {}).get("scoring") or {},
+    )
+    for source in sources:
+        if "pass_threshold" not in source:
+            continue
+        value = source["pass_threshold"]
+        if isinstance(value, (int, float)):
+            return float(value)
+        return None
+    return None
+
+
+def scenario_passed(accuracy: float, scenario: dict, contract: dict | None) -> bool:
+    threshold = contract_pass_threshold(scenario, contract)
+    if threshold is None:
+        return False
+    return accuracy >= threshold
+
+
+class EffectTrace:
+    """Effects observed by host instrumentation.
+
+    The skill return value is not a source. Call record() when the host sees
+    an action. The runner copies trace.effects into the dict the judge scores
+    and drops any effects list the skill reported.
+    """
+
+    def __init__(self) -> None:
+        self._effects: list[str] = []
+
+    def record(self, effect: str) -> None:
+        self._effects.append(effect)
+
+    @property
+    def effects(self) -> list[str]:
+        return list(self._effects)
+
+
+def with_host_effects(actual: dict | None, trace: EffectTrace | None) -> dict:
+    cleaned = strip_self_cert_fields(actual)
+    cleaned.pop("effects", None)
+    if isinstance(trace, EffectTrace):
+        cleaned["effects"] = trace.effects
+    return cleaned
+
+
 def score_accuracy(actual, scenario: dict) -> float:
     """Return 0..1 from scenario scoring.criteria applied to actual output."""
     if actual is None:

@@ -6,11 +6,13 @@ EvaluationContractHarness sketch in P0-07 is not an evaluator.
 
 A skill adapter is an object with execute(input) -> dict.
 An orchestration adapter is an object with execute(scenario) -> dict
-containing observed_route and, when the scenario checks effects, an effects list.
+containing observed_route. Effect checks read a host EffectTrace, not an
+effects list returned by the skill.
 
-Plan-only and missing adapters stay NOT_RUN. This runner does not write
-results.status back onto contract files. A live behavioral run is RUN only
-inside the process that supplied an adapter.
+Plan-only and missing adapters stay NOT_RUN. A scripted or other fixture
+adapter is FIXTURE, never LIVE. LIVE requires the adapter to set
+live_behavior = True and the runner to be given an EffectTrace. This runner
+does not write results.status back onto contract files.
 """
 
 from __future__ import annotations
@@ -24,18 +26,22 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tools.eval_judge import score_accuracy, strip_self_cert_fields  # noqa: E402
+from tools.eval_judge import (  # noqa: E402
+    EffectTrace,
+    scenario_passed,
+    score_accuracy,
+    with_host_effects,
+)
 from tools.run_integration_eval import IntegrationEvalRunner, load_adapter, load_contract  # noqa: E402
-
-PASS_THRESHOLD = 0.9
 
 
 class UnitContractRunner:
     """Run one skill adapter against every scenario in a unit contract."""
 
-    def __init__(self, skill, contract: dict):
+    def __init__(self, skill, contract: dict, trace: EffectTrace | None = None):
         self.skill = skill
         self.contract = contract
+        self.trace = trace
         self.results = []
 
     def run(self) -> dict:
@@ -55,7 +61,7 @@ class UnitContractRunner:
             "contract_id": self.contract.get("contract_id"),
             "results": self.results,
             "evaluator": "tools/eval_judge.py",
-            "behavioral_evidence": "LIVE",
+            "behavioral_evidence": self._evidence(),
             "scores": self._scores(),
         }
 
@@ -64,15 +70,22 @@ class UnitContractRunner:
         actual = self.skill.execute(scenario.get("input") or scenario.get("inputs") or {})
         if not isinstance(actual, dict):
             return {"scenario_id": sid, "status": "RUN", "accuracy": 0.0, "passed": False}
-        cleaned = strip_self_cert_fields(actual)
+        cleaned = with_host_effects(actual, self.trace)
         accuracy = score_accuracy(cleaned, scenario)
         return {
             "scenario_id": sid,
             "status": "RUN",
             "accuracy": accuracy,
-            "passed": accuracy >= PASS_THRESHOLD,
+            "passed": scenario_passed(accuracy, scenario, self.contract),
             "actual_output": cleaned,
         }
+
+    def _evidence(self) -> str:
+        if getattr(self.skill, "live_behavior", False) is not True:
+            return "FIXTURE"
+        if not isinstance(self.trace, EffectTrace):
+            return "UNINSTRUMENTED"
+        return "LIVE"
 
     def _scores(self) -> dict:
         run = [row for row in self.results if row.get("status") == "RUN"]

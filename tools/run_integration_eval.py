@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tools.eval_judge import score_accuracy, strip_self_cert_fields  # noqa: E402
+from tools.eval_judge import scenario_passed, score_accuracy, with_host_effects  # noqa: E402
 
 
 class IntegrationEvalRunner:
@@ -137,17 +137,17 @@ class IntegrationEvalRunner:
                 "accuracy": 0.0,
                 "passed": False,
                 "reason": "orchestration adapter omitted observed_route",
-                "actual_output": strip_self_cert_fields(actual),
+                "actual_output": with_host_effects(actual, getattr(self, "trace", None)),
             }
 
-        cleaned = strip_self_cert_fields(actual)
+        cleaned = with_host_effects(actual, getattr(self, "trace", None))
         accuracy = score_accuracy(cleaned, scenario)
         return {
             "scenario_id": sid,
             "skill": skill_name,
             "status": "RUN",
             "accuracy": accuracy,
-            "passed": accuracy >= 0.9,
+            "passed": scenario_passed(accuracy, scenario, self.contract),
             "actual_output": cleaned,
         }
 
