@@ -45,11 +45,11 @@ DEFINE
     ↓
 DESIGN
     ↓
-CHECK READINESS
+PLAN WORK
+    ↓
+CHECK IMPLEMENTATION READINESS
     ↓
 RESOLVE UNCERTAINTY
-    ↓
-PLAN WORK
     ↓
 DEVELOP / REVIEW / VERIFY  ↺
     ↓
@@ -118,9 +118,10 @@ Create an open SDLC capability layer that lets a developer begin with a short re
 - challenges invalid assumptions;
 - determines the correct SDLC activity;
 - creates or improves the appropriate artifact;
-- checks readiness before implementation;
+- designs planning-ready work items;
+- produces implementation plans proportionate to rigor;
+- checks final development readiness before implementation;
 - uses spikes to resolve technical uncertainty;
-- designs implementation-ready work items;
 - maintains traceability and project continuity;
 - performs development in an iterative loop;
 - verifies outcomes against requirements rather than merely code state; and
@@ -291,6 +292,10 @@ Architecture Design
        ↓
 Technical Specification
        ↓
+Work Item Design
+       ↓
+Implementation Planning
+       ↓
 Development Readiness
        │
        ├── READY ───────────────────────────┐
@@ -301,7 +306,7 @@ Development Readiness
        │       ↓                            │
        │   Evidence / Findings              │
        │       ↓                            │
-       │   Update ADR / Spec                │
+       │   Update ADR / Spec / Plan         │
        │       └────→ Readiness Check ──────┤
        │                                    │
        ├── PRODUCT DECISION REQUIRED        │
@@ -310,31 +315,24 @@ Development Readiness
        └── ARCHITECTURE DECISION REQUIRED   │
                └────→ Architecture ─────────┘
                                             ↓
-                                   Development Loop
-                                            │
-                                   Impact Analysis
+                                      Implementation
                                             ↓
-                                   Work Item Design
+                         Host/project creates or resolves
+                              the merge candidate
                                             ↓
-                               Implementation Planning
-                                            ↓
-                                      Test Design
-                                            ↓
-                                    Implementation
-                                            ↓
-                                      Code Review
-                                            ↓
-                                      Verification
-                                  FAILED ↺       PASSED
-                                                  ↓
-                                        Release Readiness
+                                       PR Review
+                         (includes/consumes verification)
+                              CHANGES_REQUIRED ↙   ↘ READY
+                              Address PR Review      ↓
+                                      ↓       Release Readiness
+                                   PR Review
                                                   ↓
                                                 Done
 ```
 
 ### 7.2 Development is a loop
 
-Implementation planning, test design, development, code review, and verification are not one-time project phases. They are repeated for each meaningful feature, bug, change, or work item.
+Work-item design, implementation planning, development readiness, implementation, PR review/remediation, and verification form the repeated per-work-item loop. Readiness is the final pre-implementation gate after a plan exists; it is not a substitute for planning. Verification may run independently or inside PR review, but it cannot bypass any PR-review gate required by project/rigor policy.
 
 ### 7.3 Readiness is a routing gate
 
@@ -346,6 +344,7 @@ A readiness failure must be classified instead of generically blocking:
 | Product behavior unknown | Product / requirements decision |
 | Architecture choice unresolved | Architecture decision |
 | Acceptance criteria missing | Requirements / work-item refinement |
+| Implementation plan missing or stale | Implementation planning / refresh |
 | Dependency unavailable | Dependency/blocker management |
 | Compliance/legal question | External/domain owner |
 
@@ -384,7 +383,7 @@ Routing precedence must prevent unsafe shortcutting. At minimum:
 1. explicit unresolved product/authority decisions outrank implementation work;
 2. material technical uncertainty routes to a spike before production implementation;
 3. missing testable acceptance behavior routes to refinement before verification;
-4. implementation cannot route directly to `DONE` without verification;
+4. implementation cannot route directly to `DONE` without verification or bypass a PR-review gate required by project/rigor policy;
 5. stale or conflicting authoritative context routes to reconciliation before relying on it.
 
 Closely related skills must define negative boundaries so more than one skill does not claim the same request without a clear precedence rule.
@@ -421,7 +420,8 @@ Candidate capabilities:
 - `implementation-planning`
 - `test-design`
 - `implementation`
-- `code-review`
+- `pr-review`
+- `address-pr-review`
 - `verification`
 - `release-readiness`
 
@@ -540,7 +540,7 @@ Architecture unresolved        → architecture-design
 Technical uncertainty          → technical-spike
 Work not decomposed            → work-item-design
 Work ready                     → next-work / planning
-Implementation complete        → verification
+Implementation complete        → host/project merge-candidate handoff → pr-review
 Milestone candidate complete   → milestone-status / release-readiness
 ```
 
@@ -644,6 +644,7 @@ It shall assess, proportionate to work complexity:
 
 - requirement clarity;
 - testable acceptance criteria;
+- a resolvable accepted implementation plan identity/revision and whether its governing revisions are current;
 - architecture decisions;
 - dependency understanding;
 - major technical uncertainty;
@@ -696,7 +697,7 @@ The output should focus planning rather than become a replacement architecture d
 
 ### 9.11 `work-item-design`
 
-**Purpose:** Produce implementation-ready, tracker-agnostic work-item content.
+**Purpose:** Produce planning-ready, independently reviewable, tracker-agnostic work-item content. Final implementation readiness is decided only after implementation planning.
 
 The skill shall never assume the destination system. The user or host agent may later persist the output to GitHub Issues, Jira, Linear, Azure DevOps, GitLab, a repository file, or another system.
 
@@ -734,7 +735,7 @@ The skill must not confuse **ticket design** with **implementation planning**.
 
 ### 9.12 `implementation-planning`
 
-**Purpose:** Determine how a ready work item should be changed in the actual codebase.
+**Purpose:** Determine how an accepted, planning-ready work item should be changed in the actual codebase before final development readiness.
 
 It shall:
 
@@ -744,7 +745,10 @@ It shall:
 - define an implementation sequence;
 - identify tests and migration steps;
 - preserve scope boundaries;
-- detect new uncertainty and route back to readiness/spike rather than guessing.
+- produce a durable plan identity (`plan_id`, `plan_revision`) plus governing work-item/requirement/decision/specification revisions;
+- bind the work item or project-owned registry to the exact accepted `plan_id + plan_revision`;
+- refresh rather than silently overwrite an accepted plan when governing context changes;
+- detect new uncertainty and route to spike/decision/work-item refinement rather than guessing.
 
 ### 9.13 `test-design`
 
@@ -784,6 +788,9 @@ It shall:
 
 - stay within approved scope;
 - respect existing architecture/conventions;
+- begin only from the accepted current implementation plan;
+- resume unfinished implementation on the same authorized merge candidate when one already exists, rather than creating a second candidate;
+- route reviewer-feedback/check remediation on an existing candidate to `address-pr-review` rather than treating it as ordinary implementation;
 - follow project tests/build requirements;
 - surface scope changes rather than silently expand work;
 - update implementation evidence;
@@ -791,24 +798,27 @@ It shall:
 
 The suite may choose to reuse existing strong implementation/TDD skills rather than create a redundant generic skill.
 
-### 9.15 `code-review`
+### 9.15 `pr-review` and `address-pr-review`
 
-**Purpose:** Critically inspect implementation quality and conformance.
+**Purpose:** Provide one unambiguous merge-candidate review entrypoint and a separate remediation entrypoint.
 
-It shall assess applicable concerns:
+`pr-review` shall perform the complete current-candidate review, including:
 
-- correctness;
-- requirements conformance;
-- maintainability;
-- security;
-- concurrency/data correctness;
-- error handling;
-- compatibility;
-- tests;
-- unnecessary scope;
-- divergence from architecture/spec.
+- implementation correctness and requirements conformance;
+- architecture/ownership/trust-boundary conformance;
+- maintainability where it can materially affect outcome;
+- security and other specialist risks when applicable;
+- concurrency/data/error/lifecycle/compatibility behavior;
+- tests and acceptance evidence;
+- unnecessary scope and hidden temporary paths;
+- exact-revision CI/check/measurement validity;
+- documentation and merge-readiness claims.
 
-Review should prioritize actionable findings and avoid stylistic noise when project conventions already decide style.
+Every re-review is a full review of the entire current candidate. Prior findings are a regression checklist; the latest delta is context only. Review continues after blockers so one pass returns the complete known material blocker set.
+
+`address-pr-review` shall remediate an existing candidate. It inventories all unresolved review findings and required failing checks, fixes the known material set as one bounded batch, and returns to a full `pr-review`. It must not become a second implementation entrypoint for unrelated feature work.
+
+There is no separate generic `code-review` skill because two user-facing review skills create ambiguous routing for requests such as “review PR N”.
 
 ### 9.16 `verification`
 
@@ -831,6 +841,8 @@ These are not equivalent.
 It shall:
 
 - trace verification to acceptance criteria;
+- record the exact verified candidate revision when evidence is revision-sensitive;
+- invalidate/re-run revision-sensitive evidence when the candidate revision changes unless project policy explicitly permits carry-forward;
 - execute or inspect relevant evidence;
 - identify unverified criteria;
 - reject “done” when evidence is incomplete;
@@ -1130,6 +1142,16 @@ The PRD does not prescribe YAML, JSON, SQLite, Markdown, or another storage repr
 - relationships/dependencies where applicable;
 - schema version.
 
+For implementation plans specifically, durable context must also support:
+
+- stable `plan_id`;
+- monotonically changing `plan_revision` (or an equivalent immutable revision identifier);
+- owning `work_item_id`;
+- governing planning-relevant work-item/requirement/decision/specification revisions used to decide whether the plan is current; ordinary coordination metadata changes (claim, assignee, workflow status, comments) must not invalidate the plan unless they change accepted planning inputs;
+- current/stale/accepted status sufficient for readiness, resume, implementation, and PR review to resolve the same plan;
+- an exact accepted-plan reference on the work item or equivalent project-owned registry: `plan_id + plan_revision`. Merely finding a related or latest plan is insufficient when prior revisions remain addressable.
+- revision-addressable plan content: the system must be able to resolve the referenced `(plan_id, plan_revision)` to the exact immutable plan content/provenance used for acceptance; a latest-only mutable plan record is insufficient.
+
 Illustrative logical record only:
 
 ```text
@@ -1306,7 +1328,7 @@ Load:
 - relevant decisions;
 - known users/constraints.
 
-### Code review
+### PR review
 Load:
 - work item;
 - acceptance criteria;
@@ -1874,29 +1896,32 @@ architecture-design
 technical-specification
   → implementable contracts/behavior
 
-development-readiness
-  → SPIKE REQUIRED
+work-item-design
+  → first planning-ready work items
+
+change-impact-analysis
+
+implementation-planning
+  → technical uncertainty discovered; NEEDS SPIKE
 
 technical-spike
   → evidence + recommendation
 
-architecture/spec updated
+architecture/spec/work item updated
+
+implementation-planning
+  → current accepted plan with plan_id + plan_revision
 
 development-readiness
   → READY
 
-work-item-design
-  → first implementation-ready work items
-
 next-work
   → selects highest-priority ready item
 
-change-impact-analysis
-implementation-planning
 test-design
 implementation
-code-review
-verification
+host/project merge-candidate handoff
+pr-review
   → pass
 
 milestone-status
@@ -1927,7 +1952,10 @@ product decision:
 change-impact-analysis
   → auth API, session store, UI, audit log, tests
 
-development-readiness
+work-item-design
+  → tracker-agnostic planning-ready feature ticket
+
+implementation-planning
   → technical uncertainty: current token model may not support revocation
 
 technical-spike
@@ -1937,15 +1965,18 @@ architecture-design
   → session model decision
 
 work-item-design
-  → tracker-agnostic feature ticket
+  → refresh ticket against accepted session model
 
 implementation-planning
-  → codebase-specific plan
+  → current codebase-specific plan with durable plan identity
+
+development-readiness
+  → READY
 
 test-design
 implementation
-code-review
-verification
+host/project merge-candidate handoff
+pr-review
 ```
 
 This example demonstrates that the suite must route backward when new information invalidates an earlier assumption.
@@ -2217,24 +2248,24 @@ Build the minimum workflow that demonstrates the thesis:
 
 - `sdlc-setup`
 - `product-requirements`
+- `work-item-design`
+- `implementation-planning`
 - `development-readiness`
 - `technical-spike`
-- `work-item-design`
 - `verification`
 - minimal project context/provenance
 - eval harness
 - lightweight + standard profile support
 - explicit routing/authority/context contracts
 
-**Exit:** vague idea → validated PRD → readiness/spike → ready work item → verification can be demonstrated generically without requiring a tracker integration or custom orchestrator agent.
+**Exit:** vague idea → validated PRD → planning-ready work item → implementation plan/spike → final development readiness → verification can be demonstrated generically without requiring a tracker integration or custom orchestrator agent.
 
 ### Phase 2 — Development loop
 Add:
 
 - `change-impact-analysis`
-- `implementation-planning`
 - `test-design` or existing skill integration
-- `code-review` or existing skill integration
+- `pr-review` plus `address-pr-review`
 - release-readiness
 - richer traceability
 

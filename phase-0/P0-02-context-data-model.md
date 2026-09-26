@@ -90,6 +90,7 @@ Which is authoritative? What if they disagree?
 | `spike` | SPIKE-012 | Technical investigation | Lead engineer |
 | `spike_finding` | FINDING-012a | Result of spike investigation | Lead engineer |
 | `work_item` | WI-042 | Implementation task/feature/bug | Dev team |
+| `implementation_plan` | PLAN-WI-042 | Versioned accepted plan for implementing one work item | Dev/technical authority under project policy |
 | `milestone` | M-001 | Release/feature grouping | Product owner |
 | `verification` | VER-087 | Evidence item proving acceptance | QA/verification |
 | `risk` | RISK-004 | Known risk or blocker | As appropriate |
@@ -156,7 +157,8 @@ entity:
 # Structural relationships
 requires        Entity A requires Entity B (FR → User Story)
 implements      Entity A implements Entity B (WI → Requirement)
-depends_on      Entity A depends on Entity B (WI → Spike)
+plans           Entity A is the implementation plan for Entity B (Plan → WI)
+depends_on      Entity A depends on Entity B (WI/Plan → Spike/Spec/Decision)
 blocks           Entity A is blocked by Entity B (WI blocked by Decision)
 supersedes      Entity A replaces Entity B (ADR-005 supersedes ADR-002)
 
@@ -178,6 +180,57 @@ related_to      Entity A is conceptually related to Entity B (For tagging)
 
 ## 3. Canonical YAML Serialization
 
+### Implementation-plan identity
+
+Implementation plans are durable derived entities, not transient agent reasoning. A plan must be resolvable later by readiness, implementation, review, and resumability.
+
+```yaml
+entity:
+  id: "PLAN-WI-042"
+  kind: "implementation_plan"
+  status: "accepted"
+  work_item_id: "WI-042"
+  plan_revision: 3
+  source:
+    file: ".sdlc/context/implementation_plans.yaml"
+    commit: "abc123def456"
+  validation_status: "current"
+
+  # Revisions whose change requires plan revalidation.
+  governing_revisions:
+    work_item_semantic: "WI-042@scope-7"
+    specification: "SPEC-002@4"
+    decisions:
+      ADR-003: 2
+
+  relationships:
+    - target: "WI-042"
+      type: "plans"
+      direction: "from"
+
+  depends_on:
+    - "WI-042"
+    - "SPEC-002"
+    - "ADR-003"
+```
+
+`plan_id` is the entity `id`; `plan_revision` advances when the accepted plan changes. `governing_revisions` track planning-relevant semantic content, not ordinary coordination metadata: claim, assignee, workflow-status, or comment-only changes do not invalidate a plan unless they alter accepted scope, acceptance, dependencies, authority, or another planning input. A plan may remain readable for history after becoming stale, but readiness/implementation/review must not treat a stale plan as current.
+
+The work item (or an equivalent project-owned registry) must also identify **which plan revision is currently accepted**. A relationship to a plan entity is not enough when old revisions remain addressable.
+
+```yaml
+work_item:
+  id: "WI-042"
+  kind: "work_item"
+  accepted_plan:
+    plan_id: "PLAN-WI-042"
+    plan_revision: 3
+```
+
+`accepted_plan.plan_id + accepted_plan.plan_revision` is the resolution key used by readiness, implementation, resumability, and PR review. Updating ordinary coordination metadata must not change this pointer. Accepting a refreshed plan advances the pointer only after the project-defined technical authority accepts that plan revision.
+
+The storage representation must make every referenced `(plan_id, plan_revision)` **resolvable to immutable plan content**. Keeping only the latest mutable plan body is insufficient. A project may satisfy this with immutable revision records, an embedded revision history, or VCS-backed revision/source references, but consumers must be able to load the exact accepted revision without guessing from "latest".
+
 ### Directory Structure
 
 ```
@@ -190,6 +243,7 @@ project/
 │   │   ├── specifications.yaml      # All technical specs
 │   │   ├── spikes.yaml              # All spikes + findings
 │   │   ├── work_items.yaml          # All work items
+│   │   ├── implementation_plans.yaml # Versioned accepted implementation plans
 │   │   ├── milestones.yaml          # All milestones
 │   │   ├── verification.yaml        # Verification evidence
 │   │   ├── risks.yaml               # Risks and blockers
@@ -221,15 +275,15 @@ project:
   created_at: "2026-08-15T10:00:00Z"
   
 schema:
-  version: "1.0.0"                      # Semantic versioning
+  version: "1.1.0"                      # Semantic versioning
   format: "yaml"                        # Canonical format
   encoding: "utf-8"
   validation_url: "https://..."         # Optional: schema URL for tooling
   
 # Backward compatibility
 compatibility:
-  minimum_reader_version: "1.0.0"      # Oldest version that can read this
-  minimum_writer_version: "1.0.0"      # Oldest version that can write this
+  minimum_reader_version: "1.1.0"      # implementation_plan semantics are required
+  minimum_writer_version: "1.1.0"      # writers must preserve plan identity/revision
   
 # Profile and rigor
 active_profile: "standard"              # lightweight|standard|high_rigor
@@ -427,6 +481,16 @@ relationships:
     type: "depends_on"
     to: "SPIKE-001"
     created_at: "2026-08-16T12:00:00Z"
+
+  - from: "PLAN-WI-042"
+    type: "plans"
+    to: "WI-042"
+    created_at: "2026-08-16T13:00:00Z"
+
+  - from: "PLAN-WI-042"
+    type: "depends_on"
+    to: "SPEC-002"
+    created_at: "2026-08-16T13:00:00Z"
     
   - from: "ADR-005"
     type: "supersedes"
@@ -442,6 +506,7 @@ relationships:
 # depends_on graph (what depends on what)
 dependency_graph:
   "WI-042": ["SPIKE-001", "ADR-003"]
+  "PLAN-WI-042": ["WI-042", "SPEC-002", "ADR-003"]
   "SPEC-002": ["ADR-003", "FR-001", "FR-002"]
   
 # Affects graph (if this changes, what becomes stale)
@@ -454,6 +519,10 @@ affects_graph:
   "FR-001":
     - "SPEC-002"
     - "WI-042"
+  "WI-042":
+    - "PLAN-WI-042"
+  "SPEC-002":
+    - "PLAN-WI-042"
 ```
 
 ---
@@ -499,10 +568,11 @@ Finds all entities with depends_on: ["ADR-003"]
   FR-002 (depends_on ADR-003) → validation_status = "stale"
   SPEC-002 (depends_on ADR-003) → validation_status = "stale"
   WI-042 (depends_on ADR-003) → validation_status = "stale"
+  PLAN-WI-042 (depends_on ADR-003/SPEC-002/WI-042) → validation_status = "stale"
   ↓
-Finds all entities with depends_on: [SPEC-002, ...]
+Finds downstream entities
   ↓
-  VER-087 (depends_on SPEC-002) → validation_status = "stale"
+  VER-087 (depends_on SPEC-002/WI-042) → validation_status = "stale"
 ```
 
 ---
@@ -516,7 +586,7 @@ Finds all entities with depends_on: [SPEC-002, ...]
 // This is read-only for API/tooling use, not authoritative
 {
   "project": "web-app-project",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "export_date": "2026-08-17T15:00:00Z",
   "entities": [
     {
@@ -554,7 +624,7 @@ Finds all entities with depends_on: [SPEC-002, ...]
 Schema version: MAJOR.MINOR.PATCH
 
 1.0.0 → 1.0.1: Backward-compatible (new optional fields)
-1.0.0 → 1.1.0: Backward-compatible (new relationship types)
+1.0.0 → 1.1.0: Minor schema extension (new entity kinds/relationships). If the new semantics are mandatory—as implementation_plan is here—raise minimum reader/writer even though the representation remains additive.
 1.0.0 → 2.0.0: Breaking change (entity structure changed)
 ```
 
@@ -563,13 +633,15 @@ Schema version: MAJOR.MINOR.PATCH
 ```yaml
 # In _meta.yaml
 compatibility:
-  minimum_reader_version: "1.0.0"    # Oldest reader that works
-  minimum_writer_version: "1.0.0"    # Oldest writer that works
+  minimum_reader_version: "1.1.0"    # Readers must understand required implementation_plan semantics
+  minimum_writer_version: "1.1.0"    # Writers must preserve plan identity/revision/provenance
   
-# Example:
-# v1.0.0 can read v1.0.0-v1.2.3 (backward-compatible)
-# v1.0.0 cannot read v2.0.0 (breaking change)
-# v2.0.0 can read v1.x.x if migration applied
+# Compatibility note:
+# Minor schema additions may remain syntactically backward-compatible, but a
+# project that marks a newly added entity/relationship as REQUIRED must raise
+# minimum_reader/minimum_writer accordingly. Unknown required entity kinds
+# must never be silently ignored.
+# Major-version changes still require migration.
 ```
 
 ### Migration Path (v1.0.0 → v2.0.0 example)

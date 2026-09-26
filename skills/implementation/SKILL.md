@@ -1,115 +1,102 @@
 ---
 name: implementation
-description: Execute one ready work item within its approved scope using evidence-first development, explicit authority boundaries, continuous validation, and a reviewable handoff.
+description: Implement a ready work item or resume its authorized in-progress candidate from the accepted plan; not for PR-review remediation or another developer's active candidate.
 ---
 
 # Implementation
 
+## Invocation contract
+
+Required argument:
+
+```text
+work_item_id: authoritative tracker/work-item identifier
+```
+
+Optional when already known:
+
+```text
+merge_candidate_id: existing PR/MR/change-list for this same work item
+```
+
+Use this for new implementation and for continuing incomplete implementation on the same authorized merge candidate. Review-comment/check remediation belongs to `address-pr-review`.
+
 ## When to use
 
-Use when a work item has passed `development-readiness`, its scope and acceptance behavior are explicit, and implementation is the correct next activity.
+Use for NEW work when the work item is READY, or for RESUME when the same authorized implementer already owns an in-progress candidate and the prior readiness inputs remain current. In both modes the accepted plan must still be current.
 
 ## Do not use
 
-- Do not use implementation to resolve missing product or architecture decisions.
-- Do not silently broaden scope, perform unrelated cleanup, or introduce speculative abstractions.
-- Do not rewrite, reformat, or “improve” anything outside the approved work item.
-- Do not extract an abstraction for a second use. Duplicate until a third independent copy, unless duplication would split authoritative state, ownership, or create a second engine/path.
-- Do not weaken valid tests or acceptance criteria to fit the implementation.
-- Do not claim completion merely because code compiles, a happy path works, or local tests pass. Quote the check.
-- Do not assume a specific language, framework, tracker, branch model, or build command unless the consuming project defines it.
-- Do not place spike/prototype/POC code on a mergeable production path. Exploratory code belongs on an explicitly isolated, non-mergeable branch/worktree or equivalent environment.
-- Do not add a temporary parallel implementation, alternate engine/view/renderer, or duplicate state path to production merely because the permanent implementation is not ready.
+- Do not invent product/architecture decisions, broaden scope, weaken tests, or add disposable production paths.
+- Do not create a second implementation path when a candidate already exists.
+- Do not use this skill when the requested work is reviewer-feedback/check remediation; use `address-pr-review`.
+- Do not continue another implementer's candidate without an explicit project ownership handoff.
 
 ## Required context
 
-Load only what is needed for the ready work item:
+Load the work item, accepted implementation-plan identity/revision, governing authority, acceptance criteria, relevant code/tests, required evidence/risk gates, ownership policy, and merge-candidate state/ownership when one exists.
 
-- work-item outcome, in/out scope, dependencies, and acceptance criteria;
-- governing requirements/decisions/specifications;
-- owning component and relevant code/tests;
-- required verification and specialist-impact classifications;
-- current rigor profile and project-specific engineering instructions;
-- the consuming project's active-work ownership/claim policy, when one exists.
+## Implementation governance preflight
 
-Use `project-context` for compact retrieval, then read consequential authoritative sources.
+Before branch/worktree/files/production edits:
 
-## Exclusive work-item claim
+1. Fresh-read `work_item_id`; require it to be open/current (not closed/cancelled/blocked by unresolved authority).
+2. Check fresh ownership/claim state. If another implementer owns the work item or candidate, stop.
+3. Resolve open merge candidates for this work item and determine mode:
+   - none → `NEW`; require the work-item state to be READY before implementation starts;
+   - same work item + current implementer/authorized owner + implementation incomplete → `RESUME_EXISTING_CANDIDATE`; an IN_PROGRESS-equivalent tracker state is valid and must not be rejected merely because it is no longer labeled READY;
+   - same candidate + request is reviewer feedback or required-check remediation → route to `address-pr-review`;
+   - candidate owned by another implementer or ownership is ambiguous → stop;
+   - multiple active candidates for the same work item → stop and reconcile; never create another.
+4. Resolve the work item's/project registry's accepted-plan reference, then load immutable content for that exact `plan_id + plan_revision`; if the exact revision cannot be resolved, stop instead of falling back to latest. Require it to be current for its planning-relevant governing revisions. Do not select an arbitrary related/latest plan. On RESUME, also revalidate acceptance/dependencies/authority so prior readiness has not gone stale.
+5. If the project defines exclusive claiming, acquire/verify it for NEW work or re-verify it when RESUMING.
 
-When the consuming project defines an exclusive ownership or active-work claim mechanism, acquiring and verifying that claim is a mandatory implementation preflight.
-
-1. Read the work item from the authoritative tracker immediately before implementation begins; do not rely on stale chat, cached project context, or a previous read for ownership state.
-2. If another implementer already owns or has claimed the work item, do not create a worktree, branch, files, or production edits. Stop with `BLOCKED` and report the current owner/claimant when the tracker exposes it.
-3. If the work item is unclaimed, acquire the project-defined claim using its authoritative mechanism before implementation work starts.
-4. Re-read the authoritative work item after the write and verify that the claim belongs to the current implementer. Treat an ambiguous, multiple-owner, overwritten, failed, or unverifiable claim as a collision and stop.
-5. If the consuming project defines an additional collision backstop such as a deterministic issue branch, lease, lock, or status transition, satisfy and verify it before creating the implementation worktree or editing production files.
-6. Never steal, replace, clear, or bypass another implementer's valid claim merely to continue. Ownership transfer requires the consuming project's explicit handoff/reassignment procedure.
-7. A claim is coordination metadata, not proof of readiness, correctness, or completion. All normal readiness, architecture, testing, review, and verification gates still apply.
-
-If the consuming project has no exclusive claim policy, continue without inventing tracker-specific ownership semantics.
+If the project defines no claim mechanism, do not invent one.
 
 ## Stop or escalate when
 
-Stop implementation and route appropriately when:
-
-- another implementer already owns the work item or the active-work claim cannot be acquired and verified;
-- evidence contradicts an accepted requirement, specification, or architecture decision;
-- a new product/architecture/security/privacy/compliance decision is required;
-- scope expansion is necessary to succeed;
-- a dependency is missing or has changed incompatibly;
-- a material technical unknown requires a spike;
-- the only available route is a disposable/temporary implementation that would create a second production path;
-- acceptance criteria are discovered to be untestable or contradictory;
-- authoritative context is stale or conflicting.
-
-Do not create precedent by coding through these conditions.
+Stop for missing/ambiguous/closed work item, NEW work that is not READY, stale resume prerequisites, missing/stale plan, ownership collision, ambiguous/multiple candidates, scope/authority conflict, missing dependency, untestable acceptance, material feasibility unknown, or a required temporary/parallel production path.
 
 ## Procedure
 
-1. Reconfirm the ready work item, its authority, exact scope, and **production intent** before changing production behavior. If the work is exploratory, stop and route it to an isolated spike/POC instead of treating it as implementation. If the work item already specifies the change, skip clarifying questions. If a material choice remains, ask the fewest optioned questions that would change the result, then wait.
-2. Apply the consuming project's exclusive work-item claim policy when one exists. Do not create the implementation worktree/branch or edit production files until the claim is acquired and verified for the current implementer.
-3. Identify the smallest test, fixture, executable check, or other observable evidence that can fail before the intended behavior exists. For this slice’s acceptance criteria, for anything that already failed, and for user-marked critical behavior, prefer test/evidence-first development when feasible. Do not add an opportunistic suite for unrelated code.
-4. If a real design fork exists, compare at least three approaches, mark uncertainty as `unknown`, pick one, and say why. Skip this for mechanical or already-specified changes. Unresolved architecture is a stop, not a vote.
-5. Implement the smallest coherent **production** change that satisfies the accepted outcome without speculative future architecture. An MVP may intentionally be narrow or incomplete in feature breadth, but every merged code path must belong to the intended permanent architecture. Every pass must end with an exercisable path for this slice. Rough is allowed; fake or disposable second paths are not.
-6. Never promote exploratory code merely because a spike succeeded. Preserve useful findings as measurements, docs, decision evidence, fixtures, or independently valid tests; then implement the production solution cleanly under normal readiness/quality rules.
-7. Run the narrowest relevant checks continuously while developing. Do not say the work is done: report the exact command/check and quote a line of output or source.
-8. Preserve unrelated behavior. If unrelated defects or cleanup are discovered, record them separately unless they block this work. Do not rewrite or reformat out-of-scope code.
-9. Re-check assumptions whenever implementation reveals new evidence. Route authority-changing discoveries instead of deciding silently. Flag decisions that are expensive to reverse. Record shortcuts as `shortcut:` in the handoff.
-10. Exercise failure paths and boundaries appropriate to the risk profile, not only the happy path.
-11. Run the project's required formatting/static/unit/integration/security/performance/documentation checks that apply to this work item.
-12. Compare any claimed measurements against reproducible baselines. Label estimates as estimates and do not convert a smoke result into a product claim.
-13. If the user asked for the full multi-slice outcome in this session, implement the named slices sequentially without pausing for a demo between them, and still do not expand into unrequested work. If they asked to see slice N before N+1, stop after the named slice with something they can run. If the session cannot finish, cut remaining scope and hand off the dropped work.
-14. Assess documentation/operational impact before handoff. User-visible or contributor-visible changes should update the appropriate documentation when the project requires it.
-15. Prepare a reviewable change set with traceability from work item → implementation → tests/evidence. Do not self-certify final outcome verification.
+1. Run the governance preflight and record whether this is `NEW` or `RESUME_EXISTING_CANDIDATE`.
+2. Reconstruct the accepted scope and exact accepted plan revision; do not silently revise either.
+3. Identify the smallest evidence/test that would fail before the intended behavior exists.
+4. Implement the smallest coherent permanent production change on the authorized branch/candidate.
+5. Preserve unrelated behavior; record unrelated defects separately.
+6. Exercise applicable failure/boundary behavior, not only the happy path.
+7. Run narrow checks continuously, then all project-required checks for this work.
+8. Record exact proof for claimed success; write `unknown` rather than inventing evidence.
+9. If implementation exposes a material authority/design fork or makes the plan stale, stop and route backward.
+10. When implementation is complete, keep using the existing candidate if one exists; otherwise let host/project policy create or resolve the concrete candidate. Do not invent a candidate ID.
 
 ## Output contract
 
-Return or record:
-
 ```text
-implemented_scope
+work_item_id
+status: IMPLEMENTED_FOR_REVIEW | IN_PROGRESS | BLOCKED | RETURN_TO_DECISION | NEEDS_SPIKE
+implementation_mode: NEW | RESUME_EXISTING_CANDIDATE
+accepted_plan_id
+accepted_plan_revision
+implementation_plan: CONFIRMED | MISSING | STALE
+merge_candidate: NONE | OPEN:<id> | UNKNOWN
+merge_candidate_ownership: CURRENT_IMPLEMENTER | OTHER_IMPLEMENTER | UNKNOWN | NOT_APPLICABLE
 active_work_claim: NOT_APPLICABLE | VERIFIED_CURRENT_IMPLEMENTER | BLOCKED_BY_OTHER | CLAIM_FAILED
-active_work_owner_or_claimant
+implemented_scope
 changed_surfaces
 tests_or_evidence_added
-proof: command_or_check + quoted_line
-shortcuts
-hard_to_reverse_decisions
-unknowns
 checks_run_and_results
-known_limitations_or_deferred_work
+proof
+unknowns
 new_risks_or_decisions_discovered
-documentation_or_specialist_impact
-review_handoff
-status: IMPLEMENTED_FOR_REVIEW | BLOCKED | RETURN_TO_DECISION | NEEDS_SPIKE
+next_action
 ```
-
-`IMPLEMENTED_FOR_REVIEW` means implementation work is ready for independent review/verification; it is not a final correctness verdict.
 
 ## Handoff
 
-- Normal path → `code-review`, then `verification`.
-- Active-work collision → remain `BLOCKED` until the consuming project's explicit ownership handoff/reassignment procedure makes the work item available.
-- Authority conflict → corresponding decision/artifact skill, then re-run `development-readiness`.
-- Material technical uncertainty → isolated, non-mergeable `technical-spike`; after evidence/decision, start a clean production implementation path.
-- Scope change → `work-item-design` before continuing.
+- Incomplete implementation on authorized existing candidate → remain in `implementation` on that same candidate.
+- Completed implementation with existing candidate → `pr-review <merge_candidate_id>`.
+- Completed implementation without candidate → host/project creates or resolves the candidate, then `pr-review`.
+- Existing candidate with reviewer feedback/check failures → `address-pr-review`.
+- Missing/stale plan → `implementation-planning` (or `work-item-design` if scope/acceptance is weak), then `development-readiness`.
+- Authority/scope/feasibility problem → appropriate upstream decision/design/spike, then readiness again.

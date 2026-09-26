@@ -342,9 +342,10 @@
       "scenario_id": "ROUTE-007",
       "category": "Gate 7: Ready",
       "name": "All Preconditions Met - Ready to Execute",
-      "description": "All gates pass → route to ready",
+      "description": "All implementation preconditions, including current accepted plan, pass → route to ready",
       
       "input": {
+        "activity": "implementation",
         "artifact": {
           "id": "WI-042",
           "kind": "work_item",
@@ -374,6 +375,14 @@
               "status": "verified"
             }
           ],
+          "implementation_plans": [
+            {
+              "id": "PLAN-WI-042",
+              "work_item_id": "WI-042",
+              "plan_revision": 1,
+              "validation_status": "current"
+            }
+          ],
           "decision_escalations": [],
           "risks": [],
           "spikes": []
@@ -401,9 +410,10 @@
       "scenario_id": "ROUTE-008",
       "category": "Integration: Rigor Profile",
       "name": "Lightweight Project - Fewer Artifacts Required",
-      "description": "Lightweight rigor doesn't require specification → should route to ready without spec",
+      "description": "Lightweight rigor doesn't require a full specification, but implementation still requires a current accepted plan",
       
       "input": {
+        "activity": "implementation",
         "artifact": {
           "id": "WI-051",
           "kind": "work_item",
@@ -418,6 +428,14 @@
               "validation_status": "current"
             }
           ],
+          "implementation_plans": [
+            {
+              "id": "PLAN-WI-051",
+              "work_item_id": "WI-051",
+              "plan_revision": 1,
+              "validation_status": "current"
+            }
+          ],
           "project_config": {
             "rigor_profile": "lightweight"
           }
@@ -427,7 +445,7 @@
       "expected_output": {
         "routing_decision": "ready",
         "reason_contains": "preconditions",
-        "note": "No specification required (lightweight profile)"
+        "note": "No full specification required (lightweight profile); current implementation plan still required"
       },
       
       "scoring": {

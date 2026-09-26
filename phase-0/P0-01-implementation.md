@@ -11,13 +11,14 @@
 ### Core Algorithm: Evaluate Routing Decision
 
 ```python
-def evaluate_routing_decision(artifact_id, context_model):
+def evaluate_routing_decision(artifact_id, context_model, activity):
     """
     Evaluate next routing step for given artifact.
     
     Args:
         artifact_id: ID of artifact to route (e.g., "WI-042")
         context_model: Full context (all entities + relationships)
+        activity: requested current activity (e.g., "implementation-planning", "implementation")
     
     Returns:
         {
@@ -74,7 +75,7 @@ def evaluate_routing_decision(artifact_id, context_model):
         }
     
     # Gate 4: Artifact Quality
-    artifact_check = check_gate_4_artifact_quality(artifact, context_model)
+    artifact_check = check_gate_4_artifact_quality(artifact, context_model, activity)
     audit_trail.append({"gate": 4, "result": artifact_check})
     if artifact_check["action_needed"]:
         if artifact_check["reason"] == "missing":
@@ -173,6 +174,7 @@ def check_gate_2_authority_required(artifact, context_model):
         "specification": "tech_lead",
         "decision": "tech_lead",
         "verification": "qa_lead",
+        "implementation_plan": "current_skill",  # Planning skill owns plan revisions within accepted authority
         "work_item": "current_skill",  # Skills can update their own work
         "risk": "project_lead"
     }
@@ -250,7 +252,7 @@ def check_gate_3_technical_uncertainty(artifact, context_model):
     }
 
 
-def check_gate_4_artifact_quality(artifact, context_model):
+def check_gate_4_artifact_quality(artifact, context_model, activity):
     """
     Gate 4: Are required artifacts present and valid?
     
@@ -280,7 +282,59 @@ def check_gate_4_artifact_quality(artifact, context_model):
         }
     }
     
-    required_kinds = artifact_requirements.get(artifact.kind, {}).get(rigor_profile, [])
+    required_kinds = list(
+        artifact_requirements.get(artifact.kind, {}).get(rigor_profile, [])
+    )
+
+    # Readiness is activity-relative. Planning a work item may precede its plan,
+    # but final development-readiness and implementation may not proceed without
+    # the exact accepted current plan.
+    # Resolve the work item's accepted plan reference explicitly; do not accept
+    # "any related implementation_plan", because an older/stale revision may exist.
+    if activity in ["development-readiness", "implementation"] and artifact.kind == "work_item":
+        accepted_plan = context_model.get_accepted_plan_reference(artifact.id)
+        if not accepted_plan:
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "missing",
+                "artifact_type": "implementation_plan",
+                "missing_artifact_id": f"accepted_plan_for_{artifact.id}",
+                "template": "implementation_plan_template"
+            }
+
+        plan = context_model.get_artifact(accepted_plan.plan_id)
+        if not plan or plan.kind != "implementation_plan":
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "missing",
+                "artifact_type": "implementation_plan",
+                "missing_artifact_id": accepted_plan.plan_id,
+                "template": "implementation_plan_template"
+            }
+
+        if plan.plan_revision != accepted_plan.plan_revision:
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "stale",
+                "artifact_type": "implementation_plan",
+                "artifact_id": plan.id,
+                "validation_status": "stale",
+                "invalidated_by": "accepted plan revision mismatch"
+            }
+
+        if plan.validation_status in ["stale", "needs_recheck", "conflicted"]:
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "stale",
+                "artifact_type": "implementation_plan",
+                "artifact_id": plan.id,
+                "validation_status": plan.validation_status,
+                "invalidated_by": plan.invalidated_by or "planning-relevant governing revision changed"
+            }
     
     for required_kind in required_kinds:
         required_artifact = context_model.find_by_relationship(
@@ -537,7 +591,7 @@ GATE 4: ARTIFACT QUALITY (5 scenarios)
 ├─ ROUTE-016: Missing specification (lightweight rigor doesn't require)
 ├─ ROUTE-017: Stale requirement (needs revalidation)
 ├─ ROUTE-018: Multiple stale artifacts (routes to first)
-└─ ROUTE-019: All required artifacts valid
+└─ ROUTE-019: Implementation activity has all profile artifacts plus exact accepted current plan
 
 GATE 5: PREREQUISITE WORK (3 scenarios)
 ├─ ROUTE-020: Upstream work incomplete
@@ -587,10 +641,13 @@ class RoutingTestHarness:
         # Setup artifact + context
         artifact_id = test_case["setup"]["artifact"]["id"]
         context = build_context_from_setup(test_case["setup"])
+        activity = test_case.get("activity", "generic")
         
         # Run routing engine
         start_time = time.time()
-        actual_output = self.engine.evaluate_routing_decision(artifact_id, context)
+        actual_output = self.engine.evaluate_routing_decision(
+            artifact_id, context, activity
+        )
         latency = (time.time() - start_time) * 1000  # ms
         
         # Compare against expected

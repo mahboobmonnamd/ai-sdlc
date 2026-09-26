@@ -14,7 +14,7 @@
 
 **What it delivers:**
 - Canonical YAML format for context storage (one file per entity kind)
-- 14 entity kinds, 12 relationship types
+- 15 entity kinds, 13 relationship types
 - Staleness/invalidation model (depends_on + affects)
 - Schema versioning strategy
 - JSON export (read-only)
@@ -177,7 +177,7 @@ docs/
 ### P0-02 Context Data Model ✅
 - [x] AC-1: YAML format chosen; rationale documented
 - [x] AC-2: Directory structure defined (.sdlc/context/*)
-- [x] AC-3: 14 entity kinds + 12 relationship types defined
+- [x] AC-3: 15 entity kinds + 13 relationship types defined
 - [x] AC-4: Staleness model defined (validation_status, depends_on, affects)
 - [x] AC-5: JSON export spec (read-only)
 - [x] AC-6: Schema versioning strategy (semantic versioning)

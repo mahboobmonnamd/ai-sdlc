@@ -52,9 +52,9 @@ Phase 0 translates v0.2 PRD requirements into concrete architectural specificati
    - Rationale: Human-readable, git-friendly, nested structure matches entity relationships
 
 2. **Logical Data Model**
-   - Entity kinds: requirement, nfr, decision, specification, spike, spike_finding, work_item, milestone, verification, risk, handoff, decision_escalation, component, context_fact
+   - Entity kinds: requirement, nfr, decision, specification, spike, spike_finding, work_item, implementation_plan, milestone, verification, risk, handoff, decision_escalation, component, context_fact
    - Minimal fields per entity: id, kind, status, summary, source, authority, created_at, last_validated, relationships, depends_on, affects
-   - Relationship types: requires, implements, depends_on, blocks, supersedes, governed_by, specified_by, verified_by, part_of, contains, contradicts, related_to
+   - Relationship types: requires, implements, plans, depends_on, blocks, supersedes, governed_by, specified_by, verified_by, part_of, contains, contradicts, related_to
 
 3. **Staleness Model**
    - validation_status: current|stale|needs_recheck|conflicted
@@ -131,7 +131,7 @@ P0-09 (Integrated Lifecycle Validation)
    - [ ] P0-02 design review with Phase 1 team
    - [ ] Confirm YAML serialization is implementable
    - [ ] Validate worked example covers all entity types
-   - [ ] Lock schema version 1.0.0
+   - [x] Lock schema version 1.1.0 (required implementation-plan semantics)
 
 ### Week 2-3 of Phase 0 (Aug 24-Sep 6)
 

@@ -29,15 +29,17 @@ All mandatory items must pass before broad publication/promotion.
 
 Every skill defines:
 
+- invocation contract and required identifier/input;
 - when to use it;
 - when not to use it;
 - required context/evidence;
 - stop/escalation conditions;
-- procedure;
+- procedure/workflow;
 - output/verdict contract;
 - handoff/next activity.
+- progressive disclosure: large skill files trigger review, not automatic failure. Move supporting material and mechanical/enforceable policy out of the hot instruction path when that improves clarity, but never compress away safety, authority, routing, or evidence semantics merely to hit a size number.
 
-Overlapping skills must have explicit precedence or negative boundaries. A user request must not be claimed by multiple skills with incompatible behavior. Working-loop prompts live inside those skills with skip conditions; they are not a separate distributed skill or always-on constitution.
+Overlapping user-facing skills are a design smell. Prefer one obvious lifecycle entrypoint; where related skills coexist, they must have explicit precedence and mutually exclusive routing boundaries. A user request must not be claimed by multiple skills with incompatible behavior. Working-loop prompts live inside those skills with skip conditions; they are not a separate distributed skill or always-on constitution.
 
 ### 3. Authority discipline
 
@@ -47,7 +49,7 @@ Published skills must not silently decide matters owned by product, architecture
 
 For each published skill:
 
-- a P0-07-compatible unit evaluation contract exists;
+- a P0-07-compatible unit evaluation contract exists; during development its baseline/results may explicitly be `NOT_RUN`, but publication cannot pass in that state;
 - representative success and failure scenarios exist;
 - forbidden behaviors are explicit;
 - declared passing threshold is met by the chosen evaluation harness/model set;
@@ -56,14 +58,15 @@ For each published skill:
 At least one integration evaluation must cover the core path:
 
 ```text
-development-readiness
-→ work-item-design
+work-item-design
+→ implementation-planning
+→ development-readiness
 → implementation
-→ code-review
-→ verification
+→ host/project merge-candidate handoff
+→ pr-review
 ```
 
-The integration test must also include a backward route when a blocking decision or stale authority is discovered.
+The integration test must also include a backward route when a blocking decision or stale authority is discovered, plus continuation of incomplete implementation on the same authorized merge candidate.
 
 ### 5. Reference-consumer evidence
 
@@ -112,7 +115,7 @@ The repository is **not yet publish-ready** merely because the initial core skil
 
 Current work must still prove:
 
-1. core skill catalog validation and evaluation contracts pass in CI;
+1. deterministic catalog/contract validation passes in CI; this proves structure and invariants, not agent/model behavior;
 2. the evaluation contracts are actually executed against representative agents/models and achieve the declared threshold;
 3. the Seyal reference integration is completed without blocking generic-design defects;
 4. licensing/versioning/public-release decisions are explicit;

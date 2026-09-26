@@ -119,11 +119,18 @@ START: Evaluate next step for [artifact]
 │
 ├─ Gate 4: ARTIFACT QUALITY
 │  │
-│  ├─ Are required artifacts (spec, requirement, decision)
+│  ├─ Are the artifacts required for the CURRENT ACTIVITY and active rigor profile
 │  │  │  present and valid (validation_status = current)?
 │  │  │
+│  │  │  For final development-readiness or implementation intent this includes:
+│  │  │    - accepted work item with testable acceptance;
+│  │  │    - exact accepted implementation_plan reference (plan_id + plan_revision);
+│  │  │    - current accepted implementation_plan at that exact revision;
+│  │  │    - current governing requirement/specification/decision revisions.
+│  │  │
 │  │  ├─ NO → ROUTE: Create or Refresh Artifact
-│  │  │        [E.g., "Write specification before implementation"]
+│  │  │        [E.g., "Write implementation plan before readiness/implementation"]
+│  │  │        [E.g., "Accepted plan became stale; refresh it"]
 │  │  │        [E.g., "Requirement marked stale; re-validate"]
 │  │  │
 │  │  └─ YES → Continue to Gate 5
@@ -159,11 +166,16 @@ START: Evaluate next step for [artifact]
 │
 └─ Gate 7: READY TO EXECUTE
    │
-   ├─ YES → ROUTE: Proceed with current artifact
-   │        (all preconditions met)
+   ├─ YES → ROUTE: Proceed with the current activity
+   │        (all preconditions for that activity are met;
+   │         for implementation, Gate 4 already proved the accepted plan is current)
    │
    └─ End
 ```
+
+### Activity-relative readiness
+
+`READY TO EXECUTE` is not a universal shortcut to implementation. It means the prerequisites for the **requested current activity** have passed. For implementation, the canonical sequence is `work-item-design → implementation-planning → development-readiness → implementation`; Gate 4 therefore treats the accepted implementation plan as a required current artifact. Planning itself may run before final implementation readiness and may route to a spike/decision when it discovers uncertainty.
 
 ### Gate Priority (Why This Order?)
 
@@ -394,39 +406,46 @@ Time T6: Skill B re-validates WI-050
 
 ### Example 4: Rigor Profile Affects Artifact Quality Gate
 
-**Context:** Same project, different work streams at different rigor levels.
+**Context:** Compare the same routing gate under two project contexts with different active rigor profiles. A project uses one active profile unless its own authority explicitly defines an override.
 
 ```
-Project Config: Rigor Profile = "Standard"
+Project A Config: Rigor Profile = "Standard"
 
-Workstream A: Core auth (Standard rigor)
+Workstream A: Core auth (Standard rigor), activity = implementation
 ├─ WI-042 (JWT auth) requires:
 │  ├─ requirement.yaml (required)
 │  ├─ specification.yaml (required)
-│  └─ verification.yaml (required)
+│  ├─ verification template (required)
+│  └─ accepted current implementation_plan (required for implementation)
 │
-Workstream B: Admin UI (Lightweight rigor)
+Project B Config: Rigor Profile = "Lightweight"
+
+Workstream B: Admin UI (Lightweight rigor), activity = implementation
 ├─ WI-051 (Admin dashboard) requires:
 │  ├─ requirement.yaml (required)
-│  └─ acceptance_criteria (required)
-│  └─ specification.yaml (OPTIONAL)
+│  ├─ acceptance_criteria (required)
+│  ├─ specification.yaml (OPTIONAL)
+│  └─ compact accepted current implementation_plan (required for implementation)
 │
-Step 1: Skill evaluates WI-042 (JWT, Standard)
+Step 1: Skill evaluates WI-042 (JWT, Standard, implementation)
 ├─ Gate 4 (Artifacts): Check required artifacts
 │  ├─ requirement? YES ✓
 │  ├─ specification? YES ✓
 │  ├─ verification template? YES ✓
+│  ├─ accepted plan reference PLAN-WI-042@3? YES ✓
+│  ├─ PLAN-WI-042@3 current against governing revisions? YES ✓
 │  └─ All present and current → Continue
 │
-Step 2: Skill evaluates WI-051 (Admin UI, Lightweight)
+Step 2: Skill evaluates WI-051 (Admin UI, Lightweight, implementation)
 ├─ Gate 4 (Artifacts): Check required artifacts (per Lightweight profile)
 │  ├─ requirement? YES ✓
 │  ├─ acceptance_criteria? YES ✓
 │  ├─ specification? SKIPPED (optional in Lightweight)
-│  └─ All required present → Continue
+│  ├─ compact accepted plan reference PLAN-WI-051@1? YES ✓
+│  ├─ PLAN-WI-051@1 current against governing revisions? YES ✓
+│  └─ All required present and current → Continue
 │
-Note: Same Gate 4, but different artifact requirements per rigor profile.
-(Rigor profile stored in context; routing logic checks it.)
+Note: Same Gate 4, but profile-dependent artifact depth differs. The implementation-plan requirement does not disappear in Lightweight; only its depth/ceremony changes. Planning itself may run before final readiness, so the plan requirement is activity-relative to implementation/readiness rather than universal to every routing request.
 ```
 
 ---
@@ -474,8 +493,9 @@ Result: Still deterministic. Audit trail shows why choice was made.
 |---|---|---|
 | `decision_escalation` | Gate 1 | status = unresolved? |
 | `requirement`, `specification`, `verification` | Gate 4 | validation_status = current? |
+| `implementation_plan` | Gate 4 for final development-readiness / implementation intent | exact accepted plan_id/plan_revision exists and validation_status = current? |
 | `spike` | Gate 3 | status = active? Has spike_finding? |
-| `work_item` | Gate 5 | status = complete or verified? |
+| `work_item` | Gate 4/5 | current planning input; upstream work-item dependencies complete or verified? |
 | `risk` | Gate 6 | status = active? Blocks this artifact? |
 | `decision` | Gate 2 | authority field matches skill scope? |
 
