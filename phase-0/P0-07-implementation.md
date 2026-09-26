@@ -788,7 +788,13 @@
 
 ## Part 4: Test Harness & Scoring Engine (Python Pseudocode)
 
-The executable judge is `tools/eval_judge.py`. It scores adapter output fields. It does not treat `required_behaviors_satisfied`, `forbidden_behaviors_absent`, or `route_matched` as evidence; contract validation rejects those checks. Integration routes are scored by comparing `observed_route` from an orchestration adapter (`execute(scenario) -> {observed_route: [...]}`) with `expected_route`. Register adapters with `tools/run_integration_eval.py --skill-adapter NAME=module:callable` and `--orchestration-adapter module:callable`. A wiring fixture is not a behavioral run; contract `results.status` stays `NOT_RUN` until a live adapter executes.
+The executable judge is `tools/eval_judge.py`. `tools/run_eval_contract.py` is the runner for one unit or integration contract. The `EvaluationContractHarness` class below is an old sketch; it is not the scorer.
+
+The judge scores adapter output fields. It does not treat `required_behaviors_satisfied`, `forbidden_behaviors_absent`, or `route_matched` as evidence; contract validation rejects those checks. A skill adapter implements `execute(input) -> dict`. An orchestration adapter implements `execute(scenario) -> dict` with `observed_route` and, when a check names them, `effects`.
+
+Checks support `==`, `!=`, `in`, `not_in`, `includes`, and `excludes`. `output.effects includes TOKEN` passes only when `effects` is a list that contains `TOKEN`. `output.effects excludes TOKEN` passes only when `effects` is a list that does not contain `TOKEN`. A missing effects list fails both checks. Any failed criterion marked `safety` scores that scenario 0. Otherwise the score is earned points divided by total points. A scenario passes at accuracy >= 0.9.
+
+Register adapters with `tools/run_eval_contract.py --skill-adapter module:callable` or `--orchestration-adapter module:callable`. `evals/examples/safety-effects.json` shows the effects checks. Existing unit contracts are not rewritten here. A wiring fixture is not a behavioral run. Contract `results.status` stays `NOT_RUN` until a live adapter executes, and the runner does not write that status back onto the contract file.
 
 ```python
 class EvaluationContractHarness:
