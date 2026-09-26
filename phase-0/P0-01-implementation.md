@@ -192,8 +192,24 @@ def check_gate_2_authority_required(artifact, context_model):
 
     if required_authority == "technical_authority":
         policy = context_model.get_project_config("technical_authority_policy") or {}
-        actor = getattr(artifact, "actor", None)
-        if actor not in set(policy.get("technical_authorities") or []):
+        principal = getattr(artifact, "principal", None)
+        if not isinstance(principal, dict) or not principal.get("assertion_id"):
+            return {
+                "gate": 2,
+                "requires_authority": True,
+                "blocked": True,
+                "reason": "actor_not_authenticated",
+                "authority_type": "technical_authority",
+            }
+        if principal.get("authenticator") not in set(policy.get("authenticators") or []):
+            return {
+                "gate": 2,
+                "requires_authority": True,
+                "blocked": True,
+                "reason": "actor_not_authenticated",
+                "authority_type": "technical_authority",
+            }
+        if principal.get("identity") not in set(policy.get("technical_authorities") or []):
             return {
                 "gate": 2,
                 "requires_authority": True,
@@ -330,9 +346,9 @@ def check_gate_4_artifact_quality(artifact, context_model, activity):
             }
 
         # Non-empty accepted_by / accepted_at is not authority.
-        # tools/plan_acceptance.py is the operation CI executes: the actor must
-        # be in technical_authorities, the plan revision must be status accepted,
-        # and the pointer must record operation plan_acceptance.
+        # tools/plan_acceptance.py is the operation CI executes. The host must
+        # pass an authenticated principal, the plan must belong to this work
+        # item, and verification must load that exact (plan_id, plan_revision).
         acceptance = verify_accepted_plan(
             work_item=context_model.get_work_item(artifact.id),
             plans=context_model.plans,
