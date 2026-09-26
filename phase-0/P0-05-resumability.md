@@ -230,11 +230,23 @@ def validate_checkpoint_for_resume(checkpoint, context_model):
             "action": "Restart from beginning"
         }
     
+    # Check 4: implementation resume re-validates the accepted plan, claim, and
+    # durable candidate stage. tools/resume_context.py is the copy CI executes.
+    implementation_context = validate_implementation_resume_context(checkpoint, context_model)
+    if checkpoint.phase == "implementation" and not implementation_context["ok"]:
+        return {
+            "resumable": False,
+            "reason": implementation_context["reason"],
+            "detail": implementation_context.get("detail"),
+            "action": implementation_context.get("action"),
+        }
+
     # All checks passed
     return {
         "resumable": True,
         "reason": "ready_to_resume",
-        "safe_to_continue": True
+        "safe_to_continue": True,
+        "implementation_context": implementation_context,
     }
 
 
@@ -284,7 +296,7 @@ Only `implementation` may transition the stage, and only by writing the durable 
 ### Step 3: Reconstruct Work State
 
 ```python
-def reconstruct_work_state(checkpoint, context_model):
+def reconstruct_work_state(checkpoint, context_model, implementation_context):
     """
     Load checkpoint and prepare to resume.
     Returns: work_state (ready to execute from checkpoint)
@@ -314,7 +326,11 @@ def reconstruct_work_state(checkpoint, context_model):
         
         # Execution context
         "resume_from": f"analyze_{checkpoint.current_artifact.kind}_{checkpoint.current_artifact.id}",
-        "checkpoint_id": checkpoint.id
+        "checkpoint_id": checkpoint.id,
+        "accepted_plan_id": implementation_context["accepted_plan_id"],
+        "accepted_plan_revision": implementation_context["accepted_plan_revision"],
+        "merge_candidate_id": implementation_context["merge_candidate_id"],
+        "candidate_lifecycle_stage": implementation_context["candidate_lifecycle_stage"],
     }
     
     return work_state
@@ -352,6 +368,22 @@ def decide_resume_or_restart(checkpoint, validation_result, context_model):
                 "decision": "restart",
                 "reason": "Checkpoint data corrupted",
                 "action": "Discard checkpoint; start fresh",
+                "parent_checkpoint": checkpoint.id
+            }
+
+        elif reason in ("stale_plan", "unaccepted_plan"):
+            return {
+                "decision": "restart",
+                "reason": reason,
+                "action": "Route through implementation-planning, plan acceptance, and development-readiness",
+                "parent_checkpoint": checkpoint.id
+            }
+
+        elif reason in ("candidate_stage_mismatch", "unknown_candidate_stage", "blocked_by_other_claim"):
+            return {
+                "decision": "escalate",
+                "reason": reason,
+                "action": validation_result.get("action") or "Reconcile stage or claim before resume",
                 "parent_checkpoint": checkpoint.id
             }
     
