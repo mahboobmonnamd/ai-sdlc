@@ -23,6 +23,7 @@ Use before implementation begins, resumes after a material decision, or expands 
 
 - Do not design the solution merely to make work appear ready.
 - Do not replace product discovery, architecture design, technical specification, work-item design, or implementation planning.
+- Do not treat a newly generated `PROPOSED` plan as accepted; readiness requires the accepted-plan pointer plus acceptance evidence.
 - Do not treat existing code as authority when approved requirements/decisions say otherwise.
 - Do not mark work ready because an agent is confident or implementation has already started.
 - Do not mark mergeable production work ready while the intended code is still a spike/prototype/POC.
@@ -36,7 +37,7 @@ Load the smallest authoritative set needed to judge the identified work item:
 - intended outcome and acceptance behavior;
 - applicable requirements, decisions, specifications, constraints, and risks;
 - current work-item state and dependencies;
-- accepted implementation-plan identity, revision, governing revisions, and current/stale status;
+- accepted implementation-plan identity, revision, governing revisions, acceptance evidence (`accepted_by` / `accepted_at` or equivalent), and current/stale status;
 - known technical unknowns/spikes;
 - applicable rigor profile;
 - stale/conflicting context indicators.
@@ -66,7 +67,7 @@ Return a non-ready verdict rather than guessing for:
 6. Check that acceptance criteria are observable, testable, and sufficient to distinguish success from plausible partial implementation.
 7. Check dependencies and predecessor work.
 8. Check scope, ownership boundaries, and non-goals for uncontrolled expansion risk.
-9. Resolve the work item's/project registry's **accepted-plan reference** first, then load the immutable content for that exact `plan_id + plan_revision`. If the exact revision cannot be resolved, treat the plan as missing/inconclusive rather than falling back to latest. Do not choose an arbitrary related/latest plan. Verify its planning-relevant `governing_revisions` still match current authoritative scope/acceptance/dependency/requirement/decision/specification content. Coordination-only tracker changes (claim/assignee/status/comments) do not stale the plan by themselves. Missing identity, missing accepted revision, or incompatible planning input makes the plan MISSING/STALE. Lightweight work may use a compact plan, but a hidden plan inside agent reasoning does not satisfy this gate.
+9. Resolve the work item's/project registry's **accepted-plan reference** first, then load the immutable content for that exact `plan_id + plan_revision`. Require acceptance evidence on that pointer (`accepted_by` and `accepted_at` / acceptance source, or the project's equivalent recorded fields). A newly generated `PROPOSED` plan without that acceptance evidence is not accepted and must not pass readiness. If the exact revision cannot be resolved, treat the plan as missing/inconclusive rather than falling back to latest. Do not choose an arbitrary related/latest plan. Verify its planning-relevant `governing_revisions` still match current authoritative scope/acceptance/dependency/requirement/decision/specification content. Coordination-only tracker changes (claim/assignee/status/comments) do not stale the plan by themselves. Missing identity, missing accepted revision, missing acceptance evidence, or incompatible planning input makes the plan MISSING/STALE. Lightweight work may use a compact plan, but a hidden plan inside agent reasoning does not satisfy this gate.
 10. Confirm production/default-branch work follows the intended permanent architecture and yields an observable/exercisable path.
 11. Apply the project's rigor profile without skipping unresolved authority, acceptance, or material-risk gates.
 12. Flag expensive-to-reverse decisions.
@@ -91,10 +92,12 @@ work_item_id
 verdict: READY | NOT_READY | AWAITING_DECISION | NEEDS_SPIKE | BLOCKED
 reason
 blocking_items
-implementation_plan: PRESENT | MISSING | STALE | UNKNOWN
+implementation_plan: PRESENT | MISSING | STALE | PROPOSED_ONLY | UNKNOWN
 accepted_plan_reference: <plan_id>@<plan_revision> | MISSING | UNKNOWN
 accepted_plan_id
 accepted_plan_revision
+accepted_by: <authority identity> | MISSING | UNKNOWN
+accepted_at: <timestamp or acceptance source> | MISSING | UNKNOWN
 next_capability
 resume_condition
 evidence_used
@@ -109,9 +112,10 @@ A READY verdict means implementation may begin within the assessed scope; it doe
 
 ## Handoff
 
-- READY with accepted plan → `implementation`.
+- READY with accepted plan (including acceptance evidence) → `implementation`.
 - Missing/weak work-item scope or acceptance → `work-item-design`.
-- Missing/stale implementation plan → `implementation-planning`, then re-run readiness.
+- Plan exists only as `PROPOSED` (no accepted-plan pointer/evidence) → project-defined plan acceptance, then re-run readiness.
+- Missing/stale implementation plan → `implementation-planning`, then acceptance, then re-run readiness.
 - Technical uncertainty → isolated non-mergeable spike, then re-run readiness.
 - Product/architecture/other authority gap → explicit decision/escalation workflow.
 - Stale/conflicting context → reconcile authoritative sources before continuing.

@@ -10,6 +10,17 @@ spec = importlib.util.spec_from_file_location("validate_skills", MODULE_PATH)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
+EVAL_VALIDATE_PATH = ROOT / "tools" / "validate_eval_contracts.py"
+eval_spec = importlib.util.spec_from_file_location(
+    "validate_eval_contracts", EVAL_VALIDATE_PATH
+)
+eval_module = importlib.util.module_from_spec(eval_spec)
+eval_spec.loader.exec_module(eval_module)
+
+INTEGRATION_CONTRACT = ROOT / "evals" / "integration" / "core-development-loop.json"
+LAYOUT_INDEX = ROOT / "evals" / "core-development-loop.json"
+UNIT_DIR = ROOT / "evals" / "unit"
+
 
 VALID_SKILL = """---
 name: example
@@ -112,42 +123,59 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertEqual(expected, actual)
         self.assertNotIn("code-review", actual)
 
+    def test_eval_contracts_validate_against_schema(self):
+        self.assertEqual([], eval_module.validate_contract(LAYOUT_INDEX))
+        self.assertEqual([], eval_module.validate_contract(INTEGRATION_CONTRACT))
+        for path in sorted(UNIT_DIR.glob("*.json")):
+            self.assertEqual([], eval_module.validate_contract(path), path)
+
     def test_core_eval_contract_does_not_claim_unexecuted_behavior(self):
-        contract = json.loads(
-            (ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8")
-        )
-        self.assertEqual("NOT_RUN", contract["baseline"]["status"])
-        self.assertEqual("NOT_RUN", contract["results"]["status"])
-        self.assertIsNone(contract["date_last_run"])
-        self.assertIn("skills_tested", contract)
-        self.assertIn("target_capability", contract)
+        layout = json.loads(LAYOUT_INDEX.read_text(encoding="utf-8"))
+        integration = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
+        self.assertEqual("NOT_RUN", layout["baseline"]["status"])
+        self.assertEqual("NOT_RUN", layout["results"]["status"])
+        self.assertEqual("NOT_RUN", integration["baseline"]["status"])
+        self.assertEqual("NOT_RUN", integration["results"]["status"])
+        self.assertIsNone(integration["date_last_run"])
+        self.assertIn("skills_tested", integration)
+        self.assertIn("target_capability", integration)
 
-    def test_core_eval_contract_matches_p0_07_metadata_shape(self):
-        contract = json.loads(
-            (ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8")
-        )
-        self.assertEqual("core-development-loop", contract["skill"])
-        self.assertIn("fixtures", contract)
-        self.assertIsInstance(contract["scoring"]["dimensions"], list)
-        self.assertIn("baseline_run_date", contract["baseline"])
-        self.assertIn("run_date", contract["results"])
-        self.assertIn("skill_version", contract["results"])
-        for scenario in contract["scenarios"]:
-            self.assertEqual(scenario["id"], scenario["scenario_id"])
-            self.assertIn("expected_output", scenario)
-            self.assertEqual(
-                scenario["expected_behaviors"],
-                scenario["expected_output"]["required_behaviors"],
-            )
-            self.assertEqual(
-                scenario["forbidden_behaviors"],
-                scenario["expected_output"]["forbidden_behaviors"],
-            )
+    def test_unit_contracts_match_p0_07_metadata_shape(self):
+        for path in sorted(UNIT_DIR.glob("*.json")):
+            contract = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(path.stem, contract["skill"])
+            self.assertIn("fixtures", contract)
+            self.assertIsInstance(contract["scoring"]["dimensions"], list)
+            self.assertIn("baseline_run_date", contract["baseline"])
+            self.assertIn("run_date", contract["results"])
+            self.assertIn("skill_version", contract["results"])
+            for scenario in contract["scenarios"]:
+                self.assertEqual(scenario["id"], scenario["scenario_id"])
+                self.assertIn("expected_output", scenario)
+                self.assertEqual(
+                    scenario["expected_behaviors"],
+                    scenario["expected_output"]["required_behaviors"],
+                )
+                self.assertEqual(
+                    scenario["forbidden_behaviors"],
+                    scenario["expected_output"]["forbidden_behaviors"],
+                )
+                criteria = scenario["scoring"]["criteria"]
+                self.assertTrue(criteria)
+                for criterion in criteria:
+                    self.assertIn("points", criterion)
+                    self.assertTrue(criterion.get("check") or criterion.get("verification"))
 
-    def test_exact_accepted_plan_reference_is_contractual(self):
+    def test_planning_does_not_self_accept(self):
         planning = (
             ROOT / "skills" / "implementation-planning" / "SKILL.md"
         ).read_text(encoding="utf-8")
+        self.assertIn("proposed_plan_reference", planning)
+        self.assertIn("plan_status: PROPOSED", planning)
+        self.assertIn("Do not** update the work item's/project registry's `accepted_plan`", planning)
+        self.assertNotIn("accepted_plan_reference:", planning)
+
+    def test_exact_accepted_plan_reference_is_contractual(self):
         readiness = (
             ROOT / "skills" / "development-readiness" / "SKILL.md"
         ).read_text(encoding="utf-8")
@@ -157,15 +185,17 @@ class SkillCatalogTests(unittest.TestCase):
         pr_review = (
             ROOT / "skills" / "pr-review" / "SKILL.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("accepted_plan_reference", planning)
-        self.assertIn("plan_content_ref", planning)
-        self.assertIn("accepted-plan reference", readiness)
+        self.assertIn("accepted_plan_reference", readiness)
+        self.assertIn("accepted_by", readiness)
+        self.assertIn("accepted_at", readiness)
+        self.assertIn("PROPOSED", readiness)
         self.assertIn("accepted-plan reference", implementation)
-        self.assertIn("accepted-plan reference", pr_review)
+        self.assertIn("accepted_by", implementation)
+        self.assertIn("lifecycle_accepted_plan", pr_review)
+        self.assertIn("NOT_APPLICABLE", pr_review)
+        self.assertIn("REQUIRED_BUT_MISSING", pr_review)
 
-    def test_core_loop_evaluation_contract_covers_every_skill(self):
-        contract_path = ROOT / "evals" / "core-development-loop.json"
-        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    def test_unit_contracts_cover_every_skill(self):
         expected = {
             "address-pr-review",
             "development-readiness",
@@ -176,24 +206,18 @@ class SkillCatalogTests(unittest.TestCase):
             "verification",
             "work-item-design",
         }
-        scenarios = contract["scenarios"]
-        covered = {scenario["skill"] for scenario in scenarios}
-        self.assertEqual(expected, covered)
+        actual = {path.stem for path in UNIT_DIR.glob("*.json")}
+        self.assertEqual(expected, actual)
         for skill in expected:
-            self.assertGreaterEqual(
-                sum(1 for scenario in scenarios if scenario["skill"] == skill),
-                2,
-                f"{skill} needs at least two scenarios",
-            )
-        for scenario in scenarios:
-            self.assertTrue(scenario["expected_behaviors"])
-            self.assertTrue(scenario["forbidden_behaviors"])
-        self.assertGreaterEqual(contract["scoring"]["pass_threshold"], 0.85)
+            contract = json.loads((UNIT_DIR / f"{skill}.json").read_text(encoding="utf-8"))
+            self.assertGreaterEqual(len(contract["scenarios"]), 2, skill)
+            for scenario in contract["scenarios"]:
+                self.assertTrue(scenario["expected_behaviors"])
+                self.assertTrue(scenario["forbidden_behaviors"])
+                self.assertTrue(scenario["scoring"]["criteria"])
 
-    def test_normal_flow_requires_plan_and_single_review_entrypoint(self):
-        contract = json.loads(
-            (ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8")
-        )
+    def test_normal_flow_requires_plan_acceptance_and_single_review_entrypoint(self):
+        contract = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow = next(
             scenario
             for scenario in contract["integration_scenarios"]
@@ -203,6 +227,7 @@ class SkillCatalogTests(unittest.TestCase):
             [
                 "work-item-design",
                 "implementation-planning",
+                "plan-acceptance",
                 "development-readiness",
                 "implementation",
                 "host-project-merge-candidate",
@@ -214,23 +239,42 @@ class SkillCatalogTests(unittest.TestCase):
             "user must manually invoke a separate code-review skill",
             flow["forbidden_behaviors"],
         )
+        self.assertIn(
+            "implementation-planning self-accepts the plan",
+            flow["forbidden_behaviors"],
+        )
 
     def test_core_contract_covers_merge_candidate_and_review_gate_handoffs(self):
-        contract = json.loads(
-            (ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8")
-        )
-        scenarios = {scenario["id"]: scenario for scenario in contract["scenarios"]}
-        self.assertIn("IMPL-004", scenarios)
-        self.assertIn("VERIFY-003", scenarios)
-        self.assertIn("READY-003", scenarios)
-        self.assertIn("CTX-003", scenarios)
+        unit_scenarios = {}
+        for path in UNIT_DIR.glob("*.json"):
+            contract = json.loads(path.read_text(encoding="utf-8"))
+            for scenario in contract["scenarios"]:
+                unit_scenarios[scenario["id"]] = scenario
+        self.assertIn("IMPL-004", unit_scenarios)
+        self.assertIn("VERIFY-003", unit_scenarios)
+        self.assertIn("READY-003", unit_scenarios)
+        self.assertIn("CTX-003", unit_scenarios)
+        self.assertIn("IMPL-006", unit_scenarios)
+        self.assertIn("PRREVIEW-005", unit_scenarios)
+        self.assertIn("READY-006", unit_scenarios)
 
+        integration = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow5 = next(
             scenario
-            for scenario in contract["integration_scenarios"]
+            for scenario in integration["integration_scenarios"]
             if scenario["id"] == "FLOW-005"
         )
         self.assertEqual(["verification", "pr-review"], flow5["expected_route"])
+        flow9 = next(f for f in integration["integration_scenarios"] if f["id"] == "FLOW-009")
+        self.assertEqual(
+            [
+                "implementation:resume-existing-candidate",
+                "implementation:complete-ci-and-scope",
+                "implementation:mark-IN_REVIEW",
+                "pr-review",
+            ],
+            flow9["expected_route"],
+        )
 
     def test_project_context_requires_authorization_for_hosted_index(self):
         skill = (ROOT / "skills" / "project-context" / "SKILL.md").read_text(
@@ -252,11 +296,11 @@ class SkillCatalogTests(unittest.TestCase):
         )
         self.assertIn("Do not invent a candidate ID", skill)
         self.assertIn("host/project creates or resolves", skill)
+        self.assertIn("IMPLEMENTATION_IN_PROGRESS", skill)
+        self.assertIn("IN_REVIEW", skill)
 
     def test_incomplete_candidate_resumes_in_implementation(self):
-        contract = json.loads(
-            (ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8")
-        )
+        contract = json.loads((UNIT_DIR / "implementation.json").read_text(encoding="utf-8"))
         scenario = next(s for s in contract["scenarios"] if s["id"] == "IMPL-005")
         self.assertIn(
             "accept the authorized IN_PROGRESS-equivalent state for resume rather than requiring the tracker label READY",
@@ -266,8 +310,9 @@ class SkillCatalogTests(unittest.TestCase):
             "resume implementation on the same existing candidate",
             scenario["expected_behaviors"],
         )
+        integration = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow = next(
-            f for f in contract["integration_scenarios"] if f["id"] == "FLOW-007"
+            f for f in integration["integration_scenarios"] if f["id"] == "FLOW-007"
         )
         self.assertEqual(
             ["implementation:resume-existing-candidate", "implementation:complete", "pr-review"],
@@ -276,7 +321,7 @@ class SkillCatalogTests(unittest.TestCase):
 
     def test_coordination_metadata_does_not_stale_plan(self):
         contract = json.loads(
-            (ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8")
+            (UNIT_DIR / "development-readiness.json").read_text(encoding="utf-8")
         )
         scenario = next(s for s in contract["scenarios"] if s["id"] == "READY-005")
         self.assertIn(
@@ -309,9 +354,7 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertIn("revision-sensitive evidence is stale", verification)
 
     def test_review_remediation_flow_is_batched_and_full(self):
-        contract = json.loads(
-            (ROOT / "evals" / "core-development-loop.json").read_text(encoding="utf-8")
-        )
+        contract = json.loads(INTEGRATION_CONTRACT.read_text(encoding="utf-8"))
         flow = next(
             scenario
             for scenario in contract["integration_scenarios"]
@@ -352,6 +395,8 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertIn("all material blockers discovered in this pass", pr_review)
         self.assertIn("entire procedure again over the entire current candidate", pr_review)
         self.assertIn("address-pr-review", pr_review)
+        self.assertIn("UX-008", pr_review)
+        self.assertIn("NOT_APPLICABLE", pr_review)
 
     def test_address_pr_review_requires_complete_inventory(self):
         remediation = (
@@ -360,7 +405,22 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertIn("complete current review state", remediation)
         self.assertIn("all required-check/CI failures", remediation)
         self.assertIn("one remediation ledger", remediation)
-        self.assertIn("entire current candidate", remediation)
+        self.assertIn("IN_REVIEW", remediation)
+        self.assertIn("RETURN_TO_IMPLEMENTATION", remediation)
+
+    def test_schema_version_is_major_for_mandatory_plan_semantics(self):
+        model = (ROOT / "phase-0" / "P0-02-context-data-model.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('version: "2.0.0"', model)
+        self.assertIn('minimum_reader_version: "2.0.0"', model)
+        self.assertNotIn('version: "1.1.0"', model)
+        status = (ROOT / "phase-0" / "PHASE-0-STATUS-AUG-17.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("14 entity kinds, 12 relationship types", status)
+        self.assertIn("Amendment — 2026-09-26", status)
+        self.assertIn("2.0.0", status)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,216 @@
+{
+  "contract_id": "EVAL-ADDRESS-PR-REVIEW-001",
+  "contract_version": "0.9.0",
+  "skill": "address-pr-review",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-09-26",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "P0-07 unit contract for address-pr-review core development-loop behaviors.",
+  "metadata": {
+    "title": "address-pr-review unit behaviors",
+    "description": "Single-skill unit scenarios for address-pr-review. Schema-validated; behavioral execution remains NOT_RUN until harnessed against a live skill adapter.",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers",
+    "scope": "address-pr-review"
+  },
+  "target_capability": {
+    "description": "Given authoritative inputs, address-pr-review produces the expected governance/routing behaviors.",
+    "preconditions": [
+      "skill instructions from the candidate revision are loaded",
+      "authoritative identifiers are available when required"
+    ],
+    "postconditions": [
+      "required behaviors are satisfied",
+      "forbidden behaviors are absent"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "ADDR-001",
+      "skill": "address-pr-review",
+      "input": "PR 42 has five unresolved review findings across three files and one required CI failure; the newest comment mentions only one finding.",
+      "expected_behaviors": [
+        "require the merge_candidate_id",
+        "inventory all unresolved review feedback and required checks before editing",
+        "build one remediation ledger",
+        "fix all in-scope material root causes as one bounded batch",
+        "search for sibling instances of each root cause",
+        "handoff to full pr-review"
+      ],
+      "forbidden_behaviors": [
+        "fix only the newest comment",
+        "ignore older unresolved findings",
+        "request re-review while known material blockers remain"
+      ],
+      "scenario_id": "ADDR-001",
+      "name": "ADDR-001",
+      "description": "PR 42 has five unresolved review findings across three files and one required CI failure; the newest comment mentions only one finding.",
+      "expected_output": {
+        "required_behaviors": [
+          "require the merge_candidate_id",
+          "inventory all unresolved review feedback and required checks before editing",
+          "build one remediation ledger",
+          "fix all in-scope material root causes as one bounded batch",
+          "search for sibling instances of each root cause",
+          "handoff to full pr-review"
+        ],
+        "forbidden_behaviors": [
+          "fix only the newest comment",
+          "ignore older unresolved findings",
+          "request re-review while known material blockers remain"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Required behaviors satisfied",
+            "points": 70,
+            "check": "output.required_behaviors_satisfied == true"
+          },
+          {
+            "criterion": "Forbidden behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "ADDR-002",
+      "skill": "address-pr-review",
+      "input": "One review comment requests a public-contract change that is not authorized by the owning work item or architecture decision.",
+      "expected_behaviors": [
+        "do not blindly implement the reviewer suggestion",
+        "mark the authority conflict",
+        "stop and route to the appropriate decision activity"
+      ],
+      "forbidden_behaviors": [
+        "silently change the public contract",
+        "resolve the thread by weakening acceptance"
+      ],
+      "scenario_id": "ADDR-002",
+      "name": "ADDR-002",
+      "description": "One review comment requests a public-contract change that is not authorized by the owning work item or architecture decision.",
+      "expected_output": {
+        "required_behaviors": [
+          "do not blindly implement the reviewer suggestion",
+          "mark the authority conflict",
+          "stop and route to the appropriate decision activity"
+        ],
+        "forbidden_behaviors": [
+          "silently change the public contract",
+          "resolve the thread by weakening acceptance"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Required behaviors satisfied",
+            "points": 70,
+            "check": "output.required_behaviors_satisfied == true"
+          },
+          {
+            "criterion": "Forbidden behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "ADDR-003",
+      "scenario_id": "ADDR-003",
+      "name": "ADDR-003",
+      "skill": "address-pr-review",
+      "input": "merge_candidate_id PR-99 is still IMPLEMENTATION_IN_PROGRESS with incomplete accepted scope, but someone invoked address-pr-review because CI failed.",
+      "expected_behaviors": [
+        "detect candidate_lifecycle_stage IMPLEMENTATION_IN_PROGRESS",
+        "return RETURN_TO_IMPLEMENTATION or equivalent handoff to implementation",
+        "do not claim READY_FOR_FULL_REREVIEW into merge-readiness pr-review"
+      ],
+      "forbidden_behaviors": [
+        "hand the incomplete candidate to full pr-review",
+        "expand unfinished feature scope under review remediation"
+      ],
+      "description": "merge_candidate_id PR-99 is still IMPLEMENTATION_IN_PROGRESS with incomplete accepted scope, but someone invoked address-pr-review because CI failed.",
+      "expected_output": {
+        "required_behaviors": [
+          "detect candidate_lifecycle_stage IMPLEMENTATION_IN_PROGRESS",
+          "return RETURN_TO_IMPLEMENTATION or equivalent handoff to implementation",
+          "do not claim READY_FOR_FULL_REREVIEW into merge-readiness pr-review"
+        ],
+        "forbidden_behaviors": [
+          "hand the incomplete candidate to full pr-review",
+          "expand unfinished feature scope under review remediation"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Required behaviors satisfied",
+            "points": 70,
+            "check": "output.required_behaviors_satisfied == true"
+          },
+          {
+            "criterion": "Forbidden behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": [],
+    "note": "Scenario inputs are self-contained until an executable adapter supplies fixtures."
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Required/forbidden behavior checks",
+        "measurement": "scenario accuracy via scoring.criteria",
+        "weight": 0.7,
+        "threshold": 0.9
+      },
+      {
+        "dimension": "auditability",
+        "description": "Decision is explainable when audit fields exist",
+        "measurement": "scenario auditability score",
+        "weight": 0.2,
+        "threshold": null
+      },
+      {
+        "dimension": "latency",
+        "description": "Evaluation latency when measured",
+        "measurement": "milliseconds",
+        "weight": 0.1,
+        "threshold": null
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null,
+    "note": "Populate only from a reproducible harness run."
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null,
+    "note": "Schema/unit validation of this contract may be RUN in CI; behavioral evaluation stays NOT_RUN until executed against a live skill."
+  }
+}

@@ -49,7 +49,8 @@ Published skills must not silently decide matters owned by product, architecture
 
 For each published skill:
 
-- a P0-07-compatible unit evaluation contract exists; during development its baseline/results may explicitly be `NOT_RUN`, but publication cannot pass in that state;
+- a P0-07-compatible unit evaluation contract exists under `evals/unit/` (one skill per contract, with per-scenario `scoring.criteria`); during development its baseline/results may explicitly be `NOT_RUN`, but publication cannot pass in that state;
+- multi-skill integration lives under `evals/integration/` and is dispatched by `tools/run_integration_eval.py` (not the single-skill harness alone);
 - representative success and failure scenarios exist;
 - forbidden behaviors are explicit;
 - declared passing threshold is met by the chosen evaluation harness/model set;
@@ -60,13 +61,14 @@ At least one integration evaluation must cover the core path:
 ```text
 work-item-design
 → implementation-planning
+→ plan-acceptance
 → development-readiness
 → implementation
 → host/project merge-candidate handoff
 → pr-review
 ```
 
-The integration test must also include a backward route when a blocking decision or stale authority is discovered, plus continuation of incomplete implementation on the same authorized merge candidate.
+The integration test must also include a backward route when a blocking decision or stale authority is discovered, plus continuation of incomplete implementation on the same authorized merge candidate (including the mixed incomplete+CI/feedback state that must not enter full merge-readiness `pr-review` while still `IMPLEMENTATION_IN_PROGRESS`).
 
 ### 5. Reference-consumer evidence
 

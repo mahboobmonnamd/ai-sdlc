@@ -67,14 +67,15 @@ Timeline:
 │     └─ VER-199.validation_status = stale (WI-042 stale)
 │  └─ Routing triggered for each:
 │     ├─ WI-042 → Gate 4: "artifact_stale" → Revalidate SPEC-087 first
-│     ├─ PLAN-WI-042 → Gate 4: "artifact_stale" → refresh accepted plan
+│     ├─ PLAN-WI-042 → Gate 4: "artifact_stale" → refresh plan (PROPOSED), then re-accept
 │     └─ VER-199 → Gate 4: "artifact_stale" → Revalidate WI-042 first
 │
 ├─ T2: Engineer revalidates SPEC-087
 │  └─ "Oh, FR-001 now requires OAuth support"
 │  └─ Updates SPEC-087 + WI-042
-│  └─ Refreshes PLAN-WI-042 and advances plan_revision
-│  └─ WI-042 can proceed only after the refreshed plan is current
+│  └─ Refreshes PLAN-WI-042 as PROPOSED and advances plan_revision
+│  └─ Technical authority re-accepts the plan (accepted_by/accepted_at) before readiness
+│  └─ WI-042 can proceed only after the refreshed plan is accepted and current
 ```
 
 ### Planning-semantic projection

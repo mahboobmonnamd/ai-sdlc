@@ -22,7 +22,8 @@ Do not copy the generic procedure into always-on agent rules or create parallel 
 | --- | --- |
 | project-context(query) | Map project indexes/sources; keep authoritative-source precedence |
 | work-item-design(work_item_id/outcome) | Map tracker issue/ticket semantics and project issue protocol |
-| implementation-planning(work_item_id) | Persist/reference durable plan identity/revision and add project-specific file/module/test/build constraints without changing accepted authority |
+| implementation-planning(work_item_id) | Persist/reference durable proposed plan identity/revision; do not self-accept; add project-specific file/module/test/build constraints without changing accepted authority |
+| plan acceptance (project-defined) | Advance `accepted_plan` only with technical-authority evidence (`accepted_by` / `accepted_at`) |
 | development-readiness(work_item_id) | Apply project Ready rules; persist gap report only under explicit user authorization |
 | implementation(work_item_id) | Map tracker-native ID, claim semantics, deterministic branch/worktree, open-merge-candidate detection, and post-implementation merge-candidate creation/resolution |
 | verification(work_item_id, revision) | Add project-specific evidence/gates |
@@ -36,7 +37,7 @@ When a project exposes an issue-number command such as implement-issue:
 1. require the issue number as the explicit argument;
 2. fetch the issue fresh;
 3. if another developer already owns/claims it, stop before branch/worktree/files/edits;
-4. require a current accepted implementation plan with durable `plan_id` + `plan_revision`;
+4. require a current **accepted** implementation plan with durable `plan_id` + `plan_revision` and acceptance evidence (`accepted_by` / `accepted_at`); a `PROPOSED` plan alone is insufficient;
 5. resolve open PR/merge-candidate state: if none, start new implementation; if the same authorized candidate exists and implementation is incomplete, resume implementation on that same candidate; if another/ambiguous owner or multiple active candidates exist, stop and reconcile;
 6. if an open PR exists and the user is addressing reviewer feedback/check failures, route to address-pr-review rather than implementation;
 7. after completed implementation with no candidate, create or resolve the concrete PR/merge candidate under consumer policy before invoking pr-review;

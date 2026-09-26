@@ -746,7 +746,8 @@ It shall:
 - identify tests and migration steps;
 - preserve scope boundaries;
 - produce a durable plan identity (`plan_id`, `plan_revision`) plus governing work-item/requirement/decision/specification revisions;
-- bind the work item or project-owned registry to the exact accepted `plan_id + plan_revision`;
+- persist new/refreshed revisions as **proposed** (`plan_status: PROPOSED`); do **not** self-accept or advance `accepted_plan`;
+- leave plan acceptance to the project-defined technical-authority operation, which records `accepted_by` / `accepted_at` (or equivalent) and binds the work item or project-owned registry to the exact accepted `plan_id + plan_revision`;
 - refresh rather than silently overwrite an accepted plan when governing context changes;
 - detect new uncertainty and route to spike/decision/work-item refinement rather than guessing.
 
@@ -1148,9 +1149,11 @@ For implementation plans specifically, durable context must also support:
 - monotonically changing `plan_revision` (or an equivalent immutable revision identifier);
 - owning `work_item_id`;
 - governing planning-relevant work-item/requirement/decision/specification revisions used to decide whether the plan is current; ordinary coordination metadata changes (claim, assignee, workflow status, comments) must not invalidate the plan unless they change accepted planning inputs;
-- current/stale/accepted status sufficient for readiness, resume, implementation, and PR review to resolve the same plan;
-- an exact accepted-plan reference on the work item or equivalent project-owned registry: `plan_id + plan_revision`. Merely finding a related or latest plan is insufficient when prior revisions remain addressable.
+- current/stale/proposed/accepted status sufficient for readiness, resume, implementation, and PR review to resolve the same plan;
+- an exact accepted-plan reference on the work item or equivalent project-owned registry: `plan_id + plan_revision`, plus acceptance evidence (`accepted_by`, `accepted_at` / source, or project equivalent). Merely finding a related, latest, or newly proposed plan is insufficient when prior revisions remain addressable.
 - revision-addressable plan content: the system must be able to resolve the referenced `(plan_id, plan_revision)` to the exact immutable plan content/provenance used for acceptance; a latest-only mutable plan record is insufficient.
+
+Plan creation and plan acceptance are separate operations. Planning outputs `PROPOSED`; only authorized acceptance may advance `accepted_plan`.
 
 Illustrative logical record only:
 

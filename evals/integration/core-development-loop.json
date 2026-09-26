@@ -1,0 +1,758 @@
+{
+  "contract_id": "EVAL-CORE-DEVELOPMENT-LOOP-001",
+  "contract_version": "0.9.0",
+  "skill": "core-development-loop",
+  "category": "integration",
+  "description": "Multi-skill integration contract for the core development loop. Not executable by the single-skill EvaluationContractHarness alone; use tools/run_integration_eval.py to dispatch per-scenario skills.",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-09-26",
+  "date_last_run": null,
+  "metadata": {
+    "title": "Core development-loop integration",
+    "description": "Integration routes across skills. Behavioral execution NOT_RUN until integration runner + adapters execute.",
+    "category": "integration",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers",
+    "scope": "cross-skill routing"
+  },
+  "skills_tested": [
+    "address-pr-review",
+    "development-readiness",
+    "implementation",
+    "implementation-planning",
+    "pr-review",
+    "project-context",
+    "verification",
+    "work-item-design"
+  ],
+  "unit_contracts": [
+    "evals/unit/address-pr-review.json",
+    "evals/unit/development-readiness.json",
+    "evals/unit/implementation.json",
+    "evals/unit/implementation-planning.json",
+    "evals/unit/pr-review.json",
+    "evals/unit/project-context.json",
+    "evals/unit/verification.json",
+    "evals/unit/work-item-design.json"
+  ],
+  "target_capability": {
+    "description": "Given lifecycle state and authoritative context, select and execute the correct generic SDLC activity without bypassing ownership, plan, evidence, privacy, or review gates.",
+    "preconditions": [
+      "authoritative work-item/candidate identifiers are available when required",
+      "project-specific ownership and rigor policy are supplied by the consumer",
+      "skills are loaded from the candidate revision under evaluation"
+    ],
+    "postconditions": [
+      "routing follows the canonical work-item-design -> implementation-planning -> development-readiness -> implementation -> candidate -> pr-review lifecycle",
+      "existing authorized incomplete candidates resume without parallel PRs",
+      "review remediation is separated from unfinished implementation",
+      "revision-sensitive verification is tied to the exact candidate revision"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "FLOW-001",
+      "description": "Normal planned implementation lifecycle.",
+      "expected_route": [
+        "work-item-design",
+        "implementation-planning",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation",
+        "host-project-merge-candidate",
+        "pr-review"
+      ],
+      "pr_review_consumes": [
+        "verification",
+        "risk-based-specialist-review"
+      ],
+      "forbidden_behaviors": [
+        "implementation begins without an accepted plan",
+        "implementation-planning self-accepts the plan",
+        "implementation routes directly to done",
+        "pr-review starts before a concrete merge candidate exists",
+        "user must manually invoke a separate code-review skill"
+      ],
+      "scenario_id": "FLOW-001",
+      "name": "FLOW-001",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-002",
+      "description": "A complete review returns multiple blockers; remediation batches the known set and re-review is full.",
+      "expected_route": [
+        "pr-review",
+        "address-pr-review",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "fix one comment per round while known blockers remain",
+        "perform delta-only re-review",
+        "use implementation as the review-comment remediation entrypoint"
+      ],
+      "scenario_id": "FLOW-002",
+      "name": "FLOW-002",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-003",
+      "description": "Readiness fails because acceptance is incomplete and the implementation plan is therefore missing.",
+      "expected_route": [
+        "development-readiness",
+        "work-item-design",
+        "implementation-planning",
+        "development-readiness"
+      ],
+      "required_artifacts": [
+        "gap_table",
+        "gap_report_body"
+      ],
+      "forbidden_behaviors": [
+        "plan around untestable acceptance",
+        "claim the work item before non-ready gaps are resolved",
+        "start production edits"
+      ],
+      "scenario_id": "FLOW-003",
+      "name": "FLOW-003",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-004",
+      "description": "A material authority decision is discovered during planning or implementation.",
+      "expected_route": [
+        "implementation-planning-or-implementation",
+        "decision-escalation",
+        "development-readiness"
+      ],
+      "forbidden_behaviors": [
+        "silently decide the authority change in code"
+      ],
+      "scenario_id": "FLOW-004",
+      "name": "FLOW-004",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-005",
+      "description": "Standalone verification cannot bypass a review gate required by project or rigor policy.",
+      "expected_route": [
+        "verification",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "verification routes directly to release-readiness while PR review is required"
+      ],
+      "scenario_id": "FLOW-005",
+      "name": "FLOW-005",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-006",
+      "description": "Lightweight work still uses a compact implementation plan before the final readiness gate.",
+      "expected_route": [
+        "work-item-design",
+        "implementation-planning",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation"
+      ],
+      "forbidden_behaviors": [
+        "lightweight profile skips implementation planning",
+        "lightweight planning requires an unnecessary heavyweight design document"
+      ],
+      "scenario_id": "FLOW-006",
+      "name": "FLOW-006",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-007",
+      "description": "Incomplete implementation continues on the same authorized merge candidate across sessions.",
+      "expected_route": [
+        "implementation:resume-existing-candidate",
+        "implementation:complete",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "existing authorized incomplete candidate is treated as an automatic blocker",
+        "address-pr-review is used without review-remediation intent",
+        "a second merge candidate is created"
+      ],
+      "scenario_id": "FLOW-007",
+      "name": "FLOW-007",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-008",
+      "description": "A governing artifact change stales the accepted implementation plan before implementation.",
+      "expected_route": [
+        "implementation-planning:refresh",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation"
+      ],
+      "forbidden_behaviors": [
+        "stale plan passes readiness",
+        "implementation proceeds on an obsolete plan revision"
+      ],
+      "scenario_id": "FLOW-008",
+      "name": "FLOW-008",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-009",
+      "scenario_id": "FLOW-009",
+      "name": "FLOW-009",
+      "description": "Mixed state: implementation incomplete AND failing CI or early reviewer feedback. Must not enter full merge-readiness pr-review until implementation is complete and IN_REVIEW.",
+      "expected_route": [
+        "implementation:resume-existing-candidate",
+        "implementation:complete-ci-and-scope",
+        "implementation:mark-IN_REVIEW",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "address-pr-review then pr-review while IMPLEMENTATION_IN_PROGRESS",
+        "full merge-readiness pr-review before accepted scope is complete",
+        "create a second merge candidate"
+      ],
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-010",
+      "scenario_id": "FLOW-010",
+      "name": "FLOW-010",
+      "description": "Plan is proposed then accepted by technical authority before readiness.",
+      "expected_route": [
+        "implementation-planning",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation"
+      ],
+      "forbidden_behaviors": [
+        "implementation-planning self-accepts accepted_plan",
+        "development-readiness marks READY on PROPOSED_ONLY plan"
+      ],
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "integration_scenarios": [
+    {
+      "id": "FLOW-001",
+      "description": "Normal planned implementation lifecycle.",
+      "expected_route": [
+        "work-item-design",
+        "implementation-planning",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation",
+        "host-project-merge-candidate",
+        "pr-review"
+      ],
+      "pr_review_consumes": [
+        "verification",
+        "risk-based-specialist-review"
+      ],
+      "forbidden_behaviors": [
+        "implementation begins without an accepted plan",
+        "implementation-planning self-accepts the plan",
+        "implementation routes directly to done",
+        "pr-review starts before a concrete merge candidate exists",
+        "user must manually invoke a separate code-review skill"
+      ],
+      "scenario_id": "FLOW-001",
+      "name": "FLOW-001",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-002",
+      "description": "A complete review returns multiple blockers; remediation batches the known set and re-review is full.",
+      "expected_route": [
+        "pr-review",
+        "address-pr-review",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "fix one comment per round while known blockers remain",
+        "perform delta-only re-review",
+        "use implementation as the review-comment remediation entrypoint"
+      ],
+      "scenario_id": "FLOW-002",
+      "name": "FLOW-002",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-003",
+      "description": "Readiness fails because acceptance is incomplete and the implementation plan is therefore missing.",
+      "expected_route": [
+        "development-readiness",
+        "work-item-design",
+        "implementation-planning",
+        "development-readiness"
+      ],
+      "required_artifacts": [
+        "gap_table",
+        "gap_report_body"
+      ],
+      "forbidden_behaviors": [
+        "plan around untestable acceptance",
+        "claim the work item before non-ready gaps are resolved",
+        "start production edits"
+      ],
+      "scenario_id": "FLOW-003",
+      "name": "FLOW-003",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-004",
+      "description": "A material authority decision is discovered during planning or implementation.",
+      "expected_route": [
+        "implementation-planning-or-implementation",
+        "decision-escalation",
+        "development-readiness"
+      ],
+      "forbidden_behaviors": [
+        "silently decide the authority change in code"
+      ],
+      "scenario_id": "FLOW-004",
+      "name": "FLOW-004",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-005",
+      "description": "Standalone verification cannot bypass a review gate required by project or rigor policy.",
+      "expected_route": [
+        "verification",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "verification routes directly to release-readiness while PR review is required"
+      ],
+      "scenario_id": "FLOW-005",
+      "name": "FLOW-005",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-006",
+      "description": "Lightweight work still uses a compact implementation plan before the final readiness gate.",
+      "expected_route": [
+        "work-item-design",
+        "implementation-planning",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation"
+      ],
+      "forbidden_behaviors": [
+        "lightweight profile skips implementation planning",
+        "lightweight planning requires an unnecessary heavyweight design document"
+      ],
+      "scenario_id": "FLOW-006",
+      "name": "FLOW-006",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-007",
+      "description": "Incomplete implementation continues on the same authorized merge candidate across sessions.",
+      "expected_route": [
+        "implementation:resume-existing-candidate",
+        "implementation:complete",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "existing authorized incomplete candidate is treated as an automatic blocker",
+        "address-pr-review is used without review-remediation intent",
+        "a second merge candidate is created"
+      ],
+      "scenario_id": "FLOW-007",
+      "name": "FLOW-007",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-008",
+      "description": "A governing artifact change stales the accepted implementation plan before implementation.",
+      "expected_route": [
+        "implementation-planning:refresh",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation"
+      ],
+      "forbidden_behaviors": [
+        "stale plan passes readiness",
+        "implementation proceeds on an obsolete plan revision"
+      ],
+      "scenario_id": "FLOW-008",
+      "name": "FLOW-008",
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-009",
+      "scenario_id": "FLOW-009",
+      "name": "FLOW-009",
+      "description": "Mixed state: implementation incomplete AND failing CI or early reviewer feedback. Must not enter full merge-readiness pr-review until implementation is complete and IN_REVIEW.",
+      "expected_route": [
+        "implementation:resume-existing-candidate",
+        "implementation:complete-ci-and-scope",
+        "implementation:mark-IN_REVIEW",
+        "pr-review"
+      ],
+      "forbidden_behaviors": [
+        "address-pr-review then pr-review while IMPLEMENTATION_IN_PROGRESS",
+        "full merge-readiness pr-review before accepted scope is complete",
+        "create a second merge candidate"
+      ],
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "FLOW-010",
+      "scenario_id": "FLOW-010",
+      "name": "FLOW-010",
+      "description": "Plan is proposed then accepted by technical authority before readiness.",
+      "expected_route": [
+        "implementation-planning",
+        "plan-acceptance",
+        "development-readiness",
+        "implementation"
+      ],
+      "forbidden_behaviors": [
+        "implementation-planning self-accepts accepted_plan",
+        "development-readiness marks READY on PROPOSED_ONLY plan"
+      ],
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Expected route followed",
+            "points": 70,
+            "check": "output.route_matched == true"
+          },
+          {
+            "criterion": "Forbidden route behaviors absent",
+            "points": 30,
+            "check": "output.forbidden_behaviors_absent == true"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": [],
+    "decision_escalation_examples": [],
+    "note": "Scenario inputs are self-contained until the executable evaluation harness supplies concrete fixtures."
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "routing_correctness",
+        "description": "Correct lifecycle skill/route is selected",
+        "measurement": "scenario behavior score",
+        "weight": 0.25,
+        "threshold": null
+      },
+      {
+        "dimension": "governance_safety",
+        "description": "Ownership/authority/privacy gates are preserved",
+        "measurement": "scenario behavior score",
+        "weight": 0.25,
+        "threshold": null
+      },
+      {
+        "dimension": "review_completeness",
+        "description": "Review/remediation semantics cover the complete candidate/current finding set",
+        "measurement": "scenario behavior score",
+        "weight": 0.25,
+        "threshold": null
+      },
+      {
+        "dimension": "evidence_discipline",
+        "description": "Claims remain tied to explicit reproducible evidence/revisions",
+        "measurement": "scenario behavior score",
+        "weight": 0.25,
+        "threshold": null
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null,
+    "note": "Required before publication. Do not infer a baseline from deterministic catalog tests or manual review."
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "evaluated_revision": null,
+    "model_or_agent_set": null,
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null,
+    "note": "Populate only from a reproducible evaluation-harness run. Contract scenarios and CI assertions are not behavioral execution results."
+  }
+}

@@ -19,12 +19,12 @@ Project requirements, approved decisions, specifications, code, tests, tracker s
 
 - project-context — retrieve the smallest trustworthy project context;
 - work-item-design — create/refine one independently reviewable work item;
-- implementation-planning — produce/version a durable executable implementation plan without changing authority;
-- development-readiness — decide whether implementation may begin and produce actionable gaps when it may not;
-- implementation — execute or resume one identified, ready, planned work item on its authorized candidate, with ownership/candidate governance;
+- implementation-planning — produce/version a durable **proposed** implementation plan without accepting it or changing product authority;
+- development-readiness — decide whether implementation may begin (requires accepted plan + acceptance evidence) and produce actionable gaps when it may not;
+- implementation — execute or resume one identified, ready, planned work item on its authorized candidate, with ownership/candidate lifecycle governance;
 - verification — prove acceptance outcomes from reproducible evidence;
-- pr-review — perform the complete full-candidate implementation + merge-readiness review;
-- address-pr-review — batch-remediate all known PR review/check failures, then hand back to full PR review.
+- pr-review — perform the complete full-candidate implementation + merge-readiness review (usable standalone; plan required only when policy/workflow requires it);
+- address-pr-review — batch-remediate review-stage PR review/check failures, then hand back to full PR review (or to implementation if still incomplete).
 
 There is intentionally no separate generic code-review skill. Keeping implementation-defect review inside pr-review removes ambiguous routing when a user simply asks to “review PR N”.
 
@@ -32,16 +32,19 @@ There is intentionally no separate generic code-review skill. Keeping implementa
 
 ~~~text
 work-item-design
-→ implementation-planning
+→ implementation-planning          (PROPOSED plan)
+→ plan acceptance                  (project technical authority)
 → development-readiness
-→ implementation
+→ implementation                   (IMPLEMENTATION_IN_PROGRESS)
 → host/project merge-candidate handoff
-→ pr-review
+→ pr-review                        (IN_REVIEW)
    ├─ READY_TO_MERGE
    └─ CHANGES_REQUIRED → address-pr-review → pr-review
 ~~~
 
 verification can be invoked independently and is also consumed by pr-review.
+
+Evaluation layout: per-skill unit contracts under `evals/unit/`, multi-skill integration under `evals/integration/core-development-loop.json`, layout index at `evals/core-development-loop.json`. CI validates contract schema (including per-scenario `scoring.criteria`); behavioral evaluation remains `NOT_RUN` until executed with live skill adapters.
 
 See docs/WORKING-LOOP.md for invocation and governance semantics.
 

@@ -303,6 +303,19 @@ def check_gate_4_artifact_quality(artifact, context_model, activity):
                 "template": "implementation_plan_template"
             }
 
+        # A proposed plan without acceptance evidence must not pass Gate 4.
+        if not getattr(accepted_plan, "accepted_by", None) or not getattr(
+            accepted_plan, "accepted_at", None
+        ):
+            return {
+                "gate": 4,
+                "action_needed": True,
+                "reason": "missing",
+                "artifact_type": "plan_acceptance_evidence",
+                "missing_artifact_id": f"accepted_plan_evidence_for_{artifact.id}",
+                "template": "plan_acceptance_template"
+            }
+
         plan = context_model.get_artifact(accepted_plan.plan_id)
         if not plan or plan.kind != "implementation_plan":
             return {

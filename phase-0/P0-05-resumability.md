@@ -82,6 +82,8 @@ checkpoint:
   work_item_id: string (WI-042)
   accepted_plan_id: string | null (PLAN-WI-042 when phase=implementation)
   accepted_plan_revision: number | null (3 when phase=implementation)
+  accepted_by: string | null (technical authority identity when plan is accepted)
+  accepted_at: string | null (ISO8601 or acceptance-source reference)
   merge_candidate_id: string | null (existing PR/MR/change-list when implementation is already attached to one)
   phase: string (requirements | design | implementation | verification)
   stage: string (in_progress value, e.g., "analyzing_fr_001")
@@ -263,7 +265,7 @@ def detect_upstream_changes(checkpoint, context_model):
 
 ### Plan/candidate validation for implementation resume
 
-When `phase=implementation`, checkpoint validation must resolve `accepted_plan_id` + `accepted_plan_revision` and verify the plan remains current against its governing revisions. If the accepted plan changed or became stale, do not resume production edits from the old checkpoint; route through `implementation-planning` and `development-readiness` first.
+When `phase=implementation`, checkpoint validation must resolve `accepted_plan_id` + `accepted_plan_revision` **and** acceptance evidence (`accepted_by` / `accepted_at` or equivalent). A merely `PROPOSED` plan without an accepted pointer must not resume production edits. Verify the plan remains current against its governing revisions. If the accepted plan changed or became stale, do not resume production edits from the old checkpoint; route through `implementation-planning`, plan acceptance, and `development-readiness` first.
 
 If `merge_candidate_id` exists, resume only on that same authorized candidate. Reviewer-feedback/check remediation routes to `address-pr-review`; another owner's or ambiguous candidate blocks resume.
 

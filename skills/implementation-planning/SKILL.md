@@ -1,6 +1,6 @@
 ---
 name: implementation-planning
-description: Produce or refresh the durable implementation plan for one accepted work item before readiness; not for coding, claiming ownership, or deciding unresolved product/architecture questions.
+description: Produce or refresh the durable implementation plan for one accepted work item before readiness; not for coding, claiming ownership, accepting the plan, or deciding unresolved product/architecture questions.
 ---
 
 # Implementation planning
@@ -13,7 +13,7 @@ Required argument:
 work_item_id: authoritative work-item identifier
 ```
 
-The work item must already have accepted scope and acceptance criteria. This skill plans implementation; it does not claim the work item, create a branch, or edit production code.
+The work item must already have accepted scope and acceptance criteria. This skill plans implementation; it does not claim the work item, create a branch, edit production code, or accept the plan.
 
 ## When to use
 
@@ -23,6 +23,7 @@ Use after `work-item-design` and before final `development-readiness` for every 
 
 - Do not invent product behavior, architecture, trust boundaries, or public contracts.
 - Do not claim ownership or begin implementation.
+- Do not accept the plan or advance `accepted_plan` on the work item/registry.
 - Do not hide unresolved design forks inside an apparently concrete plan.
 - Do not make a disposable POC the production plan.
 - Do not overwrite a current accepted plan without preserving identity/provenance.
@@ -47,8 +48,8 @@ Stop when scope/acceptance is unresolved, a required authority decision is missi
 8. Record risk/specialist/documentation gates that actually apply.
 9. Surface unresolved material forks rather than choosing silently.
 10. Ensure the plan uses the permanent intended architecture and introduces no disposable second path or duplicate authority.
-11. Produce a durable plan identity. When creating a plan, allocate/return `plan_id`; when refreshing one, preserve `plan_id` and advance `plan_revision`. The persistence layer must be able to resolve that exact revision to immutable plan content/provenance; latest-only mutable storage is insufficient.
-12. Bind the accepted work item (or project-owned plan registry) to the exact accepted `plan_id + plan_revision`. Merely having a related/latest plan entity is insufficient when older revisions remain addressable.
+11. Produce a durable plan identity. When creating a plan, allocate/return `plan_id`; when refreshing one, preserve `plan_id` and advance `plan_revision`. Persist the new revision as status `proposed`. The persistence layer must be able to resolve that exact revision to immutable plan content/provenance; latest-only mutable storage is insufficient.
+12. **Do not** update the work item's/project registry's `accepted_plan` pointer. Plan creation and plan acceptance are separate. Only the project-defined technical-authority acceptance operation may set `accepted_plan` (with `accepted_by` / `accepted_at` or equivalent evidence).
 13. Record `governing_revisions` for **planning-relevant semantic content** sufficient to decide later whether the plan is still current. Tracker coordination metadata such as claim/assignee/status/comment changes must not stale the plan unless they alter accepted scope, acceptance, dependencies, authority, or another planning input.
 14. Produce a concise executable plan another competent implementer can follow without hidden reasoning.
 
@@ -58,9 +59,9 @@ Stop when scope/acceptance is unresolved, a required authority decision is missi
 work_item_id
 plan_id
 plan_revision
-accepted_plan_reference: <plan_id>@<plan_revision>
+proposed_plan_reference: <plan_id>@<plan_revision>
 plan_content_ref: immutable/revision-addressable source for this exact plan revision
-plan_status: CURRENT | BLOCKED
+plan_status: PROPOSED | BLOCKED
 governing_revisions
 production_surfaces
 implementation_sequence
@@ -75,11 +76,11 @@ unknowns
 blocking_decisions
 ```
 
-A plan is current only while its planning-relevant governing work-item/requirement/decision/specification revisions remain compatible. A plan is not approval to code; it is an input to `development-readiness`.
+A proposed plan is an input to acceptance and then `development-readiness`. It is not approval to code and must not be treated as the accepted-plan reference.
 
 ## Handoff
 
-- CURRENT → persist the plan and exact accepted-plan reference under project context/work-item policy, then `development-readiness`.
+- PROPOSED → project-defined technical-authority **plan acceptance** (records `accepted_by` / `accepted_at` and advances `accepted_plan`), then `development-readiness`.
 - Scope/acceptance defect → `work-item-design`.
 - Product/architecture/other authority gap → explicit decision activity, then refresh the plan.
 - Material feasibility unknown → isolated non-mergeable spike, then refresh the plan.

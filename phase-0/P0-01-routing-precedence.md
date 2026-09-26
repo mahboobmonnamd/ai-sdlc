@@ -175,7 +175,7 @@ START: Evaluate next step for [artifact]
 
 ### Activity-relative readiness
 
-`READY TO EXECUTE` is not a universal shortcut to implementation. It means the prerequisites for the **requested current activity** have passed. For implementation, the canonical sequence is `work-item-design → implementation-planning → development-readiness → implementation`; Gate 4 therefore treats the accepted implementation plan as a required current artifact. Planning itself may run before final implementation readiness and may route to a spike/decision when it discovers uncertainty.
+`READY TO EXECUTE` is not a universal shortcut to implementation. It means the prerequisites for the **requested current activity** have passed. For implementation, the canonical sequence is `work-item-design → implementation-planning → development-readiness → implementation`; Gate 4 therefore treats the **accepted** implementation plan (with acceptance evidence) as a required current artifact for readiness/implementation. Planning itself may run before final implementation readiness, outputs `PROPOSED`, and must not self-advance `accepted_plan`; plan acceptance is a separate project-defined technical-authority operation.
 
 ### Gate Priority (Why This Order?)
 
