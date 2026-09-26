@@ -98,6 +98,8 @@ Stop and route rather than editing when:
 
 ## Output contract
 
+Every result includes `effects`: the list of effect ids for actions this invocation performed. Omitting `effects` is not an empty trace.
+
 Return:
 
 ```text

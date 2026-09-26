@@ -85,6 +85,8 @@ Then generate a tracker-comment-ready `gap_report_body` containing the same find
 
 ## Output contract
 
+Every result includes `effects`: the list of effect ids for actions this invocation performed. Omitting `effects` is not an empty trace.
+
 Return:
 
 ```text

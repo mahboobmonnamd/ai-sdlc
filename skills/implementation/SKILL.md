@@ -84,6 +84,8 @@ Stop for missing/ambiguous/closed work item, NEW work that is not READY, stale r
 
 ## Output contract
 
+Every result includes `effects`: the list of effect ids for actions this invocation performed. Omitting `effects` is not an empty trace.
+
 ```text
 work_item_id
 status: IMPLEMENTED_FOR_REVIEW | IN_PROGRESS | BLOCKED | RETURN_TO_DECISION | NEEDS_SPIKE

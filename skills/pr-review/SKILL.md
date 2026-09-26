@@ -86,6 +86,8 @@ A changed candidate revision invalidates the prior merge-readiness verdict.
 
 ## Output contract
 
+Every result includes `effects`: the list of effect ids for actions this invocation performed. Omitting `effects` is not an empty trace.
+
 ```text
 verdict: READY_TO_MERGE | CONDITIONAL | CHANGES_REQUIRED | BLOCKED_BY_DECISION | INCONCLUSIVE
 merge_candidate_id

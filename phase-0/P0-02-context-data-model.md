@@ -232,7 +232,7 @@ work_item:
     # optional: acceptance_source (PR comment, ticket transition, signed decision, etc.)
 ```
 
-`accepted_plan.plan_id + accepted_plan.plan_revision` is the resolution key used by readiness, implementation, resumability, and (when lifecycle plan context is `AVAILABLE`) PR review. Updating ordinary coordination metadata must not change this pointer. Accepting a refreshed plan advances the pointer only after the project-defined technical authority accepts that plan revision and records `accepted_by` / `accepted_at` (or project-equivalent evidence fields). A `PROPOSED` plan without that evidence must not pass readiness.
+`accepted_plan.plan_id + accepted_plan.plan_revision` is the resolution key used by readiness, implementation, resumability, and (when lifecycle plan context is `AVAILABLE`) PR review. These fields are protected. Only `accept_plan()` in `tools/plan_acceptance.py` may write them, and only after the actor is in the project technical-authority policy. A skill that fills `accepted_by` and `accepted_at` without that operation has not accepted the plan. Updating ordinary coordination metadata must not change this pointer. A `PROPOSED` plan, or a pointer whose plan entity is not `status: accepted` for that exact revision, must not pass readiness.
 
 ### Candidate lifecycle stage
 

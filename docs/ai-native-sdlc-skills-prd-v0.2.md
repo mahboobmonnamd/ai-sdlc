@@ -296,6 +296,8 @@ Work Item Design
        ↓
 Implementation Planning
        ↓
+Plan Acceptance
+       ↓
 Development Readiness
        │
        ├── READY ───────────────────────────┐
@@ -306,7 +308,9 @@ Development Readiness
        │       ↓                            │
        │   Evidence / Findings              │
        │       ↓                            │
-       │   Update ADR / Spec / Plan         │
+       │   Update ADR / Spec / Plan (PROPOSED) │
+       │       ↓                            │
+       │   Plan Acceptance                  │
        │       └────→ Readiness Check ──────┤
        │                                    │
        ├── PRODUCT DECISION REQUIRED        │
@@ -330,9 +334,11 @@ Development Readiness
                                                 Done
 ```
 
+Backward routes are not a shortcut. A spike, product decision, or architecture decision returns through Plan Acceptance and Development Readiness before Implementation. Address PR Review is only for `IN_REVIEW`; incomplete work returns to Implementation.
+
 ### 7.2 Development is a loop
 
-Work-item design, implementation planning, development readiness, implementation, PR review/remediation, and verification form the repeated per-work-item loop. Readiness is the final pre-implementation gate after a plan exists; it is not a substitute for planning. Verification may run independently or inside PR review, but it cannot bypass any PR-review gate required by project/rigor policy.
+Work-item design, implementation planning, plan acceptance, development readiness, implementation, PR review/remediation, and verification form the repeated per-work-item loop. The canonical forward route is planning → plan acceptance → readiness. Backward routes (spike, product decision, architecture decision) refresh the plan as `PROPOSED` and must re-enter plan acceptance before readiness. Readiness is the final pre-implementation gate after an accepted plan exists; it is not a substitute for planning or acceptance. Address-PR-review applies only when `candidate_lifecycle_stage` is `IN_REVIEW`; an incomplete candidate returns to implementation, and `UNKNOWN` stops for reconciliation. Verification may run independently or inside PR review, but it cannot bypass any PR-review gate required by project/rigor policy.
 
 ### 7.3 Readiness is a routing gate
 
@@ -344,7 +350,8 @@ A readiness failure must be classified instead of generically blocking:
 | Product behavior unknown | Product / requirements decision |
 | Architecture choice unresolved | Architecture decision |
 | Acceptance criteria missing | Requirements / work-item refinement |
-| Implementation plan missing or stale | Implementation planning / refresh |
+| Implementation plan missing or stale | Implementation planning, then plan acceptance |
+| Proposed plan not accepted | Plan acceptance |
 | Dependency unavailable | Dependency/blocker management |
 | Compliance/legal question | External/domain owner |
 

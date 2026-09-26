@@ -3,7 +3,7 @@
   "contract_version": "0.9.0",
   "skill": "core-development-loop",
   "category": "index",
-  "description": "Layout index for the core development-loop evaluation suite. Unit contracts live under evals/unit/<skill>.json (one skill_instance each for EvaluationContractHarness). Integration flows live under evals/integration/core-development-loop.json and require tools/run_integration_eval.py. This index is not itself a P0-07 single-skill harness input.",
+  "description": "Layout index for the core development-loop evaluation suite. The canonical evaluator is tools/eval_judge.py, run by tools/run_eval_contract.py for both unit and integration contracts. This index is not an evaluator.",
   "unit_contracts": [
     "evals/unit/address-pr-review.json",
     "evals/unit/development-readiness.json",
@@ -44,7 +44,7 @@
       "skills are loaded from the candidate revision under evaluation"
     ],
     "postconditions": [
-      "routing follows the canonical work-item-design -> implementation-planning -> development-readiness -> implementation -> candidate -> pr-review lifecycle",
+      "routing follows the canonical work-item-design -> implementation-planning -> plan-acceptance -> development-readiness -> implementation -> candidate -> pr-review lifecycle",
       "existing authorized incomplete candidates resume without parallel PRs",
       "review remediation is separated from unfinished implementation",
       "revision-sensitive verification is tied to the exact candidate revision"

@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 """Multi-skill integration evaluation runner.
 
-The documented P0-07 EvaluationContractHarness binds one skill_instance.
-Integration contracts declare routes that span skills. This runner dispatches
-each scenario to a registered skill adapter or to an orchestration adapter.
-
-The evaluator compares adapter output to the contract. Route scenarios are
-scored by comparing observed_route with expected_route. Self-certification
-fields (route_matched, required_behaviors_satisfied, forbidden_behaviors_absent)
-are stripped before scoring.
+Scoring is tools/eval_judge.py. tools/run_eval_contract.py is the canonical
+runner for both unit and integration contracts. This module is the integration
+dispatch implementation that runner calls.
 
 Without adapters, status stays NOT_RUN. A wiring fixture under tests/ is not
 live behavioral evidence and must not be written back as results.status=RUN
