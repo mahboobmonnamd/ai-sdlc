@@ -60,13 +60,13 @@ At least one integration evaluation must cover the core path:
 
 ```text
 work-item-design
-→ implementation-planning
-→ plan-acceptance
 → development-readiness
 → implementation
 → host/project merge-candidate handoff
 → pr-review
 ```
+
+The work item is the plan. `implementation-planning` is optional and is not a publication gate. A closed unmerged candidate that was not architecture-rejected stays on that path through `address-pr-review`.
 
 The integration test must also include a backward route when a blocking decision or stale authority is discovered, plus continuation of incomplete implementation on the same authorized merge candidate (including the mixed incomplete+CI/feedback state that must not enter full merge-readiness `pr-review` while still `IMPLEMENTATION_IN_PROGRESS`).
 

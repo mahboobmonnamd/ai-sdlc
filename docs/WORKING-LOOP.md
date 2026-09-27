@@ -4,31 +4,31 @@ Task-selected execution discipline for the core development-loop skills. This is
 
 ## Canonical workflow
 
+The work item is the plan when it states the outcome, in/out of scope, measurable acceptance, evidence, and dependencies. A separate planning artifact is optional. Use `implementation-planning` only when that production path is not yet in the work item. Do not require a second acceptance record before code.
+
 ~~~text
 work-item-design <work-item|outcome>
         ↓
-implementation-planning <work-item>     → plan_status PROPOSED
-        ↓
-project-defined plan acceptance         → accepted_plan + accepted_by/accepted_at
-        ↓
-development-readiness <work-item>
+development-readiness <work-item>       → work item is the plan
         ↓ READY
 implementation <work-item>
-        ↓ candidate_lifecycle_stage = IMPLEMENTATION_IN_PROGRESS
-host/project creates or resolves merge candidate
+        ↓ one candidate (open, or closed-unmerged and not architecture-rejected)
         ↓ accepted scope complete → IN_REVIEW
 pr-review <merge-candidate>
         ├─ READY_TO_MERGE → merge/release authority
-        └─ CHANGES_REQUIRED
-                  ↓
-         address-pr-review <merge-candidate>
-                  ↓
-              pr-review          ← full candidate review (IN_REVIEW only)
+        ├─ CHANGES_REQUIRED → address-pr-review on that same candidate → pr-review
+        └─ BLOCKED_BY_DECISION → resolve the other decision, keep this candidate, rebase
 ~~~
+
+A closed unmerged candidate whose review did not reject the architecture stays the candidate. Reopen or rebase that head. Do not start a new plan or a second candidate because the pull request was closed.
+
+## Contributor next action
+
+When someone asks what to do, what is next, how to unblock, or where to start, answer with exactly one next action: the work item or candidate, why it is next, and the concrete step. Name what waits behind it. Do not open a planning ritual when that action is already known.
 
 verification is an independently reusable evidence skill and is also consumed/orchestrated by pr-review. A standalone VERIFIED result never bypasses a PR-review gate required by project or rigor policy. project-context is a retrieval utility used by any stage.
 
-There is intentionally **no standalone generic code-review skill**. A request to review a PR/merge candidate routes to pr-review, which owns implementation correctness plus merge-readiness evidence. A request to fix existing review comments on an **IN_REVIEW** candidate routes to address-pr-review.
+There is intentionally **no standalone generic code-review skill**. A request to review a PR/merge candidate routes to pr-review, which owns implementation correctness plus merge-readiness evidence. A request to fix existing review comments on that same candidate, including a closed unmerged head, routes to address-pr-review.
 
 `pr-review` and `address-pr-review` remain independently usable (PRD UX-008). Lifecycle work-item/plan context is conditional: `AVAILABLE` | `NOT_APPLICABLE` | `REQUIRED_BUT_MISSING`. A missing plan that is `NOT_APPLICABLE` does not make review inconclusive.
 
@@ -38,24 +38,23 @@ There is intentionally **no standalone generic code-review skill**. A request to
 | --- | --- | --- | --- |
 | Retrieve project authority/context | project-context | query | Summaries are navigation, not authority |
 | Refine/create executable work item | work-item-design | work_item_id or accepted outcome | No implementation ownership claim |
-| Produce implementation plan | implementation-planning | work_item_id | Outputs `PROPOSED`; does not accept the plan |
-| Accept a proposed plan | project-defined technical authority | plan_id + plan_revision | Records `accepted_by` / `accepted_at`; advances `accepted_plan` |
-| Decide whether implementation may start | development-readiness | work_item_id | Requires accepted plan + acceptance evidence; non-ready must expose gaps |
-| Implement new/incomplete work | implementation | work_item_id | Ready + accepted plan; stage `IMPLEMENTATION_IN_PROGRESS` until scope complete |
+| Produce a separate plan only when the work item lacks a production path | implementation-planning | work_item_id | Optional. Outputs `PROPOSED`; does not accept the plan or block a sufficient work item |
+| Decide whether implementation may start | development-readiness | work_item_id | Work item scope and acceptance are enough unless policy sets `require_separate_plan` |
+| Implement new/incomplete work, including a closed unmerged head | implementation | work_item_id | Ready work item; resume the same candidate |
 | Prove acceptance outcome | verification | work_item_id or merge_candidate_id (+ revision when applicable) | Work-item criteria, or candidate intent when no work item applies; assertion is not evidence |
 | Review/re-review merge candidate | pr-review | merge_candidate_id | Full review; plan required only when policy/workflow requires it |
-| Fix review comments/check failures (review stage) | address-pr-review | merge_candidate_id | `IN_REVIEW` only; returns to `pr-review` |
+| Fix review comments/check failures on the same candidate | address-pr-review | merge_candidate_id | Open `IN_REVIEW` or closed-unmerged with findings; returns to `pr-review` |
 
 If the user names a skill, use that skill unless doing so would violate its explicit stop condition.
 
 ## Readiness and implementation governance
 
-Implementation is allowed only after all four are established. This order is canonical across rigor profiles; lightweight work may use a compact plan, but the plan still exists before readiness:
+Implementation is allowed only after all four are established. Lightweight work uses the same path. The work item is the plan.
 
 1. the exact work item is identified and current;
 2. no other implementer owns/claims it under project policy;
-3. an **accepted** implementation plan exists (not merely a `PROPOSED` plan), with `accepted_by` / `accepted_at` (or equivalent) on the accepted-plan pointer;
-4. no conflicting merge candidate already owns this implementation lifecycle. An authorized existing candidate for the same unfinished work item is a continuation surface, not a blocker.
+3. the work item states outcome, scope, measurable acceptance, evidence, and dependencies. A separate accepted-plan pointer is required only when policy sets `require_separate_plan`;
+4. no conflicting merge candidate already owns this implementation lifecycle. An authorized existing candidate, including a closed unmerged head that was not architecture-rejected, is a continuation surface, not a blocker.
 
 After implementation begins, merge-candidate creation/resolution is host/project integration, not hidden work inside `implementation`. While `candidate_lifecycle_stage` is `IMPLEMENTATION_IN_PROGRESS`, continue `implementation` on that candidate—including CI failures and early feedback needed to finish accepted scope. Do **not** enter full merge-readiness `pr-review` or review-stage `address-pr-review` until accepted-scope implementation is complete and the stage is `IN_REVIEW`.
 
@@ -69,14 +68,16 @@ It also produces tracker-comment-ready full text. The consuming tracker facade d
 ### Existing merge-candidate routing
 
 ```text
-open candidate for same work item?
+candidate for same work item?
   ├─ no → implementation may create work; host/project later creates/resolves candidate
   ├─ yes + authorized owner + IMPLEMENTATION_IN_PROGRESS
   │         (incomplete scope; CI/early comments may exist)
   │       → continue implementation on SAME candidate
-  │         (do not route to address-pr-review / full pr-review yet)
   ├─ yes + IN_REVIEW + review comments/check remediation → address-pr-review → pr-review
-  └─ yes + other/ambiguous owner or multiple candidates → BLOCK and reconcile
+  ├─ closed unmerged + not architecture-rejected
+  │       → reopen or rebase that SAME head; review findings stay on address-pr-review
+  ├─ closed + architecture-rejected → do not resume
+  └─ other/ambiguous owner or multiple candidates → BLOCK and reconcile
 ```
 
 Never create a second candidate merely because implementation spans sessions.
@@ -103,7 +104,7 @@ Continue after finding blockers. Complete the review coverage and return every m
 
 ## Review remediation discipline
 
-address-pr-review is the only core **review-stage** remediation entrypoint.
+address-pr-review is the only core **review-stage** remediation entrypoint. It also owns a closed unmerged candidate that still has review findings. Reopen or rebase that candidate. A `BLOCKED_BY_DECISION` verdict names the other decision and keeps this candidate; it does not start a new plan.
 
 Before editing it inventories:
 

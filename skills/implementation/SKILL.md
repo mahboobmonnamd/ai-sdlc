@@ -23,7 +23,7 @@ Use this for new implementation and for continuing incomplete implementation on 
 
 ## When to use
 
-Use for NEW work when the work item is READY, or for RESUME when the same authorized implementer already owns an in-progress candidate and the prior readiness inputs remain current. In both modes the accepted plan must still be current (accepted-plan pointer plus acceptance evidence).
+Use for NEW work when the work item is READY, or for RESUME when the same authorized implementer already owns the candidate. Resume includes a closed unmerged head that was not rejected as the wrong architecture. The work item is the plan.
 
 ## Do not use
 
@@ -40,12 +40,14 @@ Load the work item, accepted implementation-plan identity/revision and acceptanc
 ## Candidate lifecycle stage
 
 ```text
-candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
+candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | CLOSED_UNMERGED | REJECTED | UNKNOWN
 ```
 
-- `NONE` — no open candidate yet.
+- `NONE` — no candidate yet.
 - `IMPLEMENTATION_IN_PROGRESS` — accepted scope is not complete; stay in `implementation` even if CI fails or early comments exist.
 - `IN_REVIEW` — accepted-scope implementation is complete and merge-readiness review is the intent; review feedback/required-check remediation routes to `address-pr-review`, which returns to `pr-review`.
+- `CLOSED_UNMERGED` — the same head was closed with review, check, or decision blockers and was not architecture-rejected. Reopen or rebase it. Do not start a new plan or a second candidate.
+- `REJECTED` — the candidate was closed because the architecture was wrong. Do not resume it.
 - `UNKNOWN` — a candidate exists but its stage cannot be determined. Stop and reconcile the durable stage before any branch, worktree, file, or production edit. Do not route to `implementation`, `address-pr-review`, or `pr-review`.
 
 ## Implementation governance preflight
@@ -54,21 +56,23 @@ Before branch/worktree/files/production edits:
 
 1. Fresh-read `work_item_id`; require it to be open/current (not closed/cancelled/blocked by unresolved authority).
 2. Check fresh ownership/claim state. If another implementer owns the work item or candidate, stop.
-3. Resolve open merge candidates for this work item and determine mode:
+3. Resolve merge candidates for this work item, including a closed unmerged head, and determine mode:
    - none → `NEW`; require the work-item state to be READY before implementation starts; stage remains `NONE` until a candidate exists;
    - same work item + current implementer/authorized owner + implementation incomplete → `RESUME_EXISTING_CANDIDATE` with stage `IMPLEMENTATION_IN_PROGRESS`; an IN_PROGRESS-equivalent tracker state is valid and must not be rejected merely because it is no longer labeled READY; keep CI/early-feedback fixes here;
+   - same owner + `CLOSED_UNMERGED` → `RESUME_EXISTING_CANDIDATE` on that head. Reopen or rebase it. Review findings route to `address-pr-review`. Do not create another candidate;
+   - `REJECTED` → do not resume;
    - same candidate + stage `IN_REVIEW` + request is reviewer feedback or required-check remediation → route to `address-pr-review`;
    - candidate owned by another implementer or ownership is ambiguous → stop;
    - stage is `UNKNOWN`, or a candidate exists and the stage cannot be reconstructed → stop and reconcile the durable stage; do not edit and do not choose `implementation`, `address-pr-review`, or `pr-review`;
    - multiple active candidates for the same work item → stop and reconcile; never create another.
-4. Resolve the work item's/project registry's accepted-plan reference, then load immutable content for that exact `plan_id + plan_revision`; require acceptance evidence (`accepted_by` / `accepted_at` or equivalent). If the exact revision cannot be resolved, or the pointer lacks acceptance evidence (for example only a `PROPOSED` plan exists), stop instead of falling back to latest. Require it to be current for its planning-relevant governing revisions. Do not select an arbitrary related/latest plan. On RESUME, also revalidate acceptance/dependencies/authority so prior readiness has not gone stale.
+4. The work item is the accepted-plan reference when it states outcome, scope, measurable acceptance, evidence, and dependencies. Use the work item id and its current revision. `accepted_by` / `accepted_at` on a separate pointer are required only when policy sets `require_separate_plan`. A `PROPOSED` separate plan must not block this path. When that policy is set, load the exact separate `plan_id + plan_revision` and its acceptance evidence; do not fall back to the latest plan. On RESUME, revalidate acceptance, dependencies, and authority.
 5. If the project defines exclusive claiming, acquire/verify it for NEW work or re-verify it when RESUMING.
 
 If the project defines no claim mechanism, do not invent one.
 
 ## Stop or escalate when
 
-Stop for missing/ambiguous/closed work item, NEW work that is not READY, stale resume prerequisites, missing/stale/unaccepted plan, ownership collision, `UNKNOWN` candidate stage, ambiguous/multiple candidates, scope/authority conflict, missing dependency, untestable acceptance, material feasibility unknown, or a required temporary/parallel production path. On `UNKNOWN`, return `status: BLOCKED`, `production_edits: NOT_PERFORMED`, and `next_action: reconcile-candidate-stage`.
+Stop for missing/ambiguous/closed work item, NEW work that is not READY, stale resume prerequisites, a work item with no measurable acceptance, ownership collision, `UNKNOWN` candidate stage, ambiguous/multiple candidates, scope/authority conflict, missing dependency, untestable acceptance, material feasibility unknown, or a required temporary/parallel production path. A missing separate plan is not a stop when the work item is sufficient. On `UNKNOWN`, return `status: BLOCKED`, `production_edits: NOT_PERFORMED`, and `next_action: reconcile-candidate-stage`.
 
 ## Procedure
 
@@ -95,8 +99,8 @@ accepted_plan_revision
 accepted_by
 accepted_at
 implementation_plan: CONFIRMED | MISSING | STALE | PROPOSED_ONLY
-merge_candidate: NONE | OPEN:<id> | UNKNOWN
-candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
+merge_candidate: NONE | OPEN:<id> | CLOSED_UNMERGED:<id> | REJECTED:<id> | UNKNOWN
+candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | CLOSED_UNMERGED | REJECTED | UNKNOWN
 merge_candidate_ownership: CURRENT_IMPLEMENTER | OTHER_IMPLEMENTER | UNKNOWN | NOT_APPLICABLE
 active_work_claim: NOT_APPLICABLE | VERIFIED_CURRENT_IMPLEMENTER | BLOCKED_BY_OTHER | CLAIM_FAILED
 production_edits: NOT_PERFORMED | PERFORMED
@@ -118,6 +122,8 @@ next_action
 - Completed implementation with existing candidate → mark `IN_REVIEW`, then `pr-review <merge_candidate_id>`.
 - Completed implementation without candidate → host/project creates or resolves the candidate in review stage, then `pr-review`.
 - Review-stage candidate (`IN_REVIEW`) with reviewer feedback/check failures → `address-pr-review`.
+- `CLOSED_UNMERGED` → reopen or rebase that same candidate. Review findings go to `address-pr-review`. A decision blocker keeps this candidate and names the other decision.
+- `REJECTED` → do not resume. The next action is a new production path only after the architecture decision is accepted.
 - `UNKNOWN` stage → stop and reconcile the durable candidate stage (`next_action: reconcile-candidate-stage`). Do not edit, and do not hand off to `implementation`, `address-pr-review`, or `pr-review`.
-- Missing/stale/unaccepted plan → `implementation-planning` (or `work-item-design` if scope/acceptance is weak), then project-defined plan acceptance, then `development-readiness`.
-- Authority/scope/feasibility problem during implementation → decision activity, then `implementation-planning`, then project-defined plan acceptance, then `development-readiness`, then `implementation`. Do not resume production edits before that path.
+- Work item lacks measurable acceptance → `work-item-design`, then `development-readiness`. Do not demand a separate plan.
+- Authority/scope/feasibility problem during implementation → decision activity, then `development-readiness`, then resume the same candidate. Do not invent the decision in code.

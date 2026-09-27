@@ -226,8 +226,6 @@ class SkillCatalogTests(unittest.TestCase):
         self.assertEqual(
             [
                 "work-item-design",
-                "implementation-planning",
-                "plan-acceptance",
                 "development-readiness",
                 "implementation",
                 "host-project-merge-candidate",
@@ -421,7 +419,10 @@ class SkillCatalogTests(unittest.TestCase):
         remediation = (
             ROOT / "skills" / "address-pr-review" / "SKILL.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN", implementation)
+        self.assertIn(
+            "candidate_lifecycle_stage: NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | CLOSED_UNMERGED | REJECTED | UNKNOWN",
+            implementation,
+        )
         self.assertIn("next_action: reconcile-candidate-stage", implementation)
         self.assertIn("Do not route to `implementation`, `address-pr-review`, or `pr-review`", implementation)
         self.assertIn("do not route to `implementation` or `pr-review`", remediation)
@@ -434,8 +435,6 @@ class SkillCatalogTests(unittest.TestCase):
             [
                 "development-readiness",
                 "work-item-design",
-                "implementation-planning",
-                "plan-acceptance",
                 "development-readiness",
             ],
             flow3["expected_route"],
@@ -444,8 +443,6 @@ class SkillCatalogTests(unittest.TestCase):
             [
                 "implementation-planning",
                 "decision-escalation",
-                "implementation-planning",
-                "plan-acceptance",
                 "development-readiness",
             ],
             flow4["expected_route"],
@@ -454,8 +451,6 @@ class SkillCatalogTests(unittest.TestCase):
             [
                 "implementation",
                 "decision-escalation",
-                "implementation-planning",
-                "plan-acceptance",
                 "development-readiness",
                 "implementation",
             ],

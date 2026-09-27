@@ -34,32 +34,39 @@ def validate_implementation_resume_context(checkpoint: dict, context: dict) -> d
 
     work_item_id = checkpoint.get("work_item_id")
     work_item = (context.get("work_items") or {}).get(work_item_id) or {}
-    verification = verify_accepted_plan(
-        work_item=work_item,
-        plans=context.get("plans") or {},
-        policy=context.get("policy") or {},
-    )
-    if not verification["ok"]:
-        reason = (
-            "unaccepted_plan"
-            if verification["reason"] in _UNACCEPTED
-            else "stale_plan"
+    policy = context.get("policy") or {}
+    if _work_item_is_plan(work_item, policy):
+        pointer = {
+            "plan_id": work_item.get("id"),
+            "plan_revision": work_item.get("revision", 1),
+        }
+    else:
+        verification = verify_accepted_plan(
+            work_item=work_item,
+            plans=context.get("plans") or {},
+            policy=policy,
         )
-        return _block(
-            reason,
-            verification["reason"],
-            "route through implementation-planning, plan acceptance, and development-readiness",
-        )
+        if not verification["ok"]:
+            reason = (
+                "unaccepted_plan"
+                if verification["reason"] in _UNACCEPTED
+                else "stale_plan"
+            )
+            return _block(
+                reason,
+                verification["reason"],
+                "fill measurable acceptance on the work item; a separate plan artifact is not required",
+            )
 
-    pointer = verification["accepted_plan"]
-    if checkpoint.get("accepted_plan_id") != pointer["plan_id"] or checkpoint.get(
-        "accepted_plan_revision"
-    ) != pointer["plan_revision"]:
-        return _block(
-            "stale_plan",
-            "checkpoint plan revision is not the accepted revision",
-            "route through implementation-planning, plan acceptance, and development-readiness",
-        )
+        pointer = verification["accepted_plan"]
+        if checkpoint.get("accepted_plan_id") != pointer["plan_id"] or checkpoint.get(
+            "accepted_plan_revision"
+        ) != pointer["plan_revision"]:
+            return _block(
+                "stale_plan",
+                "checkpoint plan revision is not the accepted revision",
+                "refresh the separate plan only when policy require_separate_plan is set",
+            )
 
     claim = _check_claim(checkpoint, context)
     if not claim["ok"]:
@@ -153,12 +160,31 @@ def _check_candidate_binding(checkpoint: dict, context: dict) -> dict:
     return {"ok": True}
 
 
+def _work_item_is_plan(work_item: dict, policy: dict) -> bool:
+    """The work item is the plan unless policy demands a separate artifact."""
+    if (policy or {}).get("require_separate_plan"):
+        return False
+    criteria = work_item.get("acceptance_criteria")
+    scope = work_item.get("in_scope") or work_item.get("outcome")
+    return bool(criteria) and bool(scope)
+
+
 def _resolve_candidate_stage(checkpoint: dict, context: dict) -> dict:
     candidate_id = checkpoint.get("merge_candidate_id")
     if not candidate_id:
         return {"ok": True, "candidate_lifecycle_stage": "NONE"}
 
     durable = (context.get("candidates") or {}).get(candidate_id) or {}
+    if durable.get("state") == "closed" and durable.get("merged") is not True:
+        if durable.get("architecture_rejected"):
+            return _block(
+                "architecture_rejected",
+                candidate_id,
+                "do not resume a candidate rejected as the wrong architecture",
+                candidate_lifecycle_stage="REJECTED",
+            )
+        return {"ok": True, "candidate_lifecycle_stage": "CLOSED_UNMERGED"}
+
     durable_stage = durable.get("candidate_lifecycle_stage")
     checkpoint_stage = checkpoint.get("candidate_lifecycle_stage")
     if durable_stage and checkpoint_stage and durable_stage != checkpoint_stage:

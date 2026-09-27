@@ -17,7 +17,7 @@ The work item must already have accepted scope and acceptance criteria. This ski
 
 ## When to use
 
-Use after `work-item-design` and before final `development-readiness` for every implementation work item. The rigor profile controls plan depth: lightweight work may use a compact plan, but the plan is never omitted.
+Use only when the work item does not yet state the permanent production path. Skip this skill when outcome, scope, acceptance, evidence, and dependencies are already in the work item. The rigor profile controls depth when a separate plan is actually needed. Lightweight work does not get a second document.
 
 ## Do not use
 
@@ -63,7 +63,7 @@ proposed_plan_reference: <plan_id>@<plan_revision>
 plan_content_ref: immutable/revision-addressable source for this exact plan revision
 plan_status: PROPOSED | BLOCKED
 accepted_plan_pointer: UNCHANGED
-next_action: plan-acceptance | work-item-design | decision-activity | spike | BLOCKED
+next_action: development-readiness | work-item-design | decision-activity | spike | plan-acceptance | BLOCKED
 governing_revisions
 production_surfaces
 implementation_sequence
@@ -78,11 +78,11 @@ unknowns
 blocking_decisions
 ```
 
-A proposed plan is an input to acceptance and then `development-readiness`. It is not approval to code and must not be treated as the accepted-plan reference.
+A proposed separate plan is notes. It is not approval to code and must not be treated as a required accepted-plan reference. The work item remains the plan.
 
 ## Handoff
 
-- PROPOSED → project-defined technical-authority **plan acceptance** (records `accepted_by` / `accepted_at` and advances `accepted_plan`), then `development-readiness`.
+- PROPOSED separate notes → `development-readiness`. Do not mark the work item READY and do not set `accepted_plan`. A second acceptance record is required only when policy sets `require_separate_plan`.
 - Scope/acceptance defect → `work-item-design`.
-- Product/architecture/other authority gap → explicit decision activity, then refresh the plan, then project-defined plan acceptance, then `development-readiness`.
+- Product/architecture/other authority gap → explicit decision activity, then `development-readiness`. Do not invent the decision inside the plan.
 - Material feasibility unknown → isolated non-mergeable spike, then refresh the plan.
