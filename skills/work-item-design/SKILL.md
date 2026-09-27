@@ -46,7 +46,7 @@ Load:
 - known risks and rigor profile;
 - verification expectations.
 
-If upstream authority itself is uncertain, stop and route to the corresponding requirements/decision activity. Final `development-readiness` runs only after this work item and its implementation plan exist.
+If upstream authority itself is uncertain, stop and route to the corresponding requirements/decision activity. Final `development-readiness` runs after this work item states outcome, scope, and measurable acceptance. That work item is the plan. A separate implementation plan is optional.
 
 ## Stop or escalate when
 
@@ -93,7 +93,7 @@ slice_plan_or_child_items
 risk_and_specialist_impacts
 verification_procedure
 readiness_for_planning: READY | REFINEMENT_REQUIRED | BLOCKED
-next_action: implementation-planning | decision-activity | spike | split
+next_action: development-readiness | implementation-planning | decision-activity | spike | split
 ownership_claim: NOT_PERFORMED
 blocking_reason
 unknowns
@@ -101,8 +101,9 @@ unknowns
 
 ## Handoff
 
-- READY → `implementation-planning`, then project-defined plan acceptance, then `development-readiness`.
+- READY → `development-readiness`. The work item is the plan.
+- The production path is still unstated → `implementation-planning`, then `development-readiness`. Planning does not accept the plan.
 - Missing authority/acceptance → appropriate upstream decision/requirements activity, then re-run work-item design.
 - Material feasibility unknown → isolated non-mergeable spike.
 - Oversized work → recursively design smaller dependent work items.
-- A proposed plan is not readiness. After plan acceptance records `accepted_plan`, run `development-readiness` before `implementation`.
+- A proposed separate plan is not a second gate. Do not block `development-readiness` on `accepted_plan` unless policy sets `require_separate_plan`.

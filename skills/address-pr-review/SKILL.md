@@ -15,13 +15,13 @@ merge_candidate_id: authoritative PR/MR/change-list identifier
 
 For hosts that expose numeric pull-request identifiers, the consumer facade may name this argument `pr_number`. Do not infer a different merge candidate from a nearby work item when the requested review target is explicit.
 
-Requests such as “address PR comments”, “fix reviewer feedback”, “resolve review findings”, or “fix the failing checks on this PR” route here **only when** the candidate is already in review stage (`candidate_lifecycle_stage = IN_REVIEW`). If implementation of the accepted scope is still incomplete, keep remediation under `implementation` instead.
+Requests such as “address PR comments”, “fix reviewer feedback”, “resolve review findings”, or “fix the failing checks on this PR” route here when the candidate is `IN_REVIEW` or `CLOSED_UNMERGED` with those findings. If implementation of the accepted scope is still incomplete, keep remediation under `implementation` instead. A closed unmerged head is reopened or rebased here. Do not replace it.
 
 This skill remains independently usable (PRD UX-008) for review-stage candidates that have no AI-SDLC work-item/plan binding.
 
 ## When to use
 
-Use only when an existing merge candidate is in **review stage** and has review feedback, unresolved review threads, required-check failures, or a prior `pr-review` verdict that requires implementation/test/evidence-generation changes.
+Use when an existing merge candidate is in **review stage**, or is closed unmerged with review feedback still outstanding. That includes unresolved review threads, required-check failures, or a prior `pr-review` verdict that requires implementation, test, or evidence changes.
 
 ## Do not use
 
@@ -65,12 +65,12 @@ Treat the latest comment as one input, never as the whole remediation scope.
 
 Stop and route rather than editing when:
 
-- the merge candidate does not exist or is closed/merged;
+- the merge candidate does not exist, is merged, or is `REJECTED` as the wrong architecture;
 - the current actor is not authorized to modify the candidate;
 - `candidate_lifecycle_stage` is `IMPLEMENTATION_IN_PROGRESS` or implementation of accepted scope is otherwise incomplete → route to `implementation`;
 - `candidate_lifecycle_stage` is `UNKNOWN` → stop and reconcile the durable stage (`status: BLOCKED`, `next_action: reconcile-candidate-stage`); do not remediate, and do not route to `implementation` or `pr-review`;
 - the candidate revision changes while the remediation inventory is being built and the inventory can no longer be trusted;
-- a finding requires a new product/architecture/security/compliance decision;
+- a finding requires a new product/architecture/security/compliance decision that is not already named; record `BLOCKED_BY_DECISION`, keep this candidate, and name the other decision. Do not close this candidate in order to replan;
 - remediation would materially expand the owning work item's accepted scope (when a work item applies);
 - an unresolved finding belongs to a different ownership boundary and cannot be safely fixed in this candidate;
 - the review feedback is contradictory and authority cannot resolve it;
@@ -79,8 +79,8 @@ Stop and route rather than editing when:
 
 ## Procedure
 
-1. Resolve `merge_candidate_id`, record the current revision, modification authority, and `candidate_lifecycle_stage`. If stage is `UNKNOWN`, stop and reconcile the durable stage before any remediation or handoff to `implementation` or `pr-review`. If stage is `IMPLEMENTATION_IN_PROGRESS` (or accepted-scope work is incomplete), stop and hand off to `implementation` without performing merge-readiness remediation.
-2. Classify lifecycle work-item/plan context (`AVAILABLE` | `NOT_APPLICABLE` | `REQUIRED_BUT_MISSING`). When `REQUIRED_BUT_MISSING`, stop blocked/inconclusive. When `AVAILABLE`, load the accepted plan at the exact revision. When `NOT_APPLICABLE`, proceed without a plan.
+1. Resolve `merge_candidate_id`, record the current revision, modification authority, and `candidate_lifecycle_stage`. If stage is `UNKNOWN`, stop and reconcile the durable stage before any remediation or handoff to `implementation` or `pr-review`. If stage is `IMPLEMENTATION_IN_PROGRESS` (or accepted-scope work is incomplete), stop and hand off to `implementation` without performing merge-readiness remediation. If stage is `CLOSED_UNMERGED`, reopen or rebase that same head and continue this remediation. Do not open a replacement candidate.
+2. Classify lifecycle work-item/plan context (`AVAILABLE` | `NOT_APPLICABLE` | `REQUIRED_BUT_MISSING`). When `REQUIRED_BUT_MISSING`, stop blocked/inconclusive. When `AVAILABLE`, the work item is the plan unless policy sets `require_separate_plan`. When `NOT_APPLICABLE`, proceed without a plan.
 3. Fetch the **complete current review state**: unresolved review threads/comments, prior blocking findings, and all required-check/CI failures. Do not stop after the newest comment.
 4. Build one remediation ledger:
    ```text
@@ -106,7 +106,7 @@ Return:
 merge_candidate_id
 starting_revision
 ending_revision
-candidate_lifecycle_stage: IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | UNKNOWN
+candidate_lifecycle_stage: IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | CLOSED_UNMERGED | REJECTED | UNKNOWN
 lifecycle_work_item: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
 lifecycle_accepted_plan: AVAILABLE | NOT_APPLICABLE | REQUIRED_BUT_MISSING
 remediation_ledger:
@@ -132,5 +132,6 @@ next_action: pr-review | implementation | decision-activity | reconcile-candidat
 - `IMPLEMENTATION_IN_PROGRESS` or incomplete accepted-scope work → `implementation` (even if CI/feedback was touched); do not enter full merge-readiness `pr-review` yet.
 - `UNKNOWN` → stop and reconcile the durable stage. Do not remediate, and do not hand off to `implementation` or `pr-review`.
 - Authority/scope decision required → corresponding decision/work-item activity, then readiness before further production changes when a work item applies.
-- Candidate missing/closed/merged → stop; do not create a replacement implementation path automatically.
+- Candidate missing, merged, or `REJECTED` → stop; do not create a replacement implementation path automatically.
+- `CLOSED_UNMERGED` with remaining findings → reopen or rebase that same candidate, then return it to `pr-review`.
 - New unrelated work discovered → record a separate work item; do not expand this remediation candidate.

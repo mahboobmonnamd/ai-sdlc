@@ -136,6 +136,52 @@ class ResumeContextTests(unittest.TestCase):
         result = validate_implementation_resume_context(_checkpoint(), context)
         self.assertEqual(result["reason"], "candidate_owner_mismatch")
 
+    def test_work_item_with_acceptance_is_the_plan(self):
+        context = _context()
+        context["work_items"]["WI-042"] = {
+            "id": "WI-042",
+            "outcome": "render the live tail inside the block",
+            "in_scope": ["clip prepared rows"],
+            "acceptance_criteria": ["running output stays inside the block"],
+            "revision": 2,
+        }
+        checkpoint = _checkpoint(
+            accepted_plan_id="WI-042",
+            accepted_plan_revision=2,
+        )
+        result = validate_implementation_resume_context(checkpoint, context)
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["accepted_plan_id"], "WI-042")
+        self.assertEqual(result["accepted_plan_revision"], 2)
+
+    def test_closed_unmerged_candidate_stays_resumable(self):
+        context = _context(
+            candidate={
+                "work_item_id": "WI-042",
+                "owner": "dev-a",
+                "state": "closed",
+                "merged": False,
+                "candidate_lifecycle_stage": "IN_REVIEW",
+            }
+        )
+        result = validate_implementation_resume_context(_checkpoint(), context)
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["candidate_lifecycle_stage"], "CLOSED_UNMERGED")
+
+    def test_architecture_rejected_candidate_is_not_resumed(self):
+        context = _context(
+            candidate={
+                "work_item_id": "WI-042",
+                "owner": "dev-a",
+                "state": "closed",
+                "merged": False,
+                "architecture_rejected": True,
+            }
+        )
+        result = validate_implementation_resume_context(_checkpoint(), context)
+        self.assertEqual(result["reason"], "architecture_rejected")
+        self.assertEqual(result["candidate_lifecycle_stage"], "REJECTED")
+
 
 if __name__ == "__main__":
     unittest.main()

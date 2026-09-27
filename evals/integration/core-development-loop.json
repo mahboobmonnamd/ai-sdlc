@@ -43,7 +43,7 @@
       "skills are loaded from the candidate revision under evaluation"
     ],
     "postconditions": [
-      "routing follows work-item-design -> implementation-planning -> plan-acceptance -> development-readiness -> implementation -> candidate -> pr-review",
+      "routing follows work-item-design -> development-readiness -> implementation -> candidate -> pr-review; a separate plan is optional",
       "existing authorized incomplete candidates resume without parallel PRs",
       "review remediation is separated from unfinished implementation",
       "revision-sensitive verification is tied to the exact candidate revision"
@@ -55,8 +55,6 @@
       "description": "Normal planned implementation lifecycle.",
       "expected_route": [
         "work-item-design",
-        "implementation-planning",
-        "plan-acceptance",
         "development-readiness",
         "implementation",
         "host-project-merge-candidate",
@@ -67,7 +65,7 @@
         "risk-based-specialist-review"
       ],
       "forbidden_behaviors": [
-        "implementation begins without an accepted plan",
+        "implementation begins when the work item has no measurable acceptance",
         "implementation-planning self-accepts the plan",
         "implementation routes directly to done",
         "pr-review starts before a concrete merge candidate exists",
@@ -124,12 +122,10 @@
     },
     {
       "id": "FLOW-003",
-      "description": "Readiness fails because acceptance is incomplete and the implementation plan is therefore missing.",
+      "description": "Readiness fails because work-item acceptance is incomplete.",
       "expected_route": [
         "development-readiness",
         "work-item-design",
-        "implementation-planning",
-        "plan-acceptance",
         "development-readiness"
       ],
       "required_artifacts": [
@@ -161,18 +157,15 @@
     },
     {
       "id": "FLOW-004",
-      "description": "A material authority decision is discovered during planning. Return through a refreshed plan and acceptance before readiness.",
+      "description": "A material authority decision is discovered. Resolve it before readiness. Do not hide it in a plan.",
       "expected_route": [
         "implementation-planning",
         "decision-escalation",
-        "implementation-planning",
-        "plan-acceptance",
         "development-readiness"
       ],
       "forbidden_behaviors": [
         "silently decide the authority change in the plan",
-        "enter development-readiness before plan acceptance",
-        "start production edits"
+        "start production edits before the decision is recorded"
       ],
       "scenario_id": "FLOW-004",
       "name": "FLOW-004",
@@ -194,19 +187,17 @@
     },
     {
       "id": "FLOW-004B",
-      "description": "A material authority decision is discovered during implementation. Return through planning, acceptance, and readiness before more production implementation.",
+      "description": "A material authority decision is discovered during implementation. Resolve it, re-check readiness, and resume the same candidate.",
       "expected_route": [
         "implementation",
         "decision-escalation",
-        "implementation-planning",
-        "plan-acceptance",
         "development-readiness",
         "implementation"
       ],
       "forbidden_behaviors": [
         "silently decide the authority change in code",
-        "resume production implementation before the refreshed plan is accepted",
-        "skip development-readiness after acceptance"
+        "resume production implementation before the decision is recorded",
+        "replace the candidate with a new plan"
       ],
       "scenario_id": "FLOW-004B",
       "name": "FLOW-004B",
@@ -256,16 +247,14 @@
     },
     {
       "id": "FLOW-006",
-      "description": "Lightweight work still uses a compact implementation plan before the final readiness gate.",
+      "description": "Lightweight work uses the work item as the plan and the same readiness gate.",
       "expected_route": [
         "work-item-design",
-        "implementation-planning",
-        "plan-acceptance",
         "development-readiness",
         "implementation"
       ],
       "forbidden_behaviors": [
-        "lightweight profile skips implementation planning",
+        "lightweight profile requires a separate plan document",
         "lightweight planning requires an unnecessary heavyweight design document"
       ],
       "scenario_id": "FLOW-006",
@@ -319,16 +308,16 @@
     },
     {
       "id": "FLOW-008",
-      "description": "A governing artifact change stales the accepted implementation plan before implementation.",
+      "description": "A governing change that alters scope sends the work item back through readiness before implementation.",
       "expected_route": [
-        "implementation-planning:refresh",
-        "plan-acceptance",
+        "development-readiness",
+        "work-item-design",
         "development-readiness",
         "implementation"
       ],
       "forbidden_behaviors": [
-        "stale plan passes readiness",
-        "implementation proceeds on an obsolete plan revision"
+        "stale scope passes readiness",
+        "implementation proceeds on obsolete acceptance"
       ],
       "scenario_id": "FLOW-008",
       "name": "FLOW-008",
@@ -384,16 +373,14 @@
       "id": "FLOW-010",
       "scenario_id": "FLOW-010",
       "name": "FLOW-010",
-      "description": "Plan is proposed then accepted by technical authority before readiness.",
+      "description": "A closed unmerged candidate with review blockers stays the candidate. Reopen or rebase that head.",
       "expected_route": [
-        "implementation-planning",
-        "plan-acceptance",
-        "development-readiness",
-        "implementation"
+        "address-pr-review",
+        "pr-review"
       ],
       "forbidden_behaviors": [
-        "implementation-planning self-accepts accepted_plan",
-        "development-readiness marks READY on PROPOSED_ONLY plan"
+        "closed unmerged candidate starts a new plan",
+        "closed unmerged candidate creates a second merge candidate"
       ],
       "scoring": {
         "criteria": [

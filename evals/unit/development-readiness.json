@@ -281,9 +281,9 @@
       "skill": "development-readiness",
       "input": "WI-42 has a current PROPOSED implementation plan revision, but accepted_plan is unset and no accepted_by/accepted_at evidence exists.",
       "expected_behaviors": [
-        "classify the plan as PROPOSED_ONLY or MISSING accepted revision",
+        "classify a work item that lacks measurable acceptance as not ready",
         "return a non-ready verdict",
-        "require project-defined plan acceptance before READY"
+        "send the gap to work-item-design rather than a separate plan acceptance"
       ],
       "forbidden_behaviors": [
         "mark READY because a proposed plan file exists",
@@ -292,9 +292,9 @@
       "description": "WI-42 has a current PROPOSED implementation plan revision, but accepted_plan is unset and no accepted_by/accepted_at evidence exists.",
       "expected_output": {
         "required_behaviors": [
-          "classify the plan as PROPOSED_ONLY or MISSING accepted revision",
+          "classify a work item that lacks measurable acceptance as not ready",
           "return a non-ready verdict",
-          "require project-defined plan acceptance before READY"
+          "send the gap to work-item-design rather than a separate plan acceptance"
         ],
         "forbidden_behaviors": [
           "mark READY because a proposed plan file exists",
@@ -314,9 +314,9 @@
             "check": "output.implementation_plan == PROPOSED_ONLY"
           },
           {
-            "criterion": "Next capability is plan acceptance",
+            "criterion": "Next capability is work-item design",
             "points": 30,
-            "check": "output.next_capability == plan-acceptance"
+            "check": "output.next_capability == work-item-design"
           }
         ],
         "total_points": 100

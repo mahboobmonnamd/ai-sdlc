@@ -108,6 +108,7 @@ next_action
 - Standalone VERIFIED only when no PR-review gate applies → `release-readiness` or project completion workflow.
 - Implementation defect on an open merge candidate:
   - `IN_REVIEW` → `address-pr-review`, then full `pr-review`;
+  - `CLOSED_UNMERGED` → `address-pr-review` on that same candidate, then full `pr-review`;
   - `IMPLEMENTATION_IN_PROGRESS` → `implementation`;
   - `UNKNOWN` → stop; do not guess a route;
   - no merge candidate yet → `implementation`.
