@@ -1,131 +1,85 @@
-# Working loop
+# AI-SDLC canonical working loop
 
-Task-selected execution discipline for the core development-loop skills. This is **not** an always-on agent constitution and does not replace product/architecture authority.
+Normative operating rules for all active skills. Design rationale and performance goals: [SDLC-DESIGN.md](SDLC-DESIGN.md).
 
-## Canonical workflow
+## 12-point Definition of Ready
 
-The work item is the plan when it states the outcome, in/out of scope, measurable acceptance, evidence, and dependencies. A separate planning artifact is optional. Use `implementation-planning` only when that production path is not yet in the work item. Do not require a second acceptance record before code.
+Display each PASS / FAIL / UNKNOWN / N/A with a one-line reason/evidence, grouping satisfied rows when screen space matters. Only item 5 (the command) is optional. Material FAIL or UNKNOWN is blocking.
 
-~~~text
-work-item-design <work-item|outcome>
-        ↓
-development-readiness <work-item>       → work item is the plan
-        ↓ READY
-implementation <work-item>
-        ↓ one candidate (open, or closed-unmerged and not architecture-rejected)
-        ↓ accepted scope complete → IN_REVIEW
-pr-review <merge-candidate>
-        ├─ READY_TO_MERGE → merge/release authority
-        ├─ CHANGES_REQUIRED → address-pr-review on that same candidate → pr-review
-        └─ BLOCKED_BY_DECISION → resolve the other decision, keep this candidate, rebase
-~~~
+| # | Check | PASS means |
+| --- | --- | --- |
+| 1 | Problem stated | Outcome, user/affected system and why |
+| 2 | Observable behavior | Concrete current vs expected behavior and material negative cases |
+| 3 | Bounded scope | In scope/out of scope; independently reviewable |
+| 4 | Verifiable acceptance | Testable, externally observable pass/fail criteria |
+| 5 | Verification command (optional) | Useful known command specified; if absent, expected evidence still named |
+| 6 | Design decisions closed | Decisions under `## Design nuance`; relevant open `!+concern` explicitly block |
+| 7 | Congruence | Compatible with accepted product intent, architecture and code ownership |
+| 8 | Dependencies | Named, correctly ordered, satisfied or explicitly gated |
+| 9 | Not duplicate | Search issues, open PRs, merged changes and candidate branches |
+| 10 | Self-contained | Issue + resolvable authoritative links suffice without private conversation |
+| 11 | Implementation plan | 3–7 ordered production steps with criterion-to-test map |
+| 12 | Security controls | Trust boundaries, access, secrets, inputs, privacy and failure risks assessed; N/A justified |
 
-A closed unmerged candidate whose review did not reject the architecture stays the candidate. Reopen or rebase that head. Do not start a new plan or a second candidate because the pull request was closed.
+DoR is an **outcome contract**, not an excuse for bureaucratic prose. A sufficient issue is its own plan. An external versioned plan is required only if project policy explicitly demands it. Load its exact accepted revision; a merely proposed plan cannot authorize changes. A coordination-only label or timestamp edit does not invalidate accepted scope; changed behavior, dependencies or decisions do.
 
-## Contributor next action
+## Correct candidate stage
 
-When someone asks what to do, what is next, how to unblock, or where to start, answer with exactly one next action: the work item or candidate, why it is next, and the concrete step. Name what waits behind it. Do not open a planning ritual when that action is already known.
+`NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | CLOSED_UNMERGED | REJECTED | UNKNOWN`.
 
-verification is an independently reusable evidence skill and is also consumed/orchestrated by pr-review. A standalone VERIFIED result never bypasses a PR-review gate required by project or rigor policy. project-context is a retrieval utility used by any stage.
+- `NONE` → only new ready work; check duplicate branches/PRs before creating anything.
+- `IMPLEMENTATION_IN_PROGRESS` → continue the **same** authorized branch/head, including incomplete scope, early feedback or failing CI.
+- `IN_REVIEW` → review/processing; do not add unfinished unrelated feature work.
+- `CLOSED_UNMERGED` → inspect and reopen/resume same head with authority; do not fork duplicate work.
+- `REJECTED` → do not resume without a new approved decision.
+- `UNKNOWN` or multiple candidates/owners → stop, reconcile ownership and stage before mutation.
 
-There is intentionally **no standalone generic code-review skill**. A request to review a PR/merge candidate routes to pr-review, which owns implementation correctness plus merge-readiness evidence. A request to fix existing review comments on that same candidate, including a closed unmerged head, routes to address-pr-review.
+Persist stage, candidate identity, issue link and responsible actor in durable host/project state. Reconstruct from current source when possible; no invented lifecycle labels or stale memory.
 
-`pr-review` and `address-pr-review` remain independently usable (PRD UX-008). Lifecycle work-item/plan context is conditional: `AVAILABLE` | `NOT_APPLICABLE` | `REQUIRED_BUT_MISSING`. A missing plan that is `NOT_APPLICABLE` does not make review inconclusive.
-
-## Skill selector and invocation
-
-| User intent | Skill | Required input | Key governance |
-| --- | --- | --- | --- |
-| Retrieve project authority/context | project-context | query | Summaries are navigation, not authority |
-| Refine/create executable work item | work-item-design | work_item_id or accepted outcome | No implementation ownership claim |
-| Produce a separate plan only when the work item lacks a production path | implementation-planning | work_item_id | Optional. Outputs `PROPOSED`; does not accept the plan or block a sufficient work item |
-| Decide whether implementation may start | development-readiness | work_item_id | Work item scope and acceptance are enough unless policy sets `require_separate_plan` |
-| Implement new/incomplete work, including a closed unmerged head | implementation | work_item_id | Ready work item; resume the same candidate |
-| Prove acceptance outcome | verification | work_item_id or merge_candidate_id (+ revision when applicable) | Work-item criteria, or candidate intent when no work item applies; assertion is not evidence |
-| Review/re-review merge candidate | pr-review | merge_candidate_id | Full review; plan required only when policy/workflow requires it |
-| Fix review comments/check failures on the same candidate | address-pr-review | merge_candidate_id | Open `IN_REVIEW` or closed-unmerged with findings; returns to `pr-review` |
-
-If the user names a skill, use that skill unless doing so would violate its explicit stop condition.
-
-## Readiness and implementation governance
-
-Implementation is allowed only after all four are established. Lightweight work uses the same path. The work item is the plan.
-
-1. the exact work item is identified and current;
-2. no other implementer owns/claims it under project policy;
-3. the work item states outcome, scope, measurable acceptance, evidence, and dependencies. A separate accepted-plan pointer is required only when policy sets `require_separate_plan`;
-4. no conflicting merge candidate already owns this implementation lifecycle. An authorized existing candidate, including a closed unmerged head that was not architecture-rejected, is a continuation surface, not a blocker.
-
-After implementation begins, merge-candidate creation/resolution is host/project integration, not hidden work inside `implementation`. While `candidate_lifecycle_stage` is `IMPLEMENTATION_IN_PROGRESS`, continue `implementation` on that candidate—including CI failures and early feedback needed to finish accepted scope. Do **not** enter full merge-readiness `pr-review` or review-stage `address-pr-review` until accepted-scope implementation is complete and the stage is `IN_REVIEW`.
-
-When readiness fails, development-readiness returns a table with:
-
-| Gap | What's missing | Proposed cure (when inferable) | Concerns / decision needed |
-| --- | --- | --- | --- |
-
-It also produces tracker-comment-ready full text. The consuming tracker facade decides file naming/posting mechanics and must obtain explicit user authorization before posting.
-
-### Existing merge-candidate routing
+## Label transitions (state display, never a lock)
 
 ```text
-candidate for same work item?
-  ├─ no → implementation may create work; host/project later creates/resolves candidate
-  ├─ yes + authorized owner + IMPLEMENTATION_IN_PROGRESS
-  │         (incomplete scope; CI/early comments may exist)
-  │       → continue implementation on SAME candidate
-  ├─ yes + IN_REVIEW + review comments/check remediation → address-pr-review → pr-review
-  ├─ closed unmerged + not architecture-rejected
-  │       → reopen or rebase that SAME head; review findings stay on address-pr-review
-  ├─ closed + architecture-rejected → do not resume
-  └─ other/ambiguous owner or multiple candidates → BLOCK and reconcile
+issue needs:implementation
+  --[Gate 1 approved + exclusive claim]--> issue:implementing
+  --[verified PR opened]--> issue:in-review (PR: needs:review)
+PR needs:review --[review claim]--> pr:reviewing
+  --[REQUEST_CHANGES]--> needs:processing
+  --[APPROVE]--> needs:merge
+PR needs:processing --[processing claim]--> pr:processing
+  --[approved batch + evidence]--> needs:review
+PR needs:merge --[exact-head checks, protections]--> MERGED
 ```
 
-Never create a second candidate merely because implementation spans sessions.
+Transitions are mutually exclusive per resource and retried idempotently: add destination then remove only applicable old label; reconcile on partial failure. Keep linked issue open until target-branch merge actually closes it via `Closes #N`. `issue:in-review` avoids mistakenly returning submitted work to the ready backlog; if the project lacks this label, retain equivalent durable association and record it explicitly.
 
-Mixed state (implementation incomplete **and** failing CI or reviewer feedback): remain under `implementation` until accepted scope is complete; expected route must not be full merge-readiness `pr-review` while stage is `IMPLEMENTATION_IN_PROGRESS`.
+## Exclusive ownership
 
-## Implementation discipline
+A claim requires a project-configured **atomic compare-and-set/create-if-absent** backend, not GitHub label/assignee read-then-write. It must handle issue implementation and **one shared PR exclusion domain** for reviewing/processing, and expose owner, unique token, acquire/recheck, conditional release and audited recovery. Git reference creation may be used for atomic first acquisition but **is not a complete reusable lock** unless safe owner-checked transitions/release are implemented; do not delete a ref based only on a stale read. A failed or unavailable required claim blocks mutations.
 
-Build only the accepted slice and permanent production path. Do not silently change architecture, weaken acceptance, create temporary parallel implementations, or perform unrelated cleanup.
+**Timing:** read-only eligibility/DoR/plan preflight → Gate 1 → revalidate snapshot → atomic acquire and confirm → issue label swap → branch/edit. This prevents locking an issue while waiting on a human. An authorized in-progress resume validates the existing claim; do not lose continuity on a label mismatch. Recheck token before push, review submission, thread resolution and merge where required. Never replace another owner's claim automatically. If the owner is unavailable, flag for authorized recovery.
 
-When a material design fork appears that accepted authority does not resolve, stop and route backward. A proposed plan is not permission to invent an architecture decision; an accepted plan is not permission either.
+## Four user decisions, no ritual approvals
 
-For claimed progress, show reproducible proof: exact command/check plus a quoted result or source. Write unknown when evidence cannot be established.
+| Moment | Display | Ask |
+| --- | --- | --- |
+| New/refined issue | Final issue body + DoR evidence | Approve creation/update? |
+| Implement Gate 1 | DoR readiness, exact issue revision, short plan, testing/risk strategy | **Proceed with implementation? (yes/no)** |
+| Implement Gate 2 | diffstat, exact branch/base/head, acceptance-to-evidence matrix, self-review, complete PR title/body | **Push branch and create PR? (yes/no)** |
+| Process-review | All actionable findings+CI, dispositions, file/test impact, unresolved authority | **Apply this plan? (yes/no)** |
 
-## PR review discipline
+The approval applies to a **specific snapshot**. If materially changed requirements, plan or reviewed diff invalidate an approval, show only the material delta and seek an updated decision (not a blanket repeat). A no means no corresponding action; do not pretend work happened. Explicit `/pr-merge <PR>` already authorizes a merge attempt, subject to mandatory checks.
 
-Every pr-review is a **full review of the entire current candidate**, including re-review after remediation.
+## Verification and merge
 
-The review must cover implementation correctness, scope/architecture, affected production paths, tests, failure/lifecycle/concurrency behavior, acceptance evidence, required CI, measurements, specialist risk where applicable, and documentation/claim accuracy.
+- Every mandatory acceptance criterion must show exact test/measurement/demonstration, observed result and revision. Evidence `PASS/FAIL/INCONCLUSIVE`; unrun is not PASS.
+- Use narrow tests during coding and broader risk-driven evidence before Gate 2: normal path, negative/errors, auth/security, compatibility, concurrency/lifecycle, storage/migration/recovery, performance/operability only where relevant.
+- Verify final local diff has no hidden debug changes, unrelated scope, test weakening, secret exposure, temporary production substitute or unchecked migration.
+- After push, CI and GitHub review status are **fresh again**. Pushing and opening a PR is not merge readiness. Review against exact current PR head + base; stale approval is not valid. Respect code owners, required checks, merge queue, blocking threads, rulesets and current permission. No branch-protection bypass.
+- `[CRIT]`, `[SEC]` and `[NONCONF]` block approval when materially unresolved. `[IMPR]` is non-blocking; `[GOOD]` is positive evidence. Findings need file/line when applicable, failure mechanism and an actionable correction.
+- `process-review` handles review stage only; classify every finding as should fix / improvement / discard / disagree / push back. A justified disagreement can clear an invalid blocker only through a new independent reviewer decision; the implementer cannot approve their own resolution.
 
-When lifecycle plan context is `NOT_APPLICABLE`, review against candidate intent, repository authority, tests/checks, and applicable requirements without requiring an AI-SDLC plan. Exact-revision verification still runs, with `verification_target: merge_candidate` rather than a work item.
+## Fast, safe recovery
 
-Continue after finding blockers. Complete the review coverage and return every material blocker discovered in the pass. Group duplicate symptoms by root cause; do not hide independent findings and do not apply an arbitrary finding cap.
+At restart: look up exact issue/PR and head, ownership/claim, stage, last approved snapshot, open review threads and required CI. Resume **the last valid checkpoint**; do not re-ask already valid approvals. If head changed, reverify affected tests and review; if acceptance changed, revisit plan Gate 1.
 
-## Review remediation discipline
-
-address-pr-review is the only core **review-stage** remediation entrypoint. It also owns a closed unmerged candidate that still has review findings. Reopen or rebase that candidate. A `BLOCKED_BY_DECISION` verdict names the other decision and keeps this candidate; it does not start a new plan.
-
-Before editing it inventories:
-
-- all unresolved review threads/comments;
-- all prior material review findings;
-- all required failing checks/CI.
-
-It then fixes the complete known material set as one bounded batch, searches the approved surface for sibling instances of each root cause, reruns relevant checks, and—only when stage is `IN_REVIEW`—hands the exact new candidate back to pr-review.
-
-If the candidate is still `IMPLEMENTATION_IN_PROGRESS`, return to `implementation` instead of full merge-readiness `pr-review`.
-
-Do not fix one comment and immediately request re-review while other known blockers remain.
-
-## Re-review semantics
-
-Prior findings are a regression checklist, not the review boundary. The latest delta is context, not scope.
-
-Expensive checks or measurements may be reused only when governing policy proves they remain valid for the current revision. Every acceptance row and risk domain is still reconsidered.
-
-The convergence target is one complete finding pass plus one full re-review after batched remediation when feasible. There is no hard round cap that can hide correctness or evidence problems.
-
-## Checkable Done
-
-Done comes from concrete observable work-item acceptance conditions. Never substitute “production-ready”, “looks good”, green CI alone, or reviewer confidence for acceptance evidence.
+A workflow blocked on access or tools must state precisely what action was and was not performed. Do not label a planned action as a completed side effect.

@@ -1,0 +1,186 @@
+{
+  "contract_id": "EVAL-PR-MERGE-001",
+  "contract_version": "1.0.0",
+  "skill": "pr-merge",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-10-08",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "Behavioral expectations for pr-merge.",
+  "metadata": {
+    "title": "pr-merge unit tests",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers"
+  },
+  "target_capability": {
+    "description": "pr-merge respects its gates and boundaries.",
+    "preconditions": [
+      "current authoritative inputs supplied"
+    ],
+    "postconditions": [
+      "required behaviors satisfied without forbidden effects"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "PRMERGE-001",
+      "scenario_id": "PRMERGE-001",
+      "name": "PRMERGE-001",
+      "skill": "pr-merge",
+      "input": "Approval is for old head SHA; new commits exist",
+      "description": "Approval is for old head SHA; new commits exist",
+      "expected_behaviors": [
+        "block merge despite green checks"
+      ],
+      "forbidden_behaviors": [
+        "merge a head without exact-current approval"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "block merge despite green checks"
+        ],
+        "forbidden_behaviors": [
+          "merge a head without exact-current approval"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "block merge despite green checks",
+            "points": 100,
+            "check": "output.status == BLOCKED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRMERGE-002",
+      "scenario_id": "PRMERGE-002",
+      "name": "PRMERGE-002",
+      "skill": "pr-merge",
+      "input": "Current head approved and all mandatory checks pass",
+      "description": "Current head approved and all mandatory checks pass",
+      "expected_behaviors": [
+        "merge only with project-authorized method"
+      ],
+      "forbidden_behaviors": [
+        "bypass branch protection"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "merge only with project-authorized method"
+        ],
+        "forbidden_behaviors": [
+          "bypass branch protection"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "merge only with project-authorized method",
+            "points": 100,
+            "check": "output.status == MERGED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRMERGE-003",
+      "scenario_id": "PRMERGE-003",
+      "name": "PRMERGE-003",
+      "skill": "pr-merge",
+      "input": "PR has latest independent approval, required checks pass, mergeable and dependency satisfied",
+      "description": "PR has latest independent approval, required checks pass, mergeable and dependency satisfied",
+      "expected_behaviors": [
+        "merge exact approved candidate and verify result"
+      ],
+      "forbidden_behaviors": [
+        "merge without verified head"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "merge exact approved candidate and verify result"
+        ],
+        "forbidden_behaviors": [
+          "merge without verified head"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "merge exact approved candidate and verify result",
+            "points": 100,
+            "check": "output.status == MERGED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRMERGE-004",
+      "scenario_id": "PRMERGE-004",
+      "name": "PRMERGE-004",
+      "skill": "pr-merge",
+      "input": "PR has unresolved required CI despite APPROVE review",
+      "description": "PR has unresolved required CI despite APPROVE review",
+      "expected_behaviors": [
+        "stop merge and report check blocker"
+      ],
+      "forbidden_behaviors": [
+        "treat review approval as CI substitute"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "stop merge and report check blocker"
+        ],
+        "forbidden_behaviors": [
+          "treat review approval as CI substitute"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "stop merge and report check blocker",
+            "points": 100,
+            "check": "output.status == BLOCKED"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": []
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Output contract",
+        "measurement": "per-scenario criteria",
+        "weight": 1,
+        "threshold": 0.9
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null
+  }
+}
