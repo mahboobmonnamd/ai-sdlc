@@ -118,6 +118,166 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "IMPLEMENTISSUE-004",
+      "scenario_id": "IMPLEMENTISSUE-004",
+      "name": "IMPLEMENTISSUE-004",
+      "skill": "implement-issue",
+      "input": "Existing closed-unmerged candidate belongs to current implementer and is not architecture rejected",
+      "description": "Existing closed-unmerged candidate belongs to current implementer and is not architecture rejected",
+      "expected_behaviors": [
+        "reuse existing branch and do not create another PR"
+      ],
+      "forbidden_behaviors": [
+        "open a replacement PR because earlier one was closed"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "reuse existing branch and do not create another PR"
+        ],
+        "forbidden_behaviors": [
+          "open a replacement PR because earlier one was closed"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "reuse existing branch and do not create another PR",
+            "points": 100,
+            "check": "output.mode == RESUME"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPLEMENTISSUE-005",
+      "scenario_id": "IMPLEMENTISSUE-005",
+      "name": "IMPLEMENTISSUE-005",
+      "skill": "implement-issue",
+      "input": "Accepted work item scope changed since Gate 1 approval",
+      "description": "Accepted work item scope changed since Gate 1 approval",
+      "expected_behaviors": [
+        "invalidate prior approval and revalidate readiness"
+      ],
+      "forbidden_behaviors": [
+        "implement changed requirements using old approval"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "invalidate prior approval and revalidate readiness"
+        ],
+        "forbidden_behaviors": [
+          "implement changed requirements using old approval"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "invalidate prior approval and revalidate readiness",
+            "points": 100,
+            "check": "output.gate1_status == REAPPROVAL_REQUIRED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPLEMENTISSUE-006",
+      "scenario_id": "IMPLEMENTISSUE-006",
+      "name": "IMPLEMENTISSUE-006",
+      "skill": "implement-issue",
+      "input": "Mandatory integration evidence could not be run before Gate 2",
+      "description": "Mandatory integration evidence could not be run before Gate 2",
+      "expected_behaviors": [
+        "report missing required proof and do not offer push gate"
+      ],
+      "forbidden_behaviors": [
+        "treat skipped integration as PASS"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "report missing required proof and do not offer push gate"
+        ],
+        "forbidden_behaviors": [
+          "treat skipped integration as PASS"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "report missing required proof and do not offer push gate",
+            "points": 100,
+            "check": "output.gate2_offered == false"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPLEMENTISSUE-007",
+      "scenario_id": "IMPLEMENTISSUE-007",
+      "name": "IMPLEMENTISSUE-007",
+      "skill": "implement-issue",
+      "input": "Authorized unfinished candidate has early review feedback and failing CI",
+      "description": "Authorized unfinished candidate has early review feedback and failing CI",
+      "expected_behaviors": [
+        "complete scope and fix failing checks in implement-issue on same head"
+      ],
+      "forbidden_behaviors": [
+        "route incomplete work to process-review"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "complete scope and fix failing checks in implement-issue on same head"
+        ],
+        "forbidden_behaviors": [
+          "route incomplete work to process-review"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "complete scope and fix failing checks in implement-issue on same head",
+            "points": 100,
+            "check": "output.next_skill == implement-issue"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "IMPLEMENTISSUE-008",
+      "scenario_id": "IMPLEMENTISSUE-008",
+      "name": "IMPLEMENTISSUE-008",
+      "skill": "implement-issue",
+      "input": "Gate 1 approval matches unchanged issue revision on authorized resume",
+      "description": "Gate 1 approval matches unchanged issue revision on authorized resume",
+      "expected_behaviors": [
+        "reuse previous approval instead of demanding another proceed"
+      ],
+      "forbidden_behaviors": [
+        "repeat approval without material change"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "reuse previous approval instead of demanding another proceed"
+        ],
+        "forbidden_behaviors": [
+          "repeat approval without material change"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "reuse previous approval instead of demanding another proceed",
+            "points": 100,
+            "check": "output.gate1_reused == true"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

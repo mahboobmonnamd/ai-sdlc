@@ -118,6 +118,102 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRREVIEW-004",
+      "scenario_id": "PRREVIEW-004",
+      "name": "PRREVIEW-004",
+      "skill": "pr-review",
+      "input": "Standalone third-party PR lacks lifecycle issue but intent is reconstructable",
+      "description": "Standalone third-party PR lacks lifecycle issue but intent is reconstructable",
+      "expected_behaviors": [
+        "review against candidate and repository authority"
+      ],
+      "forbidden_behaviors": [
+        "block solely because owning issue is missing"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "review against candidate and repository authority"
+        ],
+        "forbidden_behaviors": [
+          "block solely because owning issue is missing"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "review against candidate and repository authority",
+            "points": 100,
+            "check": "output.review_scope == FULL_CANDIDATE"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-005",
+      "scenario_id": "PRREVIEW-005",
+      "name": "PRREVIEW-005",
+      "skill": "pr-review",
+      "input": "Review actor authored PR and Github disallows self-approval",
+      "description": "Review actor authored PR and Github disallows self-approval",
+      "expected_behaviors": [
+        "post non-approval findings and request independent reviewer"
+      ],
+      "forbidden_behaviors": [
+        "simulate approval despite self-review restriction"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "post non-approval findings and request independent reviewer"
+        ],
+        "forbidden_behaviors": [
+          "simulate approval despite self-review restriction"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "post non-approval findings and request independent reviewer",
+            "points": 100,
+            "check": "output.verdict == INCONCLUSIVE"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-006",
+      "scenario_id": "PRREVIEW-006",
+      "name": "PRREVIEW-006",
+      "skill": "pr-review",
+      "input": "PR accepted feature work is incomplete even though CI ran",
+      "description": "PR accepted feature work is incomplete even though CI ran",
+      "expected_behaviors": [
+        "route to implement-issue before merge-readiness review"
+      ],
+      "forbidden_behaviors": [
+        "approve unfinished feature"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "route to implement-issue before merge-readiness review"
+        ],
+        "forbidden_behaviors": [
+          "approve unfinished feature"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "route to implement-issue before merge-readiness review",
+            "points": 100,
+            "check": "output.next_skill == implement-issue"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

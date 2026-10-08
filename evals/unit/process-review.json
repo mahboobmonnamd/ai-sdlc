@@ -86,6 +86,70 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PROCESSREVIEW-003",
+      "scenario_id": "PROCESSREVIEW-003",
+      "name": "PROCESSREVIEW-003",
+      "skill": "process-review",
+      "input": "Five material comments reveal two root causes and candidate head stable",
+      "description": "Five material comments reveal two root causes and candidate head stable",
+      "expected_behaviors": [
+        "remediate entire accepted root-cause batch and hand off to full review"
+      ],
+      "forbidden_behaviors": [
+        "fix only newest comment then request re-review"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "remediate entire accepted root-cause batch and hand off to full review"
+        ],
+        "forbidden_behaviors": [
+          "fix only newest comment then request re-review"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "remediate entire accepted root-cause batch and hand off to full review",
+            "points": 100,
+            "check": "output.next_skill == pr-review"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PROCESSREVIEW-004",
+      "scenario_id": "PROCESSREVIEW-004",
+      "name": "PROCESSREVIEW-004",
+      "skill": "process-review",
+      "input": "PR head advanced after single-gate preview but before remediation",
+      "description": "PR head advanced after single-gate preview but before remediation",
+      "expected_behaviors": [
+        "stop and regenerate disposition against new head"
+      ],
+      "forbidden_behaviors": [
+        "apply stale remediation plan to changed head"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "stop and regenerate disposition against new head"
+        ],
+        "forbidden_behaviors": [
+          "apply stale remediation plan to changed head"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "stop and regenerate disposition against new head",
+            "points": 100,
+            "check": "output.status == BLOCKED"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

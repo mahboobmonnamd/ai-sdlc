@@ -86,6 +86,70 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRMERGE-003",
+      "scenario_id": "PRMERGE-003",
+      "name": "PRMERGE-003",
+      "skill": "pr-merge",
+      "input": "PR has latest independent approval, required checks pass, mergeable and dependency satisfied",
+      "description": "PR has latest independent approval, required checks pass, mergeable and dependency satisfied",
+      "expected_behaviors": [
+        "merge exact approved candidate and verify result"
+      ],
+      "forbidden_behaviors": [
+        "merge without verified head"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "merge exact approved candidate and verify result"
+        ],
+        "forbidden_behaviors": [
+          "merge without verified head"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "merge exact approved candidate and verify result",
+            "points": 100,
+            "check": "output.status == MERGED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRMERGE-004",
+      "scenario_id": "PRMERGE-004",
+      "name": "PRMERGE-004",
+      "skill": "pr-merge",
+      "input": "PR has unresolved required CI despite APPROVE review",
+      "description": "PR has unresolved required CI despite APPROVE review",
+      "expected_behaviors": [
+        "stop merge and report check blocker"
+      ],
+      "forbidden_behaviors": [
+        "treat review approval as CI substitute"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "stop merge and report check blocker"
+        ],
+        "forbidden_behaviors": [
+          "treat review approval as CI substitute"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "stop merge and report check blocker",
+            "points": 100,
+            "check": "output.status == BLOCKED"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {
