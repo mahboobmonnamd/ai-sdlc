@@ -1,64 +1,85 @@
-# Canonical working loop
+# AI-SDLC canonical working loop
 
-Use exactly one user-facing skill per intent. The issue is the plan. Projects may add domain requirements but must not weaken claim, evidence, approval or security gates.
+Normative operating rules for all active skills. Design rationale and performance goals: [SDLC-DESIGN.md](SDLC-DESIGN.md).
 
-## 12-point Definition of Ready (DoR)
+## 12-point Definition of Ready
 
-Every issue must have the following, with an explicit PASS / FAIL / UNKNOWN / N/A result:
+Display each PASS / FAIL / UNKNOWN / N/A with a one-line reason/evidence, grouping satisfied rows when screen space matters. Only item 5 (the command) is optional. Material FAIL or UNKNOWN is blocking.
 
-| # | Check | Passing condition |
+| # | Check | PASS means |
 | --- | --- | --- |
-| 1 | Problem stated | Clear why the change is needed and for whom |
-| 2 | Observable behavior | Concrete current vs expected behavior, including important failure cases; enough to write tests |
-| 3 | Bounded scope | In scope and out of scope are explicit |
-| 4 | Verifiable acceptance criteria | Independently checkable outcomes, not vague adjectives |
-| 5 | Verification command (optional) | Useful commands provided when known; absence does not block if the evidence approach is clear |
-| 6 | Design decisions closed | Agreed choices recorded under `## Design nuance`; unresolved choices linked/tagged `!+concern` and block if material |
-| 7 | Congruence | Consistent with product intent, code ownership and accepted architectural/security decisions |
-| 8 | Dependencies | All blockers identified and complete, or explicitly sequenced without unsafe assumptions |
-| 9 | Not duplicate | Search confirms no other issue/PR already implements the same change |
-| 10 | Self-contained | A competent implementer can work from this issue and linked authority without hidden chat context |
-| 11 | Implementation plan | Ordered, bounded implementation steps and acceptance-to-test mapping inside the issue |
-| 12 | Security controls | Trust boundaries, inputs, authz, secrets, privacy, logging, dependency or abuse risks evaluated; N/A justified |
+| 1 | Problem stated | Outcome, user/affected system and why |
+| 2 | Observable behavior | Concrete current vs expected behavior and material negative cases |
+| 3 | Bounded scope | In scope/out of scope; independently reviewable |
+| 4 | Verifiable acceptance | Testable, externally observable pass/fail criteria |
+| 5 | Verification command (optional) | Useful known command specified; if absent, expected evidence still named |
+| 6 | Design decisions closed | Decisions under `## Design nuance`; relevant open `!+concern` explicitly block |
+| 7 | Congruence | Compatible with accepted product intent, architecture and code ownership |
+| 8 | Dependencies | Named, correctly ordered, satisfied or explicitly gated |
+| 9 | Not duplicate | Search issues, open PRs, merged changes and candidate branches |
+| 10 | Self-contained | Issue + resolvable authoritative links suffice without private conversation |
+| 11 | Implementation plan | 3–7 ordered production steps with criterion-to-test map |
+| 12 | Security controls | Trust boundaries, access, secrets, inputs, privacy and failure risks assessed; N/A justified |
 
-Do not mark an issue READY when required items are FAIL/UNKNOWN. The verification **command** is optional; testing/evidence is mandatory. Do not invent closed decisions. Missing designs get one targeted question (via `create-issue`) or an explicit concern.
+DoR is an **outcome contract**, not an excuse for bureaucratic prose. A sufficient issue is its own plan. An external versioned plan is required only if project policy explicitly demands it. Load its exact accepted revision; a merely proposed plan cannot authorize changes. A coordination-only label or timestamp edit does not invalidate accepted scope; changed behavior, dependencies or decisions do.
 
-## Lifecycle and labels
+## Correct candidate stage
+
+`NONE | IMPLEMENTATION_IN_PROGRESS | IN_REVIEW | CLOSED_UNMERGED | REJECTED | UNKNOWN`.
+
+- `NONE` → only new ready work; check duplicate branches/PRs before creating anything.
+- `IMPLEMENTATION_IN_PROGRESS` → continue the **same** authorized branch/head, including incomplete scope, early feedback or failing CI.
+- `IN_REVIEW` → review/processing; do not add unfinished unrelated feature work.
+- `CLOSED_UNMERGED` → inspect and reopen/resume same head with authority; do not fork duplicate work.
+- `REJECTED` → do not resume without a new approved decision.
+- `UNKNOWN` or multiple candidates/owners → stop, reconcile ownership and stage before mutation.
+
+Persist stage, candidate identity, issue link and responsible actor in durable host/project state. Reconstruct from current source when possible; no invented lifecycle labels or stale memory.
+
+## Label transitions (state display, never a lock)
 
 ```text
-needs:implementation --[exclusive claim]--> issue:implementing
-    --[gate1 yes, code/test, verification, gate2 yes]--> needs:review (PR)
-needs:review --[exclusive claim]--> pr:reviewing
-    --[approve exact SHA]--> needs:merge
-    --[request changes]--> needs:processing
-needs:processing --[exclusive claim]--> pr:processing
-    --[gate yes, fix+verify]--> needs:review
-needs:merge --[revalidate exact reviewed SHA, checks, protections]--> merged
+issue needs:implementation
+  --[Gate 1 approved + exclusive claim]--> issue:implementing
+  --[verified PR opened]--> issue:in-review (PR: needs:review)
+PR needs:review --[review claim]--> pr:reviewing
+  --[REQUEST_CHANGES]--> needs:processing
+  --[APPROVE]--> needs:merge
+PR needs:processing --[processing claim]--> pr:processing
+  --[approved batch + evidence]--> needs:review
+PR needs:merge --[exact-head checks, protections]--> MERGED
 ```
 
-Treat stage labels as **visibility only**. Claim operations are separate and must not be implemented as a read-then-write label swap. `needs:review`, `pr:reviewing`, `needs:processing` and `pr:processing` must not coexist on the same PR. Transition only after the owner is verified; cleanup only labels owned by the current transition. A failed label API call must be reported and reconciled, never silently ignored.
+Transitions are mutually exclusive per resource and retried idempotently: add destination then remove only applicable old label; reconcile on partial failure. Keep linked issue open until target-branch merge actually closes it via `Closes #N`. `issue:in-review` avoids mistakenly returning submitted work to the ready backlog; if the project lacks this label, retain equivalent durable association and record it explicitly.
 
-## Exclusive claim protocol
+## Exclusive ownership
 
-- Atomically acquire a resource-keyed claim, e.g. `issue:<N>:implement` or `pr:<N>:review` / `pr:<N>:process`. Review and processing for the **same PR** share an exclusion domain `pr:<N>`, to prevent edits during review.
-- A backend must support **create-if-absent** with an owner identity and unique claim token. One usable GitHub implementation is a fixed-name claim ref (one per resource) created through the Git Refs API: only one simultaneous creation succeeds (the other receives a conflict). Put owner/token into a claim commit; the ref must point to that commit. Another transactional lock service is acceptable.
-- On acquire, re-read the claim record and verify owner/token before **any** state mutation, branch creation or file edit. Revalidate owner/token before each critical push, review or merge handoff. A label change or assignee update is **not** proof of exclusive ownership.
-- Release only an owned claim. For Git ref locks, verify the exact current owner/token before deleting the ref; do not forcibly steal or reuse a claim. Stale-lock recovery needs an authorized explicit intervention/audit, not an automatic race-prone timeout.
-- If the backend is unsupported, claim collision exists, or ownership is ambiguous, **fail closed**. Report the blocker and do not modify code/labels.
-- Use the existing candidate/branch for resumes. Do not create parallel PRs for the same issue, including when a PR was closed without merging.
+A claim requires a project-configured **atomic compare-and-set/create-if-absent** backend, not GitHub label/assignee read-then-write. It must handle issue implementation and **one shared PR exclusion domain** for reviewing/processing, and expose owner, unique token, acquire/recheck, conditional release and audited recovery. Git reference creation may be used for atomic first acquisition but **is not a complete reusable lock** unless safe owner-checked transitions/release are implemented; do not delete a ref based only on a stale read. A failed or unavailable required claim blocks mutations.
 
-## Gates and evidence
+**Timing:** read-only eligibility/DoR/plan preflight → Gate 1 → revalidate snapshot → atomic acquire and confirm → issue label swap → branch/edit. This prevents locking an issue while waiting on a human. An authorized in-progress resume validates the existing claim; do not lose continuity on a label mismatch. Recheck token before push, review submission, thread resolution and merge where required. Never replace another owner's claim automatically. If the owner is unavailable, flag for authorized recovery.
 
-**Implement Gate 1**: complete DoR table + validated short implementation plan; ask exactly "Proceed with implementation? (yes/no)". No branch or edits before yes. Work starts from current `origin/main` after approval, except authorized continuation on existing head.
+## Four user decisions, no ritual approvals
 
-**Implement Gate 2**: diffstat + exact base/head + every criterion mapped to a test/observable result + full proposed PR body with `Closes #N`; ask exactly "Push branch and create PR? (yes/no)". No push/PR before yes. Test failures never count as proof.
+| Moment | Display | Ask |
+| --- | --- | --- |
+| New/refined issue | Final issue body + DoR evidence | Approve creation/update? |
+| Implement Gate 1 | DoR readiness, exact issue revision, short plan, testing/risk strategy | **Proceed with implementation? (yes/no)** |
+| Implement Gate 2 | diffstat, exact branch/base/head, acceptance-to-evidence matrix, self-review, complete PR title/body | **Push branch and create PR? (yes/no)** |
+| Process-review | All actionable findings+CI, dispositions, file/test impact, unresolved authority | **Apply this plan? (yes/no)** |
 
-**Process review**: one decision table for every outstanding finding and failing required check, with dispositions `should fix`, `improvement`, `discard`, `disagree`, `push back`. Ask exactly "Apply this plan? (yes/no)" once before edits/push/replies/closing threads. Re-review entire head after verified remediation.
+The approval applies to a **specific snapshot**. If materially changed requirements, plan or reviewed diff invalidate an approval, show only the material delta and seek an updated decision (not a blanket repeat). A no means no corresponding action; do not pretend work happened. Explicit `/pr-merge <PR>` already authorizes a merge attempt, subject to mandatory checks.
 
-**Independent review**: inspect full diff and affected paths; use `[CRIT]`, `[SEC]`, `[NONCONF]`, `[IMPR]`, `[GOOD]`. Unresolved mandatory findings require REQUEST_CHANGES; non-blocking improvements alone allow APPROVE. Head changes invalidate approval.
+## Verification and merge
 
-**Merge**: current head must match approved head; required CI, protections, merge queue, blocking review threads and dependencies must pass. No administrative bypass. GitHub `Closes #N` closure is verified after merge, not assumed.
+- Every mandatory acceptance criterion must show exact test/measurement/demonstration, observed result and revision. Evidence `PASS/FAIL/INCONCLUSIVE`; unrun is not PASS.
+- Use narrow tests during coding and broader risk-driven evidence before Gate 2: normal path, negative/errors, auth/security, compatibility, concurrency/lifecycle, storage/migration/recovery, performance/operability only where relevant.
+- Verify final local diff has no hidden debug changes, unrelated scope, test weakening, secret exposure, temporary production substitute or unchecked migration.
+- After push, CI and GitHub review status are **fresh again**. Pushing and opening a PR is not merge readiness. Review against exact current PR head + base; stale approval is not valid. Respect code owners, required checks, merge queue, blocking threads, rulesets and current permission. No branch-protection bypass.
+- `[CRIT]`, `[SEC]` and `[NONCONF]` block approval when materially unresolved. `[IMPR]` is non-blocking; `[GOOD]` is positive evidence. Findings need file/line when applicable, failure mechanism and an actionable correction.
+- `process-review` handles review stage only; classify every finding as should fix / improvement / discard / disagree / push back. A justified disagreement can clear an invalid blocker only through a new independent reviewer decision; the implementer cannot approve their own resolution.
 
-## Invariants
+## Fast, safe recovery
 
-No product/security decision invented by agents. No cross-issue scope drift or weakened tests. Reproducible evidence is required; mark unavailable measurements UNKNOWN. Respect least privilege and do not publish secrets. Requests for missing authority stop with the exact issue/decision owner, not ritualized multi-question forms.
+At restart: look up exact issue/PR and head, ownership/claim, stage, last approved snapshot, open review threads and required CI. Resume **the last valid checkpoint**; do not re-ask already valid approvals. If head changed, reverify affected tests and review; if acceptance changed, revisit plan Gate 1.
+
+A workflow blocked on access or tools must state precisely what action was and was not performed. Do not label a planned action as a completed side effect.
