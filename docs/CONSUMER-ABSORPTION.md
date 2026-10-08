@@ -1,16 +1,25 @@
 # Consumer adoption
 
-AI-SDLC now exposes eight user-facing lifecycle/reporting skills plus two supporting skills (`project-context`, `verification`). Consumer projects should pin a reviewed revision and explicitly migrate aliases.
+Adopt a reviewed AI-SDLC pin. Product architecture, requirements, test commands, issue/PR labels and GitHub credentials stay in the consuming repository; do not duplicate the full generic lifecycle in every project's always-on rules.
 
-| Previous entrypoint | New route |
+| Previous capability | New entrypoint |
 | --- | --- |
 | `work-item-design` | `create-issue` |
-| `implementation-planning` + `development-readiness` + `implementation` | `implement-issue` (plan within issue, two gates) |
-| `address-pr-review` | `process-review` (one gate) |
-| `pr-review` | `pr-review` (full diff, structured GitHub review) |
-| Host-specific merge logic | `pr-merge` (still respects host authority) |
-| Backlog/status facades | `describe-backlog`, `whatsnextfor-me`, `projectstatus` |
+| `implementation-planning`, `development-readiness`, `implementation` | `implement-issue` (two gates, issue-owned plan) |
+| `address-pr-review` | `process-review` (one batch gate) |
+| `pr-review` | `pr-review` (independent, full diff and evidence) |
+| Host merge operation | `pr-merge` with standard protections |
+| Backlog planning | `describe-backlog` / `whats-next-for-me` |
+| Delivery reconciliation | `projectstatus` HTML dashboard |
 
-Project-specific adapters own issue labeling, milestone mapping, branch naming, review posting, and claim backend integration. Claims **must be atomic**, not simulated with GitHub label swaps. Do not recreate the old separate planning/readiness/remediation skills or copy their full text into always-on instructions.
+`project-context` and `verification` remain reusable support skills. Historical tools for plan acceptance and resumption can remain for older consumers but **must not create additional human approval gates** in the new workflow.
 
-For consumers pinned to old paths: retain their current pin until this change is reviewed and tested. Alias old commands only at the consumer boundary during migration, then remove those aliases. Historical Phase-0 docs are not the live routing contract.
+## Required adapter capabilities
+
+1. Fresh, paginated issue/PR/CI/review/branch retrieval, exact head and dependency graph.
+2. **Real atomic exclusive claim** with unique token, owner, collision safety, recheck and conditional release for issues and a shared PR exclusion domain. A label or assignee is never an atomic claim. Block mutation if the adapter cannot guarantee exclusivity.
+3. Persistent candidate identity/stage, accepted plan reference when project policy requires it, and approvals bound to the issue/plan or exact diff revision. Resume the same authorized branch/PR, including closed-unmerged cases.
+4. Real test/CI commands and recorded outcomes, structured reviews and inline comments, authorization for issue/PR writes and protected merging.
+5. One authoritative source for milestone implementation plan and complete GitHub snapshot to feed the dashboard renderer. The renderer does not fetch GitHub.
+
+Do not advertise an operational end-to-end workflow before these adapters and live tests exist. See [SDLC-DESIGN.md](SDLC-DESIGN.md) for goals and non-goals.

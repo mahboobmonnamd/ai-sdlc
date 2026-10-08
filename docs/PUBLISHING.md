@@ -1,12 +1,9 @@
-# Publishing and evaluation
+# Publishing and validation
 
-AI-SDLC targets the Agent Skills format: `skills/<name>/SKILL.md`, YAML frontmatter with name/description and clear routing, context, stops, procedure, output and handoff.
+Agent Skills live at `skills/<name>/SKILL.md` with clear invocation, negative routing boundaries, required authority/context, stop conditions, procedure, output and handoff.
 
-Before publishing:
-1. Validate skill catalog, evaluation contracts and tests with `make check`.
-2. Verify all published skills have at least two unit scenarios with positive and forbidden behaviors.
-3. Exercise live adapters for claim races, two implementation gates, review→processing→re-review, stale heads and merge refusal. Contract schema or wiring-fixture tests are **not** proof that skills work.
-4. Check security, attribution, project-neutral support utilities, and GitHub permissions. Issue-specific workflow skills may deliberately mention GitHub because this distribution targets GitHub operations.
-5. Confirm consumer migration for renamed/removed skills and publish a reviewed revision only.
+`make check` validates the catalog, tests, evaluation contracts and dashboard renderer. It does **not** prove behavior in a live repository.
 
-No publication claim is allowed while behavioral evaluation remains `NOT_RUN`.
+Before consumer release, execute realistic tool-driven cases for claim collisions and stale claims; both implementation gates and rejected approvals; closed-unmerged candidate resume; failed/unsupported tests; single-pass complete review; review-only improvements; batched remediation; stale SHA approvals; branch protections/CI; and linked issue closure. Compare latency, human interruptions, review rounds and regressions against a baseline when available.
+
+Do not mark behavioral evaluation `RUN` based on scripted expected-route fixtures or textual skill assertions. Publish consumer pins only after testing the target GitHub permissions and claim adapter. Historical `phase-0/` files provide provenance, not current routing instructions.
