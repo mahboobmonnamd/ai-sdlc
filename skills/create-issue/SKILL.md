@@ -1,36 +1,36 @@
 ---
 name: create-issue
-description: Interview an issue author and prepare a Definition-of-Ready issue one question at a time; not for coding or silently deciding product behavior.
+description: Convert an idea or incomplete issue into a small testable GitHub work item by asking one material question at a time; not for implementation, planning bureaucracy or inventing decisions.
 ---
 
 # Create issue
 
 ## Invocation contract
-Input: rough idea, requested change, or existing issue number. An existing issue is edited only with user authorization.
+`/create-issue <idea-or-Issue>`. New idea or existing issue number; repository must be resolved from active project. Do not guess a specific issue.
 
 ## When to use
-Use to turn an idea or incomplete issue into one independently testable implementation issue.
+Use when creating or refining work that cannot yet pass the shared 12-point Definition of Ready (DoR).
 
 ## Do not use
-Do not invent product decisions, impose a long questionnaire, mark ready with unresolved blockers, or create duplicates.
+Do not create duplicates, silently broaden milestone scope, force 3–5 criteria when a single clear criterion suffices, or ask every DoR item as a separate ritual question.
 
 ## Required context
-Read the relevant repository requirements, known decisions, related issues, code contracts, dependencies, and the shared Definition of Ready in `docs/WORKING-LOOP.md`.
+Read only relevant requirements, design decisions (`## Design nuance`), code/expected behavior, dependencies, existing issues/PRs and `docs/WORKING-LOOP.md`.
 
 ## Stop or escalate when
-A question needs product/security/architecture authority, a duplicate already covers the outcome, or an item is too broad to verify independently.
+Desired outcome conflicts with accepted authority, a material decision needs an owner, a duplicate already represents the outcome, or the issue is too broad to be independently verified.
 
 ## Procedure
-1. Search for duplicates and existing decisions before asking.
-2. Ask **one material question per turn**, with your recommended answer and why. Skip questions already answered by authoritative context.
-3. Prefer plain language, observable current versus desired behavior, negative cases and explicit exclusions. Split only genuinely independent outcomes.
-4. Build the implementation plan as a short ordered sequence inside the issue; do not require a separate planning artifact.
-5. Validate **all 12** Definition-of-Ready checks, including design nuance and open `!+concern` issues, dependencies, congruence and security controls.
-6. Display the final issue draft and readiness table. Create or update the issue only when the author approves that draft.
-7. Add `needs:implementation` only when every mandatory check passes. Unready work stays in refinement; optional verification command may be absent.
+1. Search duplicate issues/PRs and existing decisions **before** questions. If an existing issue covers the request, offer refinement rather than creating another.
+2. Extract the problem, observable current vs expected behavior (including failure case), scope/non-goals, dependencies, security impacts and acceptance checks from existing context. Propose a best-practice solution, clearly distinguishing recommendation from accepted decision.
+3. **Ask exactly one high-impact unanswered question per turn**; give a suggested answer and brief tradeoff. Never ask what authoritative sources already answer. If all decisions are known, ask zero questions.
+4. Keep one coherent independently reviewable outcome. Add a short 3–7-step permanent-production implementation plan and criterion→test/evidence map inside the issue; no parallel planning artifact unless project policy requires it.
+5. Evaluate all 12 DoR entries; missing optional verification *command* is not a blocker if the evidence strategy is clear. Record accepted design under `## Design nuance`; unresolved `!+concern` affecting scope/behavior blocks readiness.
+6. Show an editable issue preview including title, current/expected, in/out, AC, plan, dependencies, risks/controls and compact readiness matrix; ask to create/update it **once**. Do not perform tracker writes until approval.
+7. On approval, search duplicates and recheck governance once more; create/update issue, apply `needs:implementation` only if fully ready, and return actual URL. If blocked, save as refinement only with user approval.
 
 ## Output contract
-Return: issue title/body, current-versus-expected behavior, scope/non-goals, acceptance checklist, implementation plan, dependency links, security assessment, readiness table (PASS/FAIL/UNKNOWN/N/A), outstanding single next question, and created/updated issue link when applicable.
+Issue draft or URL, issue/source revisions, DoR verdict and gap rows, implementation steps, AC→test evidence, design decisions, single next question if any, explicit write approval/state and next skill.
 
 ## Handoff
-Ready → `implement-issue`. Missing decision → record concern and continue refinement; never disguise it as ready.
+READY → `implement-issue <N>`; unresolved authority → named decision owner. Do not claim the item automatically.

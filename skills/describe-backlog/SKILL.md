@@ -1,33 +1,34 @@
 ---
 name: describe-backlog
-description: Produce an evidence-based shortlist of actionable ready issues from the project backlog; not for assigning, claiming or implementing them.
+description: Retrieve and verify ready, active, blocked and refinement work for a milestone or project; not for claiming issues or fabricating priority.
 ---
 
 # Describe backlog
 
 ## Invocation contract
-`/describe-backlog [milestone]` optionally scopes a current GitHub milestone.
+`/describe-backlog [milestone]`; optional risk, workstream or priority filter.
 
 ## When to use
-Use to understand ready work, dependencies, blocked work and available parallel tasks.
+When planning available implementation work or explaining why work is blocked.
 
 ## Do not use
-Do not assume any open issue is ready, duplicate active work, infer priority from issue number, or silently assign owners.
+Do not infer ready from a label alone, promote duplicate/in-flight work, count parent and child as independent delivery twice, or mutate issues.
 
 ## Required context
-Fetch current issues/labels/milestones, existing active claims, dependencies, Definition of Ready and related PRs. Respect pagination.
+Fresh paginated issues/PRs, milestones, exact DoR, implementation and review claims, accepted dependencies, plans and explicit priority.
 
 ## Stop or escalate when
-The issue list or dependency state is incomplete; clearly mark a partial snapshot rather than inventing completeness.
+Pagination/permissions, claimant or dependency state is unavailable; mark counts as PARTIAL/UNKNOWN and name missing data.
 
 ## Procedure
-1. Exclude closed/merged/claimed/duplicate issues and blocked dependencies.
-2. Check all required DoR fields for remaining `needs:implementation` candidates; optional verification command may be absent.
-3. Group as READY, BLOCKED, IN_PROGRESS, or NEEDS_REFINEMENT and give a precise blocking reason.
-4. Rank READY issues by explicit milestone priority, dependency unlock and risk; label ties instead of inventing priority.
+1. Fetch all matching pages with snapshot timestamp. Join each issue to related PRs (including closed-unmerged/merged), owner/claim, scope and dependency state.
+2. Reconcile DoR for potential READY items and identify material `!+concern` blocks. An issue can be ready without an optional verification command but not without measurable evidence.
+3. Categorize mutually exclusively: READY, IMPLEMENTING, REVIEW, PROCESSING, MERGE_READY, BLOCKED, NEEDS_REFINEMENT, DONE or UNKNOWN. Avoid double counting parent/child outcomes.
+4. Sort READY by actual milestone priority and dependency unlock, then risk reduction; note ties and missing estimates rather than invent scores.
+5. Show concise ready list plus blockers/unblock actions, status totals, source links and data completeness. Never claim/assign issues from this command.
 
 ## Output contract
-Return snapshot date, scope/milestone, totals by status, concise ready issue table (number/title/priority/dependencies/why-next), blocked reasons and evidence links. No GitHub writes.
+Milestone, snapshot freshness/completeness, ready table (number, outcome, why now, dependencies, ownership), blocked and in-flight evidence, counts, gaps and next command.
 
 ## Handoff
-`whatsnextfor-me` selects one from this evidence; `implement-issue <Issue>` claims it.
+Use `whats-next-for-me` for one recommendation, `implement-issue <N>` to claim after Gate 1, `create-issue` for non-ready refinement.

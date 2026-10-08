@@ -1,35 +1,34 @@
 ---
 name: projectstatus
-description: Reconcile a project's implementation plan with current milestone issues and generate a self-contained HTML status dashboard; not for changing issue state.
+description: Reconcile milestone implementation plan with current GitHub issues/PRs into an evidence-backed HTML dashboard; not for mutating progress or inventing completion.
 ---
 
 # Project status
 
 ## Invocation contract
-`/projectstatus [milestone]`; optional path or URL to authoritative implementation plan.
+`/projectstatus [milestone]` with optional approved plan file/URL or current repo plan discovery.
 
 ## When to use
-Use to assess delivery progress, slippage, coverage, dependencies and milestone health.
+To see milestone delivery reality, scope drift, review/CI bottlenecks and next unblockers.
 
 ## Do not use
-Do not fabricate milestone scope, dates, estimates, velocity or completion; do not equate closed issues with accepted work.
+Do not fabricate plan, delivery dates, issue counts or velocity, equate closed issue with acceptance, or silently exclude unplanned tickets.
 
 ## Required context
-Fetch authoritative current implementation plan/revision, all GitHub issues and PRs for selected milestones (paginate), labels, dependencies, linked evidence, blockers and current date.
+Authoritative plan source and revision if available; all paginated milestone issues, PRs/merge status/CI, milestone ownership/dependencies and snapshot time.
 
 ## Stop or escalate when
-Plan is absent, ambiguous or stale: still produce the dashboard, prominently flag reconciliation INCOMPLETE and report unmatched plan items/unknowns. Never silently invent a plan.
+Plan missing/stale, incomplete access/pagination or ambiguous milestone. Produce an INCOMPLETE dashboard with explicit source/data gaps, never a falsely green one.
 
 ## Procedure
-1. Match plan work items to issue IDs and PRs; show unmatched plan rows and unplanned tracker work separately. Deduplicate parent/child progress.
-2. Calculate counts from actual issues; categorize READY, IMPLEMENTING, REVIEW, PROCESSING, MERGE_READY, DONE, BLOCKED and UNMAPPED. Mark ambiguous states UNKNOWN.
-3. Derive health signals: scope coverage, blockers, aging/stale issues (with actual update dates), failing checks, review/processing queues, dependency bottlenecks, due-date risk only when dates exist. State metric denominators.
-4. Generate **one self-contained, accessible, responsive HTML** artifact with an executive summary, milestone filter/sections, progress and risk indicators, plan-versus-GitHub reconciliation table, status drill-down hyperlinks and a short recommended next-actions section.
-5. Normalize the fetched evidence using `references/SNAPSHOT.md` and render with `scripts/render_dashboard.py --data <snapshot.json> --output <dashboard.html> [--milestone <name>]`. Validate the output exists. Escape user data; no remote scripts, tokens, secrets or simulated data; keep source links and snapshot timestamp visible.
-6. Provide the generated HTML file/link and a short textual snapshot; never say generated when no file was created.
+1. Fetch all scoped issues/PRs and authoritative implementation plan revision. Reconcile IDs with plan work items; show planned-untracked and unplanned-tracked separately, and deduplicate parent/child progress.
+2. Compute READY/IMPLEMENTING/REVIEW/PROCESSING/MERGE_READY/BLOCKED/NEEDS_REFINEMENT/DONE/UNKNOWN with verified evidence, not label guess alone. Document unknown denominators and unmatched items.
+3. Surface milestone health: completion coverage, critical dependency blockers, stale updates, CI failures, review queue aging, scope change and due-date risk **only when dates exist**.
+4. Normalize data to `references/SNAPSHOT.md`; run `scripts/render_dashboard.py --data <snapshot.json> --output <dashboard.html> [--milestone <name>]`. Verify file exists and visually/readably contains plan and tracker source links. Escaped, self-contained responsive HTML; no external scripts or secrets.
+5. Return actual HTML artifact plus short textual snapshot, top blockers and three evidence-based actions. Do not mark the report GENERATED if only instructions were produced.
 
 ## Output contract
-Return actual HTML artifact, snapshot date, plan revision/source, milestone scope, matched/unmatched counts, issue-status and health summaries, top blockers, known data gaps and next three evidence-backed actions.
+Artifact link/path, snapshot date, selected milestone and plan revision, completeness, reconciled/missing/unplanned counts, status/risk evidence, bottlenecks, unknowns and next three actions.
 
 ## Handoff
-Ready work → `describe-backlog` / `whatsnextfor-me`; unclear issues → `create-issue`. No automatic mutations.
+READY → `describe-backlog` / `whats-next-for-me`; missing authority → `create-issue`; no state mutation.

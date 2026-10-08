@@ -1,36 +1,37 @@
 ---
 name: pr-review
-description: Independently examine the entire current PR diff and post a structured GitHub review with inline findings; not for changing code or merging.
+description: Independently review an exact PR head against intended behavior, affected production paths and required evidence, posting structured inline GitHub feedback; not for implementation edits or merge.
 ---
 
 # PR review
 
 ## Invocation contract
-`/pr-review <PR>` requires a concrete PR number.
+`/pr-review <PR>` with exact PR number. Works for both AI-SDLC issues and PRs without an owning issue.
 
 ## When to use
-Use for an initial review or full re-review of an open candidate, including candidates with no AI-SDLC issue.
+Initial review and full re-review after remediation or head/base changes.
 
 ## Do not use
-Do not edit PR code, approve unverified blockers, review only the latest delta, or mistake green CI for correctness.
+Do not review only new lines or latest comments, claim green CI equals correctness, approve own authored PR via an unsupported self-review, edit code, or merge.
 
 ## Required context
-Fetch current PR head/base, changed files and full diff, issue intent if available, authority/design decisions, check runs, threads and prior reviews. Resolve current main/base before analysis.
+Fresh PR head/base/current diff (all pages and changed files), issue scope/AC and plan when applicable, design authority, relevant surrounding code/call paths, security controls, required CI/evidence, prior reviews and unresolved threads. For a standalone PR, reconstruct intent from PR/repository authority without inventing an issue.
 
 ## Stop or escalate when
-PR is merged/closed, another reviewer owns its claim, the diff cannot be fully inspected, the base/head becomes stale, or mandatory evidence is unavailable. Report INCONCLUSIVE rather than pretend APPROVED.
+Merged/closed/rejected candidate, already-merged-equivalent content, ambiguous base, incomplete diff access, unauthorized review claim, head changes during review, or missing mandatory evidence. Use INCONCLUSIVE, never a false APPROVE.
 
 ## Procedure
-1. Check whether changes are already merged/equivalent, PR is stale against base, base branch is missing, or head changed since prior review. Report and stop when substantive review is inapplicable.
-2. Atomically claim review ownership; confirm it, then transition `needs:review` → `pr:reviewing`. A second simultaneous claimant loses; labels are never sufficient for exclusion.
-3. Freeze exact head SHA and base. Inspect **all changed files plus affected call paths**, contracts, security boundaries, data migrations, concurrency/failure paths and tests. For re-review, check previous findings and review the complete candidate again.
-4. Classify material findings `[CRIT]` correctness/reliability, `[SEC]` security/privacy, `[NONCONF]` intent/spec violation, `[IMPR]` non-blocking quality improvement, `[GOOD]` meaningful strengths. Combine duplicates by root cause.
-5. Give actionable inline comments on exact changed lines for defects; include expected behavior, failure case and suggested evidence. Never post fabricated inline positions. Include a concise summary and acceptance/CI coverage table in the **structured GitHub review**.
-6. Recheck head before submission. **REQUEST_CHANGES** for any unresolved CRIT/SEC/NONCONF or mandatory evidence gap; **APPROVE** when no blocking issues remain (IMPR-only may approve). If GitHub forbids own-PR approval, return a non-approval review with the same findings and state the constraint. Inconclusive reviews are not approvals.
-7. Submit exactly one coherent review for this head, then set `needs:processing` on changes requested, or `needs:merge` on approved exact head; remove `pr:reviewing`, and release the claim. Never advance a changed head using stale approval.
+1. **Fast eligibility:** inspect candidate lifecycle and ownership; distinguish incomplete feature work (`IMPLEMENTATION_IN_PROGRESS` → `implement-issue`) from review-ready work. Check already-merged changes, stale base, duplicate PR and conflicts. State exactly what is stale and whether rebase is actually required.
+2. Atomically claim PR review in shared `pr:<N>` exclusion domain; recheck claim owner/token, then transition `needs:review` → `pr:reviewing`. Do not change state on a failed claim.
+3. Freeze head SHA/base. Inventory **all** changes, surrounding contracts and affected usage, relevant tests and previous findings; do not rely on patch alone for correctness. Determine risk coverage: behavior, errors/failure, security/privacy, authorization, data/concurrency, compatibility, migration/rollback, performance/operability where relevant, documentation and CI.
+4. Review independently and **finish the full material finding pass**, even after first blocker. Categorize: `[CRIT]` correctness/reliability defect; `[SEC]` security/privacy control; `[NONCONF]` accepted intent/contract deviation or mandatory missing evidence; `[IMPR]` optional quality; `[GOOD]` proven strength. Group siblings by root cause; include how failure manifests, expected outcome, exact source link/line and smallest valid remediation.
+5. Correlate original acceptance→evidence, tests and CI to the **current SHA**. Do not treat tests/skips from an older head as success. Prior findings are a regression checklist, not a substitute for reviewing whole candidate. Review code while CI runs where useful, but final approval needs required checks/evidence.
+6. Re-fetch head and check state before posting. Changed head → do not post a stale verdict. Post **one structured GitHub review**: summary, blockers, non-blocking improvements, positive notes, AC/CI matrix and actionable inline comments on changed lines. If inline position is impossible, use a precise file/line summary rather than fabricating coordinates.
+7. Final verdict: REQUEST_CHANGES if any unresolved CRIT/SEC/NONCONF or mandated evidence gap; APPROVE only for clean intent-matching, verified **independent** review (IMPR-only may APPROVE); INCONCLUSIVE when review inputs/tools are inadequate. If self-approval is prohibited, post COMMENT and return "independent approval required", not a simulated approval.
+8. Release owned claim safely. On valid requested changes set `needs:processing`; on valid approval for exact head set `needs:merge`; otherwise return to `needs:review` with blocker. Remove `pr:reviewing` only after successful reconciled transition.
 
 ## Output contract
-Return: PR/head/base, stale/duplicate assessment, classification counts, inline comment links when posted, criterion/CI coverage, decision (APPROVE | REQUEST_CHANGES | INCONCLUSIVE), review URL, label outcome and next action.
+PR/head/base, review coverage, exact evidence revision, old-finding dispositions, CRIT/SEC/NONCONF/IMPR/GOOD table and inline links, submitted review ID/URL, APPROVE/REQUEST_CHANGES/INCONCLUSIVE, label outcome, next action.
 
 ## Handoff
-REQUEST_CHANGES → `process-review`. APPROVE → `pr-merge`. A new head must be fully re-reviewed.
+REQUEST_CHANGES → `process-review`; APPROVE → `pr-merge`; incomplete scope → `implement-issue`. Review revised head again in full.
