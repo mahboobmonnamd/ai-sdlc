@@ -80,6 +80,38 @@ class SkillCatalogTests(unittest.TestCase):
                 self.assertTrue(s["forbidden_behaviors"])
                 self.assertTrue(s["scoring"]["criteria"])
 
+    def test_implementation_uses_one_plan_gate_before_any_claim_or_branch(self):
+        text = self.skill("implement-issue")
+        labels = ["3. **Gate 1**", "4. **Claim**", "5. **Branch**",
+                  "7. **Verification**", "8. **Gate 2**", "9. **Publish**"]
+        offsets = [text.index(label) for label in labels]
+        self.assertEqual(sorted(offsets), offsets)
+        self.assertIn("Read-only preflight", text)
+        self.assertIn("CLOSED_UNMERGED", (ROOT / "docs" / "WORKING-LOOP.md").read_text(encoding="utf-8"))
+        self.assertIn("exact accepted revision", text)
+
+    def test_previous_engineering_safeguards_remain_part_of_new_design(self):
+        brief = (ROOT / "docs" / "SDLC-DESIGN.md").read_text(encoding="utf-8")
+        for policy in ("Candidate continuity", "Semantic staleness", "Risk-proportional evidence",
+                       "Review quality", "Merge correctness"):
+            self.assertIn(policy, brief)
+        self.assertIn("IN_REVIEW", self.skill("process-review"))
+        self.assertIn("self-approval", self.skill("pr-review"))
+        self.assertIn("conditional release", (ROOT / "docs" / "WORKING-LOOP.md").read_text(encoding="utf-8"))
+        self.assertTrue((ROOT / "skills" / "whats-next-for-me" / "SKILL.md").exists())
+
+    def test_behavioral_contracts_cover_recovery_and_revision_races(self):
+        src = ROOT / "evals" / "unit"
+        implementation = (src / "implement-issue.json").read_text(encoding="utf-8")
+        review = (src / "pr-review.json").read_text(encoding="utf-8")
+        processing = (src / "process-review.json").read_text(encoding="utf-8")
+        merge = (src / "pr-merge.json").read_text(encoding="utf-8")
+        self.assertIn("closed-unmerged", implementation)
+        self.assertIn("Gate 1 approval", implementation)
+        self.assertIn("authored PR", review)
+        self.assertIn("entire accepted root-cause batch", processing)
+        self.assertIn("unresolved required CI", merge)
+
     def test_integration_routes(self):
         path = ROOT / "evals" / "integration" / "core-development-loop.json"
         self.assertEqual([], eval_module.validate_contract(path))
