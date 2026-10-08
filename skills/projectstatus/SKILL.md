@@ -25,7 +25,7 @@ Plan is absent, ambiguous or stale: still produce the dashboard, prominently fla
 2. Calculate counts from actual issues; categorize READY, IMPLEMENTING, REVIEW, PROCESSING, MERGE_READY, DONE, BLOCKED and UNMAPPED. Mark ambiguous states UNKNOWN.
 3. Derive health signals: scope coverage, blockers, aging/stale issues (with actual update dates), failing checks, review/processing queues, dependency bottlenecks, due-date risk only when dates exist. State metric denominators.
 4. Generate **one self-contained, accessible, responsive HTML** artifact with an executive summary, milestone filter/sections, progress and risk indicators, plan-versus-GitHub reconciliation table, status drill-down hyperlinks and a short recommended next-actions section.
-5. Escape all issue/user-provided text; no remote scripts, tokens, secrets or misleading simulated data. Keep data timestamp and source links visible.
+5. Normalize the fetched evidence using `references/SNAPSHOT.md` and render with `scripts/render_dashboard.py --data <snapshot.json> --output <dashboard.html> [--milestone <name>]`. Validate the output exists. Escape user data; no remote scripts, tokens, secrets or simulated data; keep source links and snapshot timestamp visible.
 6. Provide the generated HTML file/link and a short textual snapshot; never say generated when no file was created.
 
 ## Output contract
