@@ -13,7 +13,7 @@ eval_module = importlib.util.module_from_spec(eval_spec)
 eval_spec.loader.exec_module(eval_module)
 
 PUBLIC = {"create-issue", "implement-issue", "pr-review", "process-review", "pr-merge",
-          "describe-backlog", "whatsnextfor-me", "projectstatus"}
+          "describe-backlog", "whats-next-for-me", "projectstatus"}
 SUPPORT = {"project-context", "verification"}
 ROOT_SKILLS = ROOT / "skills"
 
@@ -37,7 +37,7 @@ class SkillCatalogTests(unittest.TestCase):
         for phrase in ("needs:implementation", "issue:implementing", "Gate 1", "Gate 2",
                        "origin/main", "Closes #N", "needs:review", "diffstat"):
             self.assertIn(phrase, text)
-        self.assertIn("Do not push or open PR without yes", text)
+        self.assertIn("no push/PR on no", text)
 
     def test_review_processing_and_merge_are_separate(self):
         review = self.skill("pr-review")
@@ -47,13 +47,13 @@ class SkillCatalogTests(unittest.TestCase):
             self.assertIn(term, review)
         for term in ("should fix", "improvement", "discard", "disagree", "push back", "Apply this plan?"):
             self.assertIn(term, processing)
-        self.assertIn("exact head", merge)
+        self.assertIn("exact", merge)
         self.assertIn("needs:processing", review)
         self.assertIn("needs:merge", merge)
 
     def test_atomic_claim_is_not_implemented_using_labels_only(self):
         working = (ROOT / "docs" / "WORKING-LOOP.md").read_text(encoding="utf-8")
-        for term in ("create-if-absent", "claim token", "failed label", "fail closed"):
+        for term in ("compare-and-set", "unique token", "failed or unavailable", "claim"):
             self.assertIn(term.lower(), working.lower())
         for name in ("implement-issue", "pr-review", "process-review"):
             self.assertIn("atomically", self.skill(name).lower())

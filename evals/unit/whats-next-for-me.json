@@ -1,20 +1,20 @@
 {
   "contract_id": "EVAL-WHATSNEXTFOR-ME-001",
   "contract_version": "1.0.0",
-  "skill": "whatsnextfor-me",
+  "skill": "whats-next-for-me",
   "skill_version_tested": "unreleased",
   "date_created": "2026-10-08",
   "date_last_run": null,
   "category": "unit",
-  "description": "Behavioral expectations for whatsnextfor-me.",
+  "description": "Behavioral expectations for whats-next-for-me.",
   "metadata": {
-    "title": "whatsnextfor-me unit tests",
+    "title": "whats-next-for-me unit tests",
     "category": "unit",
     "priority": "P0",
     "owner": "AI-SDLC maintainers"
   },
   "target_capability": {
-    "description": "whatsnextfor-me respects its gates and boundaries.",
+    "description": "whats-next-for-me respects its gates and boundaries.",
     "preconditions": [
       "current authoritative inputs supplied"
     ],
@@ -27,7 +27,7 @@
       "id": "WHATSNEXTFORME-001",
       "scenario_id": "WHATSNEXTFORME-001",
       "name": "WHATSNEXTFORME-001",
-      "skill": "whatsnextfor-me",
+      "skill": "whats-next-for-me",
       "input": "Ready backlog has two candidate issues; one unlocks dependent work",
       "description": "Ready backlog has two candidate issues; one unlocks dependent work",
       "expected_behaviors": [
@@ -59,7 +59,7 @@
       "id": "WHATSNEXTFORME-002",
       "scenario_id": "WHATSNEXTFORME-002",
       "name": "WHATSNEXTFORME-002",
-      "skill": "whatsnextfor-me",
+      "skill": "whats-next-for-me",
       "input": "All ready issues already claimed",
       "description": "All ready issues already claimed",
       "expected_behaviors": [

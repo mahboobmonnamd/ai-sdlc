@@ -13,7 +13,7 @@
     "process-review",
     "pr-merge",
     "describe-backlog",
-    "whatsnextfor-me",
+    "whats-next-for-me",
     "projectstatus",
     "project-context",
     "verification"
@@ -175,7 +175,7 @@
       "expected_route": [
         "projectstatus",
         "describe-backlog",
-        "whatsnextfor-me"
+        "whats-next-for-me"
       ],
       "forbidden_behaviors": [
         "select blocked item"

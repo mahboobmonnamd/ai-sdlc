@@ -14,7 +14,7 @@
     "evals/unit/project-context.json",
     "evals/unit/projectstatus.json",
     "evals/unit/verification.json",
-    "evals/unit/whatsnextfor-me.json"
+    "evals/unit/whats-next-for-me.json"
   ],
   "integration_contract": "evals/integration/core-development-loop.json",
   "date_created": "2026-10-08",
@@ -52,6 +52,6 @@
     "project-context",
     "projectstatus",
     "verification",
-    "whatsnextfor-me"
+    "whats-next-for-me"
   ]
 }
