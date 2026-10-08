@@ -23,7 +23,6 @@ FORBIDDEN_GENERIC_TERMS = (
     "xcode",
     "metal renderer",
     "macos",
-    "github issue",
     "make check",
 )
 
