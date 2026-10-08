@@ -82,8 +82,8 @@ class SkillCatalogTests(unittest.TestCase):
 
     def test_implementation_uses_one_plan_gate_before_any_claim_or_branch(self):
         text = self.skill("implement-issue")
-        labels = ["3. **Gate 1**", "4. **Claim**", "5. **Branch**",
-                  "7. **Verification**", "8. **Gate 2**", "9. **Publish**"]
+        labels = ["3. **Gate 1:**", "4. **Claim:**", "5. **Branch:**",
+                  "7. **Verification:**", "8. **Gate 2:**", "9. **Publish:**"]
         offsets = [text.index(label) for label in labels]
         self.assertEqual(sorted(offsets), offsets)
         self.assertIn("Read-only preflight", text)
