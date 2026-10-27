@@ -214,6 +214,42 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRREVIEW-007",
+      "scenario_id": "PRREVIEW-007",
+      "name": "Review provisional implementation while architecture review is pending",
+      "skill": "pr-review",
+      "input": "Implementation and tests match an explicitly documented provisional contract, safely fail closed, and the independent architecture decision is pending.",
+      "description": "Review implementation quality and the provisional containment now, but keep merge blocked and do not treat technical review as authority acceptance.",
+      "expected_behaviors": [
+        "complete technical review against provisional contract and accepted baseline",
+        "return CONDITIONAL with exact unresolved authority gate",
+        "allow architecture/security review to proceed concurrently"
+      ],
+      "forbidden_behaviors": [
+        "require architecture decision before performing technical review",
+        "return merge-ready or interpret APPROVE as ADR/spec acceptance"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "complete technical review against provisional contract and accepted baseline",
+          "return CONDITIONAL with exact unresolved authority gate"
+        ],
+        "forbidden_behaviors": [
+          "return merge-ready or interpret APPROVE as ADR/spec acceptance"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Complete technical review while retaining authority blocker",
+            "points": 100,
+            "check": "output.verdict == CONDITIONAL"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

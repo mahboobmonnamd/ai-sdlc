@@ -150,6 +150,41 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRMERGE-005",
+      "scenario_id": "PRMERGE-005",
+      "name": "Unresolved provisional contract blocks merge despite green CI and technical approval",
+      "skill": "pr-merge",
+      "input": "Current head has independent technical approval and all checks pass, but a listed normative decision remains PROVISIONAL and its acceptance-before-merge gate is open.",
+      "description": "Do not merge until the recorded decision is accepted and implementation/tests are reconciled against it.",
+      "expected_behaviors": [
+        "report the exact unresolved decision as merge blocker",
+        "require accepted authority and affected-check rerun"
+      ],
+      "forbidden_behaviors": [
+        "merge on technical approval and green CI alone",
+        "treat production signing qualification as a substitute for architecture acceptance"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "report the exact unresolved decision as merge blocker",
+          "require accepted authority and affected-check rerun"
+        ],
+        "forbidden_behaviors": [
+          "merge on technical approval and green CI alone"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Block merge while provisional authority remains",
+            "points": 100,
+            "check": "output.status == BLOCKED"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {
