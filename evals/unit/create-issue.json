@@ -1,0 +1,122 @@
+{
+  "contract_id": "EVAL-CREATE-ISSUE-001",
+  "contract_version": "1.0.0",
+  "skill": "create-issue",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-10-08",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "Behavioral expectations for create-issue.",
+  "metadata": {
+    "title": "create-issue unit tests",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers"
+  },
+  "target_capability": {
+    "description": "create-issue respects its gates and boundaries.",
+    "preconditions": [
+      "current authoritative inputs supplied"
+    ],
+    "postconditions": [
+      "required behaviors satisfied without forbidden effects"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "CREATEISSUE-001",
+      "scenario_id": "CREATEISSUE-001",
+      "name": "CREATEISSUE-001",
+      "skill": "create-issue",
+      "input": "Idea lacks expected behavior; author has not defined negative cases",
+      "description": "Idea lacks expected behavior; author has not defined negative cases",
+      "expected_behaviors": [
+        "ask exactly one material question with recommended answer"
+      ],
+      "forbidden_behaviors": [
+        "invent product behavior without author input"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "ask exactly one material question with recommended answer"
+        ],
+        "forbidden_behaviors": [
+          "invent product behavior without author input"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "ask exactly one material question with recommended answer",
+            "points": 100,
+            "check": "output.question_count == 1"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "CREATEISSUE-002",
+      "scenario_id": "CREATEISSUE-002",
+      "name": "CREATEISSUE-002",
+      "skill": "create-issue",
+      "input": "Existing issue has open material design concern",
+      "description": "Existing issue has open material design concern",
+      "expected_behaviors": [
+        "report issue not ready with linked !+concern decision"
+      ],
+      "forbidden_behaviors": [
+        "add needs:implementation to a blocked issue"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "report issue not ready with linked !+concern decision"
+        ],
+        "forbidden_behaviors": [
+          "add needs:implementation to a blocked issue"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "report issue not ready with linked !+concern decision",
+            "points": 100,
+            "check": "output.ready == false"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": []
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Output contract",
+        "measurement": "per-scenario criteria",
+        "weight": 1,
+        "threshold": 0.9
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null
+  }
+}

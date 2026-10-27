@@ -1,0 +1,122 @@
+{
+  "contract_id": "EVAL-PROJECTSTATUS-001",
+  "contract_version": "1.0.0",
+  "skill": "projectstatus",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-10-08",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "Behavioral expectations for projectstatus.",
+  "metadata": {
+    "title": "projectstatus unit tests",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers"
+  },
+  "target_capability": {
+    "description": "projectstatus respects its gates and boundaries.",
+    "preconditions": [
+      "current authoritative inputs supplied"
+    ],
+    "postconditions": [
+      "required behaviors satisfied without forbidden effects"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "PROJECTSTATUS-001",
+      "scenario_id": "PROJECTSTATUS-001",
+      "name": "PROJECTSTATUS-001",
+      "skill": "projectstatus",
+      "input": "Milestone plan and GitHub issues can be reconciled",
+      "description": "Milestone plan and GitHub issues can be reconciled",
+      "expected_behaviors": [
+        "generate self-contained HTML with progress and sources"
+      ],
+      "forbidden_behaviors": [
+        "invent unmatched issue completion"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "generate self-contained HTML with progress and sources"
+        ],
+        "forbidden_behaviors": [
+          "invent unmatched issue completion"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "generate self-contained HTML with progress and sources",
+            "points": 100,
+            "check": "output.status == GENERATED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PROJECTSTATUS-002",
+      "scenario_id": "PROJECTSTATUS-002",
+      "name": "PROJECTSTATUS-002",
+      "skill": "projectstatus",
+      "input": "Plan cannot be located but issues available",
+      "description": "Plan cannot be located but issues available",
+      "expected_behaviors": [
+        "show incomplete reconciliation explicitly"
+      ],
+      "forbidden_behaviors": [
+        "invent a plan and report green health"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "show incomplete reconciliation explicitly"
+        ],
+        "forbidden_behaviors": [
+          "invent a plan and report green health"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "show incomplete reconciliation explicitly",
+            "points": 100,
+            "check": "output.status == INCOMPLETE"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": []
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Output contract",
+        "measurement": "per-scenario criteria",
+        "weight": 1,
+        "threshold": 0.9
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null
+  }
+}

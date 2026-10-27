@@ -1,0 +1,122 @@
+{
+  "contract_id": "EVAL-DESCRIBE-BACKLOG-001",
+  "contract_version": "1.0.0",
+  "skill": "describe-backlog",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-10-08",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "Behavioral expectations for describe-backlog.",
+  "metadata": {
+    "title": "describe-backlog unit tests",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers"
+  },
+  "target_capability": {
+    "description": "describe-backlog respects its gates and boundaries.",
+    "preconditions": [
+      "current authoritative inputs supplied"
+    ],
+    "postconditions": [
+      "required behaviors satisfied without forbidden effects"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "DESCRIBEBACKLOG-001",
+      "scenario_id": "DESCRIBEBACKLOG-001",
+      "name": "DESCRIBEBACKLOG-001",
+      "skill": "describe-backlog",
+      "input": "Milestone has two unclaimed ready items and one blocked dependent",
+      "description": "Milestone has two unclaimed ready items and one blocked dependent",
+      "expected_behaviors": [
+        "list ready separately and show blocker"
+      ],
+      "forbidden_behaviors": [
+        "recommend blocked item as ready"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "list ready separately and show blocker"
+        ],
+        "forbidden_behaviors": [
+          "recommend blocked item as ready"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "list ready separately and show blocker",
+            "points": 100,
+            "check": "output.ready_count == 2"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "DESCRIBEBACKLOG-002",
+      "scenario_id": "DESCRIBEBACKLOG-002",
+      "name": "DESCRIBEBACKLOG-002",
+      "skill": "describe-backlog",
+      "input": "Pagination or claims unavailable",
+      "description": "Pagination or claims unavailable",
+      "expected_behaviors": [
+        "mark inventory partial rather than pretending complete"
+      ],
+      "forbidden_behaviors": [
+        "claim fully verified inventory"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "mark inventory partial rather than pretending complete"
+        ],
+        "forbidden_behaviors": [
+          "claim fully verified inventory"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "mark inventory partial rather than pretending complete",
+            "points": 100,
+            "check": "output.status == INCOMPLETE"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": []
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Output contract",
+        "measurement": "per-scenario criteria",
+        "weight": 1,
+        "threshold": 0.9
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null
+  }
+}

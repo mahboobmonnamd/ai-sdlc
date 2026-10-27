@@ -1,28 +1,30 @@
 {
-  "contract_id": "EVAL-CORE-DEVELOPMENT-LOOP-LAYOUT",
-  "contract_version": "0.9.0",
+  "contract_id": "EVAL-ISSUE-TO-MERGE-LAYOUT",
+  "contract_version": "1.0.0",
   "skill": "core-development-loop",
   "category": "index",
-  "description": "Layout index for the core development-loop evaluation suite. Unit contracts live under evals/unit/<skill>.json (one skill_instance each for EvaluationContractHarness). Integration flows live under evals/integration/core-development-loop.json and require tools/run_integration_eval.py. This index is not itself a P0-07 single-skill harness input.",
+  "description": "Index for one current contract per active skill and the integrated issue-to-merge routes.",
   "unit_contracts": [
-    "evals/unit/address-pr-review.json",
-    "evals/unit/development-readiness.json",
-    "evals/unit/implementation.json",
-    "evals/unit/implementation-planning.json",
+    "evals/unit/create-issue.json",
+    "evals/unit/describe-backlog.json",
+    "evals/unit/implement-issue.json",
+    "evals/unit/pr-merge.json",
     "evals/unit/pr-review.json",
+    "evals/unit/process-review.json",
     "evals/unit/project-context.json",
+    "evals/unit/projectstatus.json",
     "evals/unit/verification.json",
-    "evals/unit/work-item-design.json"
+    "evals/unit/whats-next-for-me.json"
   ],
   "integration_contract": "evals/integration/core-development-loop.json",
-  "date_created": "2026-09-26",
+  "date_created": "2026-10-08",
   "date_last_run": null,
   "baseline": {
     "status": "NOT_RUN"
   },
   "results": {
     "status": "NOT_RUN",
-    "note": "Index only; see unit and integration contracts. Behavioral evaluation remains NOT_RUN."
+    "note": "Wiring and schema checks are not live behavioral tests."
   },
   "scenarios": [],
   "scoring": {
@@ -31,34 +33,25 @@
     "regression_tolerance": 0
   },
   "metadata": {
-    "title": "Core development-loop eval layout",
+    "title": "AI-SDLC active evaluation index",
     "category": "index",
     "priority": "P0",
     "owner": "AI-SDLC maintainers"
   },
   "target_capability": {
-    "description": "Given lifecycle state and authoritative context, select and execute the correct generic SDLC activity without bypassing ownership, plan, evidence, privacy, or review gates.",
-    "preconditions": [
-      "authoritative work-item/candidate identifiers are available when required",
-      "project-specific ownership and rigor policy are supplied by the consumer",
-      "skills are loaded from the candidate revision under evaluation"
-    ],
-    "postconditions": [
-      "routing follows the canonical work-item-design -> implementation-planning -> development-readiness -> implementation -> candidate -> pr-review lifecycle",
-      "existing authorized incomplete candidates resume without parallel PRs",
-      "review remediation is separated from unfinished implementation",
-      "revision-sensitive verification is tied to the exact candidate revision"
-    ]
+    "description": "Safe, auditable routing from ready issues through verified merge."
   },
   "fixtures": {},
   "skills_tested": [
-    "address-pr-review",
-    "development-readiness",
-    "implementation",
-    "implementation-planning",
+    "create-issue",
+    "describe-backlog",
+    "implement-issue",
+    "pr-merge",
     "pr-review",
+    "process-review",
     "project-context",
+    "projectstatus",
     "verification",
-    "work-item-design"
+    "whats-next-for-me"
   ]
 }

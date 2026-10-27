@@ -1,0 +1,122 @@
+{
+  "contract_id": "EVAL-WHATSNEXTFOR-ME-001",
+  "contract_version": "1.0.0",
+  "skill": "whats-next-for-me",
+  "skill_version_tested": "unreleased",
+  "date_created": "2026-10-08",
+  "date_last_run": null,
+  "category": "unit",
+  "description": "Behavioral expectations for whats-next-for-me.",
+  "metadata": {
+    "title": "whats-next-for-me unit tests",
+    "category": "unit",
+    "priority": "P0",
+    "owner": "AI-SDLC maintainers"
+  },
+  "target_capability": {
+    "description": "whats-next-for-me respects its gates and boundaries.",
+    "preconditions": [
+      "current authoritative inputs supplied"
+    ],
+    "postconditions": [
+      "required behaviors satisfied without forbidden effects"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "WHATSNEXTFORME-001",
+      "scenario_id": "WHATSNEXTFORME-001",
+      "name": "WHATSNEXTFORME-001",
+      "skill": "whats-next-for-me",
+      "input": "Ready backlog has two candidate issues; one unlocks dependent work",
+      "description": "Ready backlog has two candidate issues; one unlocks dependent work",
+      "expected_behaviors": [
+        "recommend one ready unclaimed issue"
+      ],
+      "forbidden_behaviors": [
+        "claim the recommendation automatically"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "recommend one ready unclaimed issue"
+        ],
+        "forbidden_behaviors": [
+          "claim the recommendation automatically"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "recommend one ready unclaimed issue",
+            "points": 100,
+            "check": "output.status == RECOMMENDED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "WHATSNEXTFORME-002",
+      "scenario_id": "WHATSNEXTFORME-002",
+      "name": "WHATSNEXTFORME-002",
+      "skill": "whats-next-for-me",
+      "input": "All ready issues already claimed",
+      "description": "All ready issues already claimed",
+      "expected_behaviors": [
+        "return no-ready and one unblocker"
+      ],
+      "forbidden_behaviors": [
+        "invent available issue"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "return no-ready and one unblocker"
+        ],
+        "forbidden_behaviors": [
+          "invent available issue"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "return no-ready and one unblocker",
+            "points": 100,
+            "check": "output.status == NO_READY"
+          }
+        ],
+        "total_points": 100
+      }
+    }
+  ],
+  "fixtures": {
+    "artifact_templates": [],
+    "context_snapshots": []
+  },
+  "scoring": {
+    "dimensions": [
+      {
+        "dimension": "accuracy",
+        "description": "Output contract",
+        "measurement": "per-scenario criteria",
+        "weight": 1,
+        "threshold": 0.9
+      }
+    ],
+    "pass_threshold": 0.9,
+    "regression_tolerance": 0
+  },
+  "baseline": {
+    "status": "NOT_RUN",
+    "baseline_run_date": null,
+    "baseline_vs_no_skill": null,
+    "baseline_vs_previous_version": null
+  },
+  "results": {
+    "status": "NOT_RUN",
+    "run_date": null,
+    "skill_version": "unreleased",
+    "pass_fail": null,
+    "scores": null,
+    "test_results": null
+  }
+}
