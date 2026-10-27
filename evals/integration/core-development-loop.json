@@ -223,6 +223,32 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "FLOW-008",
+      "scenario_id": "FLOW-008",
+      "name": "Provisional contract development runs in parallel with authority review",
+      "description": "An implementation-ready issue explicitly marks one reversible, fail-closed contract PROVISIONAL, records exact authority/revision, decision owner and pre-merge gate; implementation and independent architecture/security review proceed concurrently.",
+      "expected_route": [
+        "implement-issue:provisional-lane",
+        "pr-review:conditional",
+        "pr-merge:blocked-until-accepted"
+      ],
+      "forbidden_behaviors": [
+        "block all coding solely because independent review is pending",
+        "treat conditional implementation review as architecture acceptance",
+        "merge while the provisional decision is unresolved"
+      ],
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Observed route preserves provisional, review and merge boundaries",
+            "points": 100,
+            "check": "output.observed_route == expected.expected_route"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "scoring": {
