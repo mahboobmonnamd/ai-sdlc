@@ -4,7 +4,7 @@ Normative operating rules for all active skills. Design rationale and performanc
 
 ## 12-point Definition of Ready
 
-Display each PASS / FAIL / UNKNOWN / N/A with a one-line reason/evidence, grouping satisfied rows when screen space matters. Only item 5 (the command) is optional. Material FAIL or UNKNOWN is blocking.
+Display each PASS / FAIL / UNKNOWN / N/A with a one-line reason/evidence, grouping satisfied rows when screen space matters. Only item 5 (the command) is optional. Material FAIL or UNKNOWN is blocking unless the issue explicitly records a safe provisional contract under the lane below; a provisional decision is never treated as accepted.
 
 | # | Check | PASS means |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ Display each PASS / FAIL / UNKNOWN / N/A with a one-line reason/evidence, groupi
 | 3 | Bounded scope | In scope/out of scope; independently reviewable |
 | 4 | Verifiable acceptance | Testable, externally observable pass/fail criteria |
 | 5 | Verification command (optional) | Useful known command specified; if absent, expected evidence still named |
-| 6 | Design decisions closed | Decisions under `## Design nuance`; relevant open `!+concern` explicitly block |
+| 6 | Design decisions classified | Decisions under `## Design nuance` are accepted or explicitly provisional under the bounded lane; material unclassified/open concerns block |
 | 7 | Congruence | Compatible with accepted product intent, architecture and code ownership |
 | 8 | Dependencies | Named, correctly ordered, satisfied or explicitly gated |
 | 9 | Not duplicate | Search issues, open PRs, merged changes and candidate branches |
@@ -22,6 +22,15 @@ Display each PASS / FAIL / UNKNOWN / N/A with a one-line reason/evidence, groupi
 | 12 | Security controls | Trust boundaries, access, secrets, inputs, privacy and failure risks assessed; N/A justified |
 
 DoR is an **outcome contract**, not an excuse for bureaucratic prose. A sufficient issue is its own plan. An external versioned plan is required only if project policy explicitly demands it. Load its exact accepted revision; a merely proposed plan cannot authorize changes. A coordination-only label or timestamp edit does not invalidate accepted scope; changed behavior, dependencies or decisions do.
+
+
+## Bounded provisional contract lane
+
+A consumer may authorize implementation before a separate architecture/security review finishes only when its policy explicitly permits this lane and the issue records the accepted baseline/revisions, the exact provisional contract and selected interim value, unresolved alternatives and decision owner, affected surfaces, reversibility/rollback, tests, fail-closed or disabled behavior, and acceptance-before-merge gate. This lane does not let an issue, plan, skill, or agent change accepted authority.
+
+Proceed only on testable, isolated behavior. Continue independent work when one surface is blocked. Do not expose new authorization/privacy behavior, make irreversible data changes, hide or truncate failures, or enable a feature whose safety depends on the pending decision. A provisional candidate may be published and independently reviewed while architecture/security review runs. Technical review does not accept the contract.
+
+An unresolved provisional decision is a mandatory merge blocker. Before merge, the authorized decision owner must accept/reject it; implementation and tests must be reconciled with that outcome and affected verification rerun. Distribution signing and other release qualification remain separate unless authoritative project policy explicitly requires the artifact before source work.
 
 ## Correct candidate stage
 
@@ -63,17 +72,19 @@ A claim requires a project-configured **atomic compare-and-set/create-if-absent*
 | Moment | Display | Ask |
 | --- | --- | --- |
 | New/refined issue | Final issue body + DoR evidence | Approve creation/update? |
-| Implement Gate 1 | DoR readiness, exact issue revision, short plan, testing/risk strategy | **Proceed with implementation? (yes/no)** |
-| Implement Gate 2 | diffstat, exact branch/base/head, acceptance-to-evidence matrix, self-review, complete PR title/body | **Push branch and create PR? (yes/no)** |
+| Implement Gate 1 | DoR readiness, exact issue revision, short plan, testing/risk strategy, provisional decision ledger | Ask only if current user instruction does not already authorize this exact implementation |
+| Implement Gate 2 | diffstat, exact branch/base/head, acceptance-to-evidence matrix, provisional blockers, self-review, complete PR title/body | Ask only if current user instruction does not already authorize publishing this exact work |
 | Process-review | All actionable findings+CI, dispositions, file/test impact, unresolved authority | **Apply this plan? (yes/no)** |
 
-The approval applies to a **specific snapshot**. If materially changed requirements, plan or reviewed diff invalidate an approval, show only the material delta and seek an updated decision (not a blanket repeat). A no means no corresponding action; do not pretend work happened. Explicit `/pr-merge <PR>` already authorizes a merge attempt, subject to mandatory checks.
+The approval applies to a **specific snapshot**. If materially changed requirements, plan or reviewed diff invalidate an approval, show only the material delta and seek an updated decision (not a blanket repeat). A no means no corresponding action; do not pretend work happened. Explicit `/pr-merge <PR>` already authorizes a merge attempt, subject to mandatory checks. Direct authorization for implementation or PR creation never implies merge authorization.
 
 ## Verification and merge
 
 - Every mandatory acceptance criterion must show exact test/measurement/demonstration, observed result and revision. Evidence `PASS/FAIL/INCONCLUSIVE`; unrun is not PASS.
 - Use narrow tests during coding and broader risk-driven evidence before Gate 2: normal path, negative/errors, auth/security, compatibility, concurrency/lifecycle, storage/migration/recovery, performance/operability only where relevant.
 - Verify final local diff has no hidden debug changes, unrelated scope, test weakening, secret exposure, temporary production substitute or unchecked migration.
+- A technical review may assess a safely isolated provisional candidate while decision review proceeds; its verdict must remain conditional and cannot count as authority acceptance.
+- Any unresolved provisional contract listed in the issue/PR blocks merge, even when code review and CI pass. Resolve the decision and rerun affected tests/checks before exact-head merge review.
 - After push, CI and GitHub review status are **fresh again**. Pushing and opening a PR is not merge readiness. Review against exact current PR head + base; stale approval is not valid. Respect code owners, required checks, merge queue, blocking threads, rulesets and current permission. No branch-protection bypass.
 - `[CRIT]`, `[SEC]` and `[NONCONF]` block approval when materially unresolved. `[IMPR]` is non-blocking; `[GOOD]` is positive evidence. Findings need file/line when applicable, failure mechanism and an actionable correction.
 - `process-review` handles review stage only; classify every finding as should fix / improvement / discard / disagree / push back. A justified disagreement can clear an invalid blocker only through a new independent reviewer decision; the implementer cannot approve their own resolution.

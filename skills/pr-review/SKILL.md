@@ -17,6 +17,13 @@ Do not review only new lines or latest comments, claim green CI equals correctne
 ## Required context
 Fresh PR head/base/current diff (all pages and changed files), issue scope/AC and plan when applicable, design authority, relevant surrounding code/call paths, security controls, required CI/evidence, prior reviews and unresolved threads. For a standalone PR, reconstruct intent from PR/repository authority without inventing an issue.
 
+
+## Provisional contract review
+
+When the consumer explicitly permits provisional implementation, review the whole candidate now against the accepted baseline and the issue's exact provisional ledger. Assess containment, disabled/fail-closed behavior, reversibility, tests, and whether any unresolved choice has leaked into authorization, privacy, persistence, protocol, or user-visible claims. Continue technical findings while independent authority review is pending.
+
+If the candidate safely satisfies its provisional contract, return `CONDITIONAL` with the exact acceptance-before-merge decision. Do not require that decision before technical review, and do not turn technical APPROVE/CONDITIONAL into ADR/spec acceptance. Any unsafe or uncontained uncertainty remains a blocking finding.
+
 ## Stop or escalate when
 Merged/closed/rejected candidate, already-merged-equivalent content, ambiguous base, incomplete diff access, unauthorized review claim, head changes during review, or missing mandatory evidence. Use INCONCLUSIVE, never a false APPROVE.
 
@@ -27,11 +34,11 @@ Merged/closed/rejected candidate, already-merged-equivalent content, ambiguous b
 4. Review independently and **finish the full material finding pass**, even after first blocker. Categorize: `[CRIT]` correctness/reliability defect; `[SEC]` security/privacy control; `[NONCONF]` accepted intent/contract deviation or mandatory missing evidence; `[IMPR]` optional quality; `[GOOD]` proven strength. Group siblings by root cause; include how failure manifests, expected outcome, exact source link/line and smallest valid remediation.
 5. Correlate original acceptance→evidence, tests and CI to the **current SHA**. Do not treat tests/skips from an older head as success. Prior findings are a regression checklist, not a substitute for reviewing whole candidate. Review code while CI runs where useful, but final approval needs required checks/evidence.
 6. Re-fetch head and check state before posting. Changed head → do not post a stale verdict. Post **one structured GitHub review**: summary, blockers, non-blocking improvements, positive notes, AC/CI matrix and actionable inline comments on changed lines. If inline position is impossible, use a precise file/line summary rather than fabricating coordinates.
-7. Final verdict: REQUEST_CHANGES if any unresolved CRIT/SEC/NONCONF or mandated evidence gap; APPROVE only for clean intent-matching, verified **independent** review (IMPR-only may APPROVE); INCONCLUSIVE when review inputs/tools are inadequate. If self-approval is prohibited, post COMMENT and return "independent approval required", not a simulated approval.
+7. Final verdict: REQUEST_CHANGES if any unresolved CRIT/SEC/NONCONF or mandated evidence gap; CONDITIONAL when the candidate safely satisfies a documented provisional contract but authority acceptance remains pending; APPROVE only when the candidate is merge-ready and clean intent-matching, verified **independent** review (IMPR-only may APPROVE); INCONCLUSIVE when review inputs/tools are inadequate. CONDITIONAL never sets the candidate to merge-ready. If self-approval is prohibited, post COMMENT and return "independent approval required", not a simulated approval.
 8. Release owned claim safely. On valid requested changes set `needs:processing`; on valid approval for exact head set `needs:merge`; otherwise return to `needs:review` with blocker. Remove `pr:reviewing` only after successful reconciled transition.
 
 ## Output contract
-PR/head/base, review coverage, exact evidence revision, old-finding dispositions, CRIT/SEC/NONCONF/IMPR/GOOD table and inline links, submitted review ID/URL, APPROVE/REQUEST_CHANGES/INCONCLUSIVE, label outcome, next action.
+PR/head/base, review coverage, exact evidence revision, old-finding dispositions, CRIT/SEC/NONCONF/IMPR/GOOD table and inline links, submitted review ID/URL, APPROVE/CONDITIONAL/REQUEST_CHANGES/INCONCLUSIVE, label outcome, next action.
 
 ## Handoff
 REQUEST_CHANGES → `process-review`; APPROVE → `pr-merge`; incomplete scope → `implement-issue`. Review revised head again in full.
