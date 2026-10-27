@@ -13,7 +13,7 @@ Display each PASS / FAIL / UNKNOWN / N/A with a one-line reason/evidence, groupi
 | 3 | Bounded scope | In scope/out of scope; independently reviewable |
 | 4 | Verifiable acceptance | Testable, externally observable pass/fail criteria |
 | 5 | Verification command (optional) | Useful known command specified; if absent, expected evidence still named |
-| 6 | Design decisions closed or explicitly provisional | Decisions under `## Design nuance` are accepted or explicitly provisional under the bounded lane; material unclassified/open concerns block |
+| 6 | Design decisions closed or explicitly provisional | Decisions under `## Design nuance` are accepted or explicitly provisional under the bounded lane; relevant open `!+concern` blocks unless it meets every provisional-lane requirement |
 | 7 | Congruence | Compatible with accepted product intent, architecture and code ownership |
 | 8 | Dependencies | Named, correctly ordered, satisfied or explicitly gated |
 | 9 | Not duplicate | Search issues, open PRs, merged changes and candidate branches |
