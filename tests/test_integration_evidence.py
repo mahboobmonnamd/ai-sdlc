@@ -1,4 +1,8 @@
 import unittest
+import json
+import subprocess
+import sys
+from pathlib import Path
 
 from tools.eval_judge import EffectTrace
 from tools.run_integration_eval import IntegrationEvalRunner
@@ -44,6 +48,19 @@ class EvidenceProvenanceTests(unittest.TestCase):
         self.assertEqual(first["actual_output"]["effects"], ["observed_first"])
         self.assertEqual(second["actual_output"]["effects"], ["observed_second"])
         self.assertNotIn("invented", second["actual_output"]["effects"])
+
+    def test_cli_rejects_fixture_as_release_evidence(self):
+        script = Path(__file__).resolve().parents[1] / "tools" / "run_integration_eval.py"
+        base = [sys.executable, str(script), "--orchestration-adapter",
+                "tests.eval_adapters:wiring_orchestrator"]
+        normal = subprocess.run(base, cwd=script.parents[1], capture_output=True, text=True)
+        strict = subprocess.run(base + ["--require-live"],
+                                cwd=script.parents[1], capture_output=True, text=True)
+        self.assertEqual(normal.returncode, 0, normal.stderr)
+        self.assertEqual(strict.returncode, 1, strict.stderr)
+        result = json.loads(strict.stdout)
+        self.assertEqual(result["behavioral_evidence"], "WIRING_FIXTURE_ONLY")
+        self.assertFalse(result["acceptance_ready"])
 
     def test_uninstrumented_adapter_is_not_live(self):
         class ExternalAdapter:
