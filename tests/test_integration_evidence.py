@@ -107,6 +107,21 @@ class EvidenceProvenanceTests(unittest.TestCase):
         self.assertTrue(all(row["passed"] for row in result["results"]))
         self.assertEqual(result["results"][1]["actual_output"]["observed_route"], ["second"])
 
+    def test_live_route_needs_no_adapter_reported_route(self):
+        trace = EffectTrace()
+
+        class ExternalAdapter:
+            __module__ = "external_host"
+            live_behavior = True
+
+            def execute(self, scenario):
+                trace.record("route:" + scenario["id"])
+                return {}
+
+        result = IntegrationEvalRunner({}, contract(), ExternalAdapter(), trace).run()
+        self.assertTrue(result["acceptance_ready"])
+        self.assertTrue(all(row["passed"] for row in result["results"]))
+
     def test_repeated_run_does_not_accumulate_old_scenarios(self):
         trace = EffectTrace()
         runner = IntegrationEvalRunner({}, contract(), EchoFixture(trace), trace)
