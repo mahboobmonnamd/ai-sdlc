@@ -212,7 +212,8 @@ def _is_wiring_fixture(orchestration) -> bool:
     if orchestration is None:
         return False
     module = getattr(orchestration.__class__, "__module__", "")
-    return module.startswith("tests.") or getattr(orchestration, "wiring_fixture", False) is True
+    return (module.startswith("tests.") or module.startswith("test_")
+            or getattr(orchestration, "wiring_fixture", False) is True)
 
 
 def main(argv: list[str] | None = None) -> int:
