@@ -1,12 +1,7 @@
-import json
 import unittest
-from pathlib import Path
 
 from tools.eval_judge import EffectTrace
 from tools.run_integration_eval import IntegrationEvalRunner
-
-ROOT = Path(__file__).resolve().parents[1]
-
 
 def contract():
     return {
@@ -61,6 +56,39 @@ class EvidenceProvenanceTests(unittest.TestCase):
         result = IntegrationEvalRunner({}, contract(), ExternalAdapter()).run()
         self.assertEqual(result["behavioral_evidence"], "UNINSTRUMENTED")
         self.assertFalse(result["acceptance_ready"])
+
+    def test_live_adapter_cannot_forge_a_route_without_host_dispatch(self):
+        class ExternalAdapter:
+            __module__ = "external_host"
+            live_behavior = True
+
+            def execute(self, scenario):
+                return {"observed_route": scenario["expected_route"]}
+
+        trace = EffectTrace()
+        result = IntegrationEvalRunner({}, contract(), ExternalAdapter(), trace).run()
+        self.assertEqual(result["behavioral_evidence"], "LIVE")
+        self.assertFalse(result["acceptance_ready"])
+        for row in result["results"]:
+            self.assertEqual(row["actual_output"]["observed_route"], [])
+            self.assertFalse(row["passed"])
+
+    def test_host_instrumented_route_is_derived_from_dispatch(self):
+        trace = EffectTrace()
+
+        class ExternalAdapter:
+            __module__ = "external_host"
+            live_behavior = True
+
+            def execute(self, scenario):
+                trace.record("route:" + scenario["id"])
+                return {"observed_route": ["forged"]}
+
+        result = IntegrationEvalRunner({}, contract(), ExternalAdapter(), trace).run()
+        self.assertEqual(result["behavioral_evidence"], "LIVE")
+        self.assertTrue(result["acceptance_ready"])
+        self.assertTrue(all(row["passed"] for row in result["results"]))
+        self.assertEqual(result["results"][1]["actual_output"]["observed_route"], ["second"])
 
     def test_repeated_run_does_not_accumulate_old_scenarios(self):
         trace = EffectTrace()
