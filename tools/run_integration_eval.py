@@ -87,7 +87,8 @@ class IntegrationEvalRunner:
             "scores": self.score_results(),
             "behavioral_evidence": evidence,
             "acceptance_ready": evidence == "LIVE" and bool(self.results) and all(
-                row.get("status") == "RUN" and row.get("passed") for row in self.results
+                row.get("status") == "RUN" and row.get("passed") and row.get("host_observed")
+                for row in self.results
             ),
         }
 
@@ -163,12 +164,20 @@ class IntegrationEvalRunner:
             }
 
         cleaned = with_host_effects(actual, scenario_trace)
+        # A live route must come from host-observed dispatch, not an agent's
+        # observed_route claim (which a wiring fixture can simply echo).
+        if self._evidence() == "LIVE" and scenario.get("expected_route"):
+            cleaned["observed_route"] = [
+                event[len("route:"):] for event in scenario_trace.effects
+                if event.startswith("route:") and len(event) > len("route:")
+            ]
         accuracy = score_accuracy(cleaned, scenario)
         return {
             "scenario_id": sid,
             "skill": skill_name,
             "status": "RUN",
             "accuracy": accuracy,
+            "host_observed": bool(scenario_trace and scenario_trace.effects),
             "passed": scenario_passed(accuracy, scenario, self.contract),
             "actual_output": cleaned,
         }
