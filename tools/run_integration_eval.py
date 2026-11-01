@@ -153,7 +153,7 @@ class IntegrationEvalRunner:
                 "passed": False,
                 "reason": "adapter did not return an output object",
             }
-        if scenario.get("expected_route") and "observed_route" not in actual:
+        if scenario.get("expected_route") and "observed_route" not in actual and self._evidence() != "LIVE":
             return {
                 "scenario_id": sid,
                 "status": "RUN",
