@@ -27,13 +27,13 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tools.eval_judge import scenario_passed, score_accuracy, with_host_effects  # noqa: E402
+from tools.eval_judge import EffectTrace, scenario_passed, score_accuracy, with_host_effects  # noqa: E402
 
 
 class IntegrationEvalRunner:
     """Dispatch integration scenarios across skill or orchestration adapters."""
 
-    def __init__(self, skill_registry: dict, contract: dict, orchestration=None):
+    def __init__(self, skill_registry: dict, contract: dict, orchestration=None, trace: EffectTrace | None = None):
         """
         skill_registry: skill name -> object with execute(input) -> dict
         orchestration: object with execute(scenario) -> dict including observed_route
@@ -41,8 +41,21 @@ class IntegrationEvalRunner:
         """
         self.skills = skill_registry or {}
         self.orchestration = orchestration
+        self.trace = trace
         self.contract = contract
         self.results = []
+
+    def _evidence(self) -> str:
+        adapters = list(self.skills.values())
+        if self.orchestration is not None:
+            adapters.append(self.orchestration)
+        if any(_is_wiring_fixture(adapter) for adapter in adapters):
+            return "WIRING_FIXTURE_ONLY"
+        if not isinstance(self.trace, EffectTrace) or not all(
+            getattr(adapter, "live_behavior", False) is True for adapter in adapters
+        ):
+            return "UNINSTRUMENTED"
+        return "LIVE"
 
     def scenarios(self) -> list[dict]:
         if "integration_scenarios" in self.contract and "scenarios" in self.contract:
@@ -53,6 +66,7 @@ class IntegrationEvalRunner:
         return list(self.contract.get("scenarios") or [])
 
     def run(self) -> dict:
+        self.results = []
         if not self.skills and self.orchestration is None:
             return {
                 "status": "NOT_RUN",
@@ -65,15 +79,17 @@ class IntegrationEvalRunner:
 
         for scenario in self.scenarios():
             self.results.append(self.run_scenario(scenario))
-        evidence = "LIVE"
-        if _is_wiring_fixture(self.orchestration) and not self.skills:
-            evidence = "WIRING_FIXTURE_ONLY"
+        evidence = self._evidence()
         return {
             "status": "RUN",
             "contract_id": self.contract.get("contract_id"),
             "results": self.results,
             "scores": self.score_results(),
             "behavioral_evidence": evidence,
+            "acceptance_ready": evidence == "LIVE" and bool(self.results) and all(
+                row.get("status") == "RUN" and row.get("passed") and row.get("host_observed")
+                for row in self.results
+            ),
         }
 
     def dispatch_plan(self) -> list[dict]:
@@ -98,6 +114,8 @@ class IntegrationEvalRunner:
     def run_scenario(self, scenario: dict) -> dict:
         sid = scenario.get("id") or scenario.get("scenario_id")
         skill_name = scenario.get("skill")
+        # Host observations belong only to this scenario, never to an earlier one.
+        effect_offset = len(self.trace.effects) if isinstance(self.trace, EffectTrace) else 0
         if skill_name:
             skill = self.skills.get(skill_name)
             if skill is None:
@@ -122,6 +140,11 @@ class IntegrationEvalRunner:
                 "reason": "scenario has neither skill nor expected_route",
             }
 
+        scenario_trace = None
+        if isinstance(self.trace, EffectTrace):
+            scenario_trace = EffectTrace()
+            for effect in self.trace.effects[effect_offset:]:
+                scenario_trace.record(effect)
         if not isinstance(actual, dict):
             return {
                 "scenario_id": sid,
@@ -130,23 +153,31 @@ class IntegrationEvalRunner:
                 "passed": False,
                 "reason": "adapter did not return an output object",
             }
-        if scenario.get("expected_route") and "observed_route" not in actual:
+        if scenario.get("expected_route") and "observed_route" not in actual and self._evidence() != "LIVE":
             return {
                 "scenario_id": sid,
                 "status": "RUN",
                 "accuracy": 0.0,
                 "passed": False,
                 "reason": "orchestration adapter omitted observed_route",
-                "actual_output": with_host_effects(actual, getattr(self, "trace", None)),
+                "actual_output": with_host_effects(actual, scenario_trace),
             }
 
-        cleaned = with_host_effects(actual, getattr(self, "trace", None))
+        cleaned = with_host_effects(actual, scenario_trace)
+        # A live route must come from host-observed dispatch, not an agent's
+        # observed_route claim (which a wiring fixture can simply echo).
+        if self._evidence() == "LIVE" and scenario.get("expected_route"):
+            cleaned["observed_route"] = [
+                event[len("route:"):] for event in scenario_trace.effects
+                if event.startswith("route:") and len(event) > len("route:")
+            ]
         accuracy = score_accuracy(cleaned, scenario)
         return {
             "scenario_id": sid,
             "skill": skill_name,
             "status": "RUN",
             "accuracy": accuracy,
+            "host_observed": bool(scenario_trace and scenario_trace.effects),
             "passed": scenario_passed(accuracy, scenario, self.contract),
             "actual_output": cleaned,
         }
@@ -181,7 +212,8 @@ def _is_wiring_fixture(orchestration) -> bool:
     if orchestration is None:
         return False
     module = getattr(orchestration.__class__, "__module__", "")
-    return module.startswith("tests.")
+    return (module.startswith("tests.") or module.startswith("test_")
+            or getattr(orchestration, "wiring_fixture", False) is True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -208,6 +240,10 @@ def main(argv: list[str] | None = None) -> int:
         "--orchestration-adapter",
         metavar="module:callable",
         help="Register an orchestration adapter. Callable returns an object with execute(scenario)->dict including observed_route.",
+    )
+    parser.add_argument(
+        "--require-live", action="store_true",
+        help="Fail unless all scenarios pass with host-instrumented, non-fixture evidence.",
     )
     args = parser.parse_args(argv)
 
@@ -242,6 +278,8 @@ def main(argv: list[str] | None = None) -> int:
     runner = IntegrationEvalRunner(skills, contract, orchestration=orchestration)
     result = runner.run()
     print(json.dumps(result, indent=2))
+    if args.require_live and not result.get("acceptance_ready", False):
+        return 1
     if args.plan_only or result.get("status") == "NOT_RUN":
         return 0
     failed = [r for r in result.get("results", []) if r.get("status") == "RUN" and not r.get("passed")]
