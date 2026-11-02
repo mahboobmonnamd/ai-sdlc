@@ -36,7 +36,8 @@ class SkillClaimWiringTests(unittest.TestCase):
         self.assertIn("AI_SDLC_CLAIM_TOKEN_FILE", docs)
         self.assertIn("AI_SDLC_TOOL_ROOT", docs)
         self.assertIn("per-worktree DB", docs)
-        self.assertIn("not authenticated by the Python CLI", docs)
+        self.assertIn("does **not authenticate identities**", docs)
+        self.assertIn("unique across concurrently active workers", docs)
         self.assertIn("Re-verify immediately before", docs)
 
 
