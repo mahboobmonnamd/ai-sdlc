@@ -18,6 +18,17 @@ def _contend(db_path, barrier, results, index):
     results.put(result["status"])
 
 
+def _cold_contend(db_path, barrier, results, index):
+    # Both workers start with NO database or WAL, exercising the init race.
+    try:
+        barrier.wait(timeout=15)
+        store = LocalClaimStore(db_path)
+        result = store.acquire("Seyal-Org/Seyal", "issue", 321, f"agent-{index}")
+        results.put(result["status"])
+    except BaseException as exc:
+        results.put(f"ERROR:{type(exc).__name__}")
+
+
 class LocalClaimsTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -114,6 +125,31 @@ class LocalClaimsTests(unittest.TestCase):
                     p.terminate()
         self.assertTrue(all(p.exitcode == 0 for p in processes))
         self.assertEqual(sorted(states), ["ACQUIRED", "BUSY"])
+
+    def test_independent_workers_starting_from_missing_database_have_one_winner(self):
+        context = multiprocessing.get_context("spawn")
+        for trial in range(12):
+            db_path = self.path.parent / f"fresh-{trial}" / "claims.sqlite"
+            self.assertFalse(db_path.exists())
+            barrier = context.Barrier(2)
+            results = context.Queue()
+            workers = [
+                context.Process(target=_cold_contend, args=(str(db_path), barrier, results, index))
+                for index in range(2)
+            ]
+            for worker in workers:
+                worker.start()
+            try:
+                states = [results.get(timeout=20) for _ in workers]
+            finally:
+                for worker in workers:
+                    worker.join(timeout=20)
+                    if worker.is_alive():
+                        worker.terminate()
+                        worker.join(timeout=5)
+            self.assertEqual([worker.exitcode for worker in workers], [0, 0], states)
+            self.assertEqual(sorted(states), ["ACQUIRED", "BUSY"], (trial, states))
+            self.assertEqual(db_path.parent.joinpath(".init.lock").stat().st_mode & 0o777, 0o600)
 
     def test_reject_insecure_directory_and_database(self):
         os.chmod(self.path.parent, 0o755)
