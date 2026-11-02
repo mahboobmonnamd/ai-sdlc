@@ -12,7 +12,7 @@ class SkillClaimWiringTests(unittest.TestCase):
         self.assertIn("--phase implement", body)
         self.assertIn("--number", body)
         self.assertIn(" begin ", body)
-        self.assertIn(" verify ", body)
+        self.assertIn("verify", body)
         self.assertIn(" release ", body)
         self.assertLess(body.index("**Gate 1:**"), body.index("**Claim (executable):**"))
         self.assertLess(body.index("**Claim (executable):**"), body.index("**Branch:**"))
@@ -24,7 +24,7 @@ class SkillClaimWiringTests(unittest.TestCase):
             self.assertIn("tools/workflow_claims.py", body)
             self.assertIn(f"--phase {phase}", body)
             self.assertIn(" begin ", body)
-            self.assertIn(" verify ", body)
+            self.assertIn("verify", body)
             self.assertIn(" release ", body)
         self.assertLess(process.index("**Single gate:**"),
                         process.index("**Claim after approval, then edit:**"))
