@@ -68,6 +68,13 @@ def validate_implementation_resume_context(checkpoint: dict, context: dict) -> d
                 "refresh the separate plan only when policy require_separate_plan is set",
             )
 
+    # A lost checkpoint must reuse the one existing candidate, not open a new PR.
+    # Candidate inventory is supplied by the host's fresh authoritative lookup.
+    discovered = _find_existing_candidate(checkpoint, context)
+    if not discovered["ok"]:
+        return discovered
+    checkpoint = discovered["checkpoint"]
+
     claim = _check_claim(checkpoint, context)
     if not claim["ok"]:
         return claim
@@ -83,6 +90,13 @@ def validate_implementation_resume_context(checkpoint: dict, context: dict) -> d
         "ok": True,
         "resumable": True,
         "reason": "implementation_context_current",
+        "next_action": {
+            "NONE": "new_work_preflight",
+            "IMPLEMENTATION_IN_PROGRESS": "resume_existing_implementation",
+            "IN_REVIEW": "review_existing_candidate",
+            "CLOSED_UNMERGED": "reconcile_existing_closed_candidate",
+        }[stage["candidate_lifecycle_stage"]],
+        "stage_advanced": stage.get("stage_advanced", False),
         "accepted_plan_id": pointer["plan_id"],
         "accepted_plan_revision": pointer["plan_revision"],
         "merge_candidate_id": checkpoint.get("merge_candidate_id"),
@@ -103,6 +117,36 @@ def reconstruct_implementation_fields(checkpoint: dict, resume_check: dict) -> d
         "candidate_lifecycle_stage": resume_check.get(
             "candidate_lifecycle_stage", checkpoint.get("candidate_lifecycle_stage")
         ),
+    }
+
+
+def _find_existing_candidate(checkpoint: dict, context: dict) -> dict:
+    """Recover exactly one known unmerged candidate; refuse ambiguous matches."""
+    work_item_id = checkpoint.get("work_item_id")
+    matches = [
+        cid
+        for cid, candidate in (context.get("candidates") or {}).items()
+        if isinstance(candidate, dict)
+        and candidate.get("work_item_id") == work_item_id
+        and candidate.get("merged") is not True
+    ]
+    if len(matches) > 1:
+        return _block(
+            "multiple_candidates",
+            ", ".join(sorted(map(str, matches))),
+            "reconcile duplicate candidates before selecting a branch or PR",
+        )
+    if checkpoint.get("merge_candidate_id") or not matches:
+        return {"ok": True, "checkpoint": checkpoint}
+    # Prior checkpoint had no candidate. The durable record is authoritative.
+    # An old NONE stage must not override the recovered candidate's stage.
+    return {
+        "ok": True,
+        "checkpoint": {
+            **checkpoint,
+            "merge_candidate_id": matches[0],
+            "candidate_lifecycle_stage": None,
+        },
     }
 
 
@@ -175,42 +219,63 @@ def _resolve_candidate_stage(checkpoint: dict, context: dict) -> dict:
         return {"ok": True, "candidate_lifecycle_stage": "NONE"}
 
     durable = (context.get("candidates") or {}).get(candidate_id) or {}
-    if durable.get("state") == "closed" and durable.get("merged") is not True:
-        if durable.get("architecture_rejected"):
+    if durable.get("merged") is True:
+        return _block(
+            "candidate_already_merged",
+            candidate_id,
+            "do not resume or create a replacement PR for completed work",
+        )
+    if durable.get("architecture_rejected") is True or durable.get("candidate_lifecycle_stage") == "REJECTED":
+        return _block(
+            "architecture_rejected",
+            candidate_id,
+            "do not resume a candidate rejected as the wrong architecture",
+            candidate_lifecycle_stage="REJECTED",
+        )
+    if durable.get("state") == "closed":
+        if durable.get("merged") is not False:
             return _block(
-                "architecture_rejected",
+                "unknown_candidate_merge_status",
                 candidate_id,
-                "do not resume a candidate rejected as the wrong architecture",
-                candidate_lifecycle_stage="REJECTED",
+                "fetch the actual merged status before reopening a closed candidate",
             )
         return {"ok": True, "candidate_lifecycle_stage": "CLOSED_UNMERGED"}
 
-    durable_stage = durable.get("candidate_lifecycle_stage")
-    checkpoint_stage = checkpoint.get("candidate_lifecycle_stage")
-    if durable_stage and checkpoint_stage and durable_stage != checkpoint_stage:
-        return _block(
-            "candidate_stage_mismatch",
-            "durable candidate stage wins; checkpoint is stale",
-            "reconcile the candidate record before resume",
-            candidate_lifecycle_stage=durable_stage,
-        )
-
-    stage = durable_stage or checkpoint_stage
-    if not stage:
+    stage = durable.get("candidate_lifecycle_stage")
+    if stage is None:
         if durable.get("accepted_scope_complete") is False:
             stage = "IMPLEMENTATION_IN_PROGRESS"
         elif durable.get("accepted_scope_complete") is True and durable.get("in_review") is True:
             stage = "IN_REVIEW"
-        else:
-            stage = "UNKNOWN"
-    if stage == "UNKNOWN":
+    if stage not in ("IMPLEMENTATION_IN_PROGRESS", "IN_REVIEW"):
         return _block(
             "unknown_candidate_stage",
-            "stage cannot be reconstructed",
-            "stop and reconcile the durable stage; do not start merge-readiness review",
+            "stage cannot be reconstructed from the durable candidate",
+            "reconcile the durable stage before making another edit or PR",
             candidate_lifecycle_stage="UNKNOWN",
         )
-    return {"ok": True, "candidate_lifecycle_stage": stage}
+    if stage == "IN_REVIEW" and durable.get("accepted_scope_complete") is False:
+        return _block(
+            "candidate_stage_inconsistent",
+            "review stage contradicts incomplete accepted scope",
+            "reconcile scope-completion evidence before review",
+            candidate_lifecycle_stage=stage,
+        )
+
+    checkpoint_stage = checkpoint.get("candidate_lifecycle_stage")
+    advanced = checkpoint_stage == "IMPLEMENTATION_IN_PROGRESS" and stage == "IN_REVIEW"
+    if checkpoint_stage not in (None, "NONE", stage) and not advanced:
+        return _block(
+            "candidate_stage_mismatch",
+            "durable candidate stage conflicts with the checkpoint",
+            "reconcile a backward or incompatible transition before edits",
+            candidate_lifecycle_stage=stage,
+        )
+    return {
+        "ok": True,
+        "candidate_lifecycle_stage": stage,
+        "stage_advanced": advanced,
+    }
 
 
 def _carry(checkpoint: dict, reason: str) -> dict:
