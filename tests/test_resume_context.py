@@ -89,10 +89,20 @@ class ResumeContextTests(unittest.TestCase):
         )
         self.assertEqual(result["reason"], "stale_plan")
 
-    def test_stage_mismatch_blocks_resume(self):
+    def test_normal_implementation_to_review_transition_recovers_without_blocking(self):
         result = validate_implementation_resume_context(
             _checkpoint(candidate_lifecycle_stage="IMPLEMENTATION_IN_PROGRESS"),
             _context("IN_REVIEW"),
+        )
+        self.assertTrue(result["ok"], result)
+        self.assertTrue(result["stage_advanced"])
+        self.assertEqual(result["candidate_lifecycle_stage"], "IN_REVIEW")
+        self.assertEqual(result["next_action"], "review_existing_candidate")
+
+    def test_backward_transition_is_not_silently_accepted(self):
+        result = validate_implementation_resume_context(
+            _checkpoint(candidate_lifecycle_stage="IN_REVIEW"),
+            _context("IMPLEMENTATION_IN_PROGRESS"),
         )
         self.assertEqual(result["reason"], "candidate_stage_mismatch")
 
@@ -154,6 +164,70 @@ class ResumeContextTests(unittest.TestCase):
         self.assertEqual(result["accepted_plan_id"], "WI-042")
         self.assertEqual(result["accepted_plan_revision"], 2)
 
+    def test_missing_candidate_id_recovers_the_same_authorized_candidate(self):
+        result = validate_implementation_resume_context(
+            _checkpoint(merge_candidate_id=None, candidate_lifecycle_stage="NONE"),
+            _context(),
+        )
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["merge_candidate_id"], "PR-99")
+        self.assertEqual(result["next_action"], "resume_existing_implementation")
+        self.assertEqual(result["candidate_lifecycle_stage"], "IMPLEMENTATION_IN_PROGRESS")
+
+    def test_missing_candidate_id_recovers_in_review_without_new_pr(self):
+        result = validate_implementation_resume_context(
+            _checkpoint(merge_candidate_id=None, candidate_lifecycle_stage="NONE"),
+            _context("IN_REVIEW"),
+        )
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["merge_candidate_id"], "PR-99")
+        self.assertEqual(result["next_action"], "review_existing_candidate")
+
+    def test_duplicate_candidates_block_instead_of_guessing_which_pr_to_use(self):
+        context = _context()
+        context["candidates"]["PR-100"] = {
+            "work_item_id": "WI-042", "owner": "dev-a",
+            "candidate_lifecycle_stage": "IMPLEMENTATION_IN_PROGRESS",
+        }
+        result = validate_implementation_resume_context(
+            _checkpoint(merge_candidate_id=None), context
+        )
+        self.assertEqual(result["reason"], "multiple_candidates")
+
+    def test_recovered_candidate_still_enforces_other_owner(self):
+        context = _context()
+        context["candidates"]["PR-99"]["owner"] = "dev-b"
+        result = validate_implementation_resume_context(
+            _checkpoint(merge_candidate_id=None), context
+        )
+        self.assertEqual(result["reason"], "candidate_owner_mismatch")
+
+    def test_merged_candidate_cannot_be_resumed_or_reopened(self):
+        context = _context()
+        context["candidates"]["PR-99"].update({"state": "closed", "merged": True})
+        result = validate_implementation_resume_context(_checkpoint(), context)
+        self.assertEqual(result["reason"], "candidate_already_merged")
+
+    def test_closed_candidate_with_unknown_merge_status_blocks(self):
+        context = _context()
+        context["candidates"]["PR-99"].update({"state": "closed"})
+        result = validate_implementation_resume_context(_checkpoint(), context)
+        self.assertEqual(result["reason"], "unknown_candidate_merge_status")
+
+    def test_missing_durable_stage_cannot_use_stale_checkpoint_guess(self):
+        context = _context(candidate={"work_item_id": "WI-042", "owner": "dev-a"})
+        result = validate_implementation_resume_context(_checkpoint(), context)
+        self.assertEqual(result["reason"], "unknown_candidate_stage")
+
+    def test_review_stage_cannot_hide_incomplete_accepted_scope(self):
+        context = _context(candidate={
+            "work_item_id": "WI-042", "owner": "dev-a",
+            "candidate_lifecycle_stage": "IN_REVIEW",
+            "accepted_scope_complete": False,
+        })
+        result = validate_implementation_resume_context(_checkpoint(), context)
+        self.assertEqual(result["reason"], "candidate_stage_inconsistent")
+
     def test_closed_unmerged_candidate_stays_resumable(self):
         context = _context(
             candidate={
@@ -167,6 +241,7 @@ class ResumeContextTests(unittest.TestCase):
         result = validate_implementation_resume_context(_checkpoint(), context)
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["candidate_lifecycle_stage"], "CLOSED_UNMERGED")
+        self.assertEqual(result["next_action"], "reconcile_existing_closed_candidate")
 
     def test_architecture_rejected_candidate_is_not_resumed(self):
         context = _context(
