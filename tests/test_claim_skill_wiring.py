@@ -14,8 +14,8 @@ class SkillClaimWiringTests(unittest.TestCase):
         self.assertIn(" begin ", body)
         self.assertIn("verify", body)
         self.assertIn(" release ", body)
-        self.assertLess(body.index("**Gate 1:**"), body.index("**Claim (executable):**"))
-        self.assertLess(body.index("**Claim (executable):**"), body.index("**Branch:**"))
+        self.assertLess(body.index("**Gate 1:**"), body.index("**Claim:**"))
+        self.assertLess(body.index("**Claim:**"), body.index("**Branch:**"))
 
     def test_review_and_remediation_share_real_pr_claim(self):
         review = (ROOT / "skills/pr-review/SKILL.md").read_text()
