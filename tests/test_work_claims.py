@@ -135,12 +135,19 @@ class LocalClaimsTests(unittest.TestCase):
             )
             self.assertEqual(res.returncode, 0, res.stderr)
             self.assertEqual(json.loads(res.stdout)["status"], expect)
-        blocked = subprocess.run(
+        self.assertFalse(token_file.exists(), "released token should be cleaned up")
+        again = subprocess.run(
             base + ["acquire"] + target + ["--owner", "b", "--token-file", str(token_file)],
             text=True, capture_output=True, check=False,
         )
+        self.assertEqual(again.returncode, 0, again.stderr)
+        self.assertNotEqual(token_file.read_text(encoding="utf-8"), token)
+        blocked = subprocess.run(
+            base + ["acquire"] + target + ["--owner", "c", "--token-file", str(token_file)],
+            text=True, capture_output=True, check=False,
+        )
         self.assertEqual(blocked.returncode, 2)
-        self.assertEqual(token_file.read_text(encoding="utf-8"), token)
+        self.assertEqual(json.loads(blocked.stderr)["status"], "ERROR")
 
 
 if __name__ == "__main__":
