@@ -67,6 +67,30 @@ A claim requires a project-configured **atomic compare-and-set/create-if-absent*
 
 **Timing:** read-only eligibility/DoR/plan preflight → Gate 1 → revalidate snapshot → atomic acquire and confirm → issue label swap → branch/edit. This prevents locking an issue while waiting on a human. An authorized in-progress resume validates the existing claim; do not lose continuity on a label mismatch. Recheck token before push, review submission, thread resolution and merge where required. Never replace another owner's claim automatically. If the owner is unavailable, flag for authorized recovery.
 
+### Executable local claim gate (single-host reference adapter)
+
+The active `implement-issue`, `pr-review` and `process-review` skills MUST use an executable host claim gate, not the GitHub label or assignee. The reference adapter is `tools/workflow_claims.py` in the **pinned AI-SDLC checkout**. The consuming host sets the following before any mutation:
+
+- `AI_SDLC_TOOL_ROOT`: absolute path of that pinned checkout, never an assumed relative path in the consuming repository.
+- `AI_SDLC_CLAIM_DB`: one stable, private, **local** SQLite path shared by all workers/worktrees on this host. The directory must be owned by the current user and mode 0700. Never use a per-worktree DB or claim distributed-host exclusivity.
+- `AI_SDLC_WORKER_ID`: stable worker identity established by the host; it is **not authenticated by the Python CLI itself**, so the host still must control mutation permissions.
+- `AI_SDLC_CLAIM_TOKEN_FILE`: unique, private 0600 token-file path for this worker **and resource**, outside the repository and retained across restarts until the handoff/release.
+
+After read-only eligibility and the applicable pre-mutation user gate, run the exact form:
+
+```sh
+python3 "$AI_SDLC_TOOL_ROOT/tools/workflow_claims.py" begin --repo "$REPO" --phase "$PHASE" --number "$NUMBER" --token-file "$AI_SDLC_CLAIM_TOKEN_FILE"
+python3 "$AI_SDLC_TOOL_ROOT/tools/workflow_claims.py" verify --repo "$REPO" --phase "$PHASE" --number "$NUMBER" --token-file "$AI_SDLC_CLAIM_TOKEN_FILE"
+# Only after a completed handoff/cancellation, not while an owned task is still being worked:
+python3 "$AI_SDLC_TOOL_ROOT/tools/workflow_claims.py" release --repo "$REPO" --phase "$PHASE" --number "$NUMBER" --token-file "$AI_SDLC_CLAIM_TOKEN_FILE"
+```
+
+Use `PHASE=implement, NUMBER=issue number` for implementation; `PHASE=review` or `process-review`, `NUMBER=PR number` for reviewing/remediation. Both PR phases map to **one** `pr:<N>` claim namespace. A clean `begin` returns `ACQUIRED`, a same-worker resume returns `RESUMED`; both exit zero. A successful `verify` returns `VERIFIED`. No mutation is permitted without `ACQUIRED`/`RESUMED` followed by `VERIFIED` for the same resource/worker. `BUSY` or `DENIED` exits 1; tool/config errors exit 2. Never treat either as successful or create another candidate to bypass it.
+
+**Re-verify immediately before** each label/branch/edit/push, review submission, review-thread resolution or handoff mutation; verify new GitHub head/approval separately. Resume the existing authorized token file for the same worker. A missing token for an already-held claim requires authorized recovery, not an automatic reset. Release only on successful publication/review handoff or deliberate cancellation; preserve it across session interruption and while the same worker is fixing unfinished work. No locks while waiting for human approvals.
+
+If the host cannot run this pinned CLI or provide a different *proven atomic* backend, report exactly the missing capability and continue read-only analysis/tests where possible. **Do not** substitute a label, infer the worker's identity, use per-agent ephemeral DBs, or claim a completed production integration. Real agent-host enforcement at every mutation remains a consumer integration step.
+
 ## Four user decisions, no ritual approvals
 
 | Moment | Display | Ask |
