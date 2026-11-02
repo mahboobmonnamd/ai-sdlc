@@ -25,6 +25,11 @@ import stat
 import sys
 
 
+# External consumers with a pre-existing initialization workaround may
+# skip their own lock when using this revision (avoids recursive flock).
+COLD_INIT_LOCKED = True
+
+
 class ClaimError(RuntimeError):
     pass
 
