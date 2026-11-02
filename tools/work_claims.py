@@ -10,7 +10,7 @@ Tokens are capabilities. Never log them or pass them on a command line.
 from __future__ import annotations
 
 import argparse
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 import hashlib
 import hmac
@@ -86,7 +86,7 @@ class LocalClaimStore:
         _private_dir(self.path.parent)
         try:
             _private_file(self.path, create=True)
-            with self._connect() as db:
+            with closing(self._connect()) as db:
                 db.execute("PRAGMA journal_mode=WAL")
                 db.execute("PRAGMA synchronous=FULL")
                 db.execute("""CREATE TABLE IF NOT EXISTS claims (
