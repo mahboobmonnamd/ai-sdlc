@@ -42,6 +42,7 @@ class WorkflowClaimTests(unittest.TestCase):
         self.assert_status(self.cli("verify"), "DENIED", 1)
         self.assert_status(self.cli("begin", owner="worker-b", file="b.token"), "ACQUIRED", 0)
         (self.root / "a.token").write_text(token)
+        os.chmod(self.root / "a.token", 0o600)
         self.assert_status(self.cli("verify"), "DENIED", 1)
         self.assert_status(self.cli("begin"), "DENIED", 1)
         self.assert_status(self.cli("release"), "DENIED", 1)
