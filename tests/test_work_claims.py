@@ -25,6 +25,34 @@ class LocalClaimsTests(unittest.TestCase):
         self.path = Path(self.tmp.name) / "claims" / "store.sqlite"
         self.store = LocalClaimStore(self.path)
 
+    def test_database_initialization_closes_connection(self):
+        from unittest.mock import patch
+
+        original_connect = LocalClaimStore._connect
+        connections = []
+
+        class TrackedConnection:
+            def __init__(self, connection):
+                self.connection = connection
+                self.closed = False
+
+            def execute(self, *args, **kwargs):
+                return self.connection.execute(*args, **kwargs)
+
+            def close(self):
+                self.closed = True
+                self.connection.close()
+
+        def tracked(store):
+            connection = TrackedConnection(original_connect(store))
+            connections.append(connection)
+            return connection
+
+        with patch.object(LocalClaimStore, "_connect", tracked):
+            LocalClaimStore(self.path)
+        self.assertTrue(connections)
+        self.assertTrue(all(c.closed for c in connections))
+
     def test_claim_token_survives_restart_and_is_not_renewed_for_same_owner(self):
         original = self.store.acquire("Seyal-Org/Seyal", "issue", 17, "worker-a")
         self.assertEqual(original["status"], "ACQUIRED")
