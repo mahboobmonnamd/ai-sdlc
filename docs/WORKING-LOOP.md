@@ -73,7 +73,7 @@ The active `implement-issue`, `pr-review` and `process-review` skills MUST use a
 
 - `AI_SDLC_TOOL_ROOT`: absolute path of that pinned checkout, never an assumed relative path in the consuming repository.
 - `AI_SDLC_CLAIM_DB`: one stable, private, **local** SQLite path shared by all workers/worktrees on this host. The directory must be owned by the current user and mode 0700. Never use a per-worktree DB or claim distributed-host exclusivity.
-- `AI_SDLC_WORKER_ID`: stable worker identity established by the host; it is **not authenticated by the Python CLI itself**, so the host still must control mutation permissions.
+- `AI_SDLC_WORKER_ID`: host-established identity **unique across concurrently active workers** and stable only for authorized single-worker resume. The Python CLI does **not authenticate identities** or prevent a second live process with the same owner and token file from passing `verify`; the host must prevent concurrent reuse and control mutation permissions.
 - `AI_SDLC_CLAIM_TOKEN_FILE`: unique, private 0600 token-file path for this worker **and resource**, outside the repository and retained across restarts until the handoff/release.
 
 After read-only eligibility and the applicable pre-mutation user gate, run the exact form:
