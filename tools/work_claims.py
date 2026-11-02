@@ -236,10 +236,15 @@ def main(argv=None) -> int:
                     raise
                 result["token_file"] = str(token_path)
         else:
-            token = _read_token_file(Path(args.token_file).expanduser().absolute())
+            token_path = Path(args.token_file).expanduser().absolute()
+            token = _read_token_file(token_path)
             held = (store.recheck(args.repo, args.kind, args.number, args.owner, token)
                     if args.action == "recheck"
                     else store.release(args.repo, args.kind, args.number, args.owner, token))
+            # Remove the spent token only after the backend confirms release.
+            # A rejected release must retain the secret for legitimate recovery.
+            if args.action == "release" and held:
+                token_path.unlink()
             result = {"status": "VERIFIED" if held else "DENIED"} if args.action == "recheck" else {
                 "status": "RELEASED" if held else "DENIED"
             }
