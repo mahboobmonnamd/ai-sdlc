@@ -20,6 +20,7 @@ Adopt a reviewed AI-SDLC pin. Product architecture, requirements, test commands,
 2. **Real atomic exclusive claim** with unique token, owner, collision safety, recheck and conditional release for issues and a shared PR exclusion domain. A label or assignee is never an atomic claim. Block mutation if the adapter cannot guarantee exclusivity.
 3. Persistent candidate identity/stage, accepted plan reference when project policy requires it, and approvals bound to the issue/plan or exact diff revision. Resume the same authorized branch/PR, including closed-unmerged cases.
 4. Real test/CI commands and recorded outcomes, structured reviews and inline comments, authorization for issue/PR writes and protected merging.
-5. One authoritative source for milestone implementation plan and complete GitHub snapshot to feed the dashboard renderer. The renderer does not fetch GitHub.
+5. Desktop-safe test execution per [canonical policy](WORKING-LOOP.md#desktop-safe-test-execution): classify actual command effects, provide safe default and explicit headed/full entrypoints, fail closed before disruptive effects, verify isolated runner or scoped human authorization, enforce exclusive use and bounded cleanup, preserve mandatory evidence. The host must enforce permissions; skill prose alone is not an execution sandbox.
+6. One authoritative source for milestone implementation plan and complete GitHub snapshot to feed the dashboard renderer. The renderer does not fetch GitHub.
 
 Do not advertise an operational end-to-end workflow before these adapters and live tests exist. See [SDLC-DESIGN.md](SDLC-DESIGN.md) for goals and non-goals.

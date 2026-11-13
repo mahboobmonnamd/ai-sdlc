@@ -20,6 +20,10 @@ Read intended observable behavior, acceptance criteria, current code/PR revision
 ## Stop or escalate when
 Mandatory evidence is missing, criteria conflict with authority, tests fail, or head SHA changes during verification.
 
+## Desktop-safe testing
+
+Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; unknown or disruptive effects require a verified isolated runner or explicit per-run human authorization before execution. Never self-authorize or bypass the consumer guard. Continue safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge.
+
 ## Procedure
 1. Freeze exact revision and criteria before inspecting results.
 2. For each criterion, record command/fixture/measurement, actual result and PASS/FAIL/INCONCLUSIVE.

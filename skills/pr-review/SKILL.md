@@ -31,6 +31,10 @@ If the candidate safely satisfies its provisional contract but an external autho
 ## Stop or escalate when
 Merged/closed/rejected candidate, already-merged-equivalent content, ambiguous base, incomplete diff access, unauthorized review claim, head changes during review, or missing mandatory evidence. Use INCONCLUSIVE, never a false APPROVE.
 
+## Desktop-safe testing
+
+Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; unknown or disruptive effects require a verified isolated runner or explicit per-run human authorization before execution. Never self-authorize or bypass the consumer guard. Continue safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge.
+
 ## Procedure
 1. **Fast eligibility:** inspect candidate lifecycle and ownership; distinguish incomplete feature work (`IMPLEMENTATION_IN_PROGRESS` → `implement-issue`) from review-ready work. Check already-merged changes, stale base, duplicate PR and conflicts. State exactly what is stale and whether rebase is actually required.
 2. **Executable claim:** atomically acquire a PR ownership token; use `PHASE=review`, `NUMBER=<PR number>` and run `python3 "$AI_SDLC_TOOL_ROOT/tools/workflow_claims.py" begin --repo "$REPO" --phase review --number "$NUMBER" --token-file "$AI_SDLC_CLAIM_TOKEN_FILE"` with the common host-configured DB and worker identity (`docs/WORKING-LOOP.md`). `ACQUIRED` or `RESUMED` must be followed by a `verify` call returning `VERIFIED` before `needs:review` → `pr:reviewing` or any review/label mutation. The same PR claim resource excludes `process-review` simultaneously. On `BUSY`/`DENIED`/`ERROR` do not write, review or spawn a duplicate candidate; explain the existing owner/configuration.

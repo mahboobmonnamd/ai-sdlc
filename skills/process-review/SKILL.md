@@ -22,6 +22,10 @@ For ADR-related findings, follow `docs/WORKING-LOOP.md#adr-lifecycle-merge-is-ac
 ## Stop or escalate when
 Candidate already merged/rejected or incomplete feature scope should route to `implement-issue`; conflicting owner/claim; head changed after preview; proposal requires new product/security/architecture decision or unrelated scope.
 
+## Desktop-safe testing
+
+Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; unknown or disruptive effects require a verified isolated runner or explicit per-run human authorization before execution. Never self-authorize or bypass the consumer guard. Continue safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge.
+
 ## Procedure
 1. **Read-only preflight:** confirm PR is `IN_REVIEW`/reopenable `CLOSED_UNMERGED`, not unfinished implementation, and inspect current owner/claim without acquiring it. Re-fetch exact head. The executable `pr:<N>` claim is acquired only after the single remediation-plan approval below; do not hold a lock during a human decision.
 2. Collect every unresolved thread, blocking past finding and failing required check; check against **current code**. Group duplicate symptoms by root cause without omitting independently material defects.

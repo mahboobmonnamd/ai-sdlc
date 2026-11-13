@@ -31,6 +31,10 @@ A provisional candidate may be published and technically reviewed, but it is nev
 ## Stop or escalate when
 Other owner/candidate, unclear or rejected stage, material unsatisfied DoR/dependency/authority that is not explicitly and safely provisional, missing atomic claim for new work, mandatory tests failing/unavailable, or approval tied to a changed governing snapshot. If only a separable contract decision is unresolved, record it as provisional, block/disable dependent behavior, and continue independent accepted work.
 
+## Desktop-safe testing
+
+Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; unknown or disruptive effects require a verified isolated runner or explicit per-run human authorization before execution. Never self-authorize or bypass the consumer guard. Continue safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge.
+
 ## Procedure
 1. **Read-only preflight:** fetch issue and its revision, candidate/branch links including closed-unmerged and merged content, claims, open concerns, dependent work and trusted sources. Determine NEW vs RESUME. If IN_REVIEW route to `process-review` for feedback; if UNKNOWN or duplicate owners/candidates stop. If work is partially implemented and owned, keep it in this skill even when CI/early feedback exists.
 2. **Ready + plan:** assess all 12 DoR checks (verification command optional). Validate the existing 3–7-step plan against actual code seams, tests, dependencies, risks, rollback/compatibility and accepted architecture. Map AC → intended test; avoid a second plan-acceptance ceremony. If project policy requires a separate approved plan, load its **exact accepted revision**. Do not silently alter decisions; refer gaps to `create-issue`.

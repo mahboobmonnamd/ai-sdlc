@@ -29,4 +29,6 @@ create-issue → implement-issue → pr-review ── APPROVE ──→ pr-merge
 
 **Preserved from the original system:** governance and accepted-plan authority, safe resume of existing/closed-unmerged candidates, no duplicate PRs, explicit ownership, exact-revision verification, risk-based tests, full re-review and protected merging. Separate mandatory planning/readiness ceremonies are removed; issue contains the plan unless project policy says otherwise.
 
+**Test execution:** [desktop-safe by default](docs/WORKING-LOOP.md#desktop-safe-test-execution). Consumers isolate interactive automation or require explicit per-run permission; required test coverage is never waived.
+
 Run `make check` for catalog, evaluation contracts, CI and unit checks. This is not proof of live multi-agent execution: behavioral evaluations remain `NOT_RUN` until real adapters and claim handling are exercised. Consumers must integrate GitHub permissions, a transactional claim backend and actual test execution.
