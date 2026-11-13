@@ -250,6 +250,76 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRREVIEW-008",
+      "scenario_id": "PRREVIEW-008",
+      "name": "Final ADR PR does not need pre-acceptance",
+      "skill": "pr-review",
+      "input": "Standalone ADR PR introduces a final coherent decision. Independent architecture/security review is complete, evidence and all normal gates pass, but the ADR is still unmerged.",
+      "description": "Final ADR PR does not need pre-acceptance",
+      "expected_behaviors": [
+        "Approve the exact final ADR for authorized merge; merge will accept it"
+      ],
+      "forbidden_behaviors": [
+        "Return CONDITIONAL solely because the ADR is unmerged",
+        "Require a separate status transition or acceptance PR",
+        "Claim ADR accepted before merge"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Approve the exact final ADR for authorized merge; merge will accept it"
+        ],
+        "forbidden_behaviors": [
+          "Return CONDITIONAL solely because the ADR is unmerged",
+          "Require a separate status transition or acceptance PR",
+          "Claim ADR accepted before merge"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Approve the exact final ADR for authorized merge; merge will accept it",
+            "points": 100,
+            "check": "output.verdict == APPROVE"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-009",
+      "scenario_id": "PRREVIEW-009",
+      "name": "Merged ADR overrides stale status",
+      "skill": "pr-review",
+      "input": "A governing ADR is verified on the authoritative branch but its legacy header says Proposed. The dependent implementation follows that exact decision and passes all review and evidence gates.",
+      "description": "Merged ADR overrides stale status",
+      "expected_behaviors": [
+        "Treat merged ADR content as accepted and review dependent implementation against it"
+      ],
+      "forbidden_behaviors": [
+        "Block solely on stale Proposed header",
+        "Demand separate acceptance PR"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Treat merged ADR content as accepted and review dependent implementation against it"
+        ],
+        "forbidden_behaviors": [
+          "Block solely on stale Proposed header",
+          "Demand separate acceptance PR"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Treat merged ADR content as accepted and review dependent implementation against it",
+            "points": 100,
+            "check": "output.verdict == APPROVE"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {
