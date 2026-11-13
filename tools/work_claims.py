@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from contextlib import closing, contextmanager
 from datetime import datetime, timezone
+import fcntl
 import hashlib
 import hmac
 import json
@@ -22,6 +23,11 @@ import secrets
 import sqlite3
 import stat
 import sys
+
+
+# External consumers with a pre-existing initialization workaround may
+# skip their own lock when using this revision (avoids recursive flock).
+COLD_INIT_LOCKED = True
 
 
 class ClaimError(RuntimeError):
@@ -85,19 +91,28 @@ class LocalClaimStore:
         self.path = Path(path).expanduser().absolute()
         _private_dir(self.path.parent)
         try:
-            _private_file(self.path, create=True)
-            with closing(self._connect()) as db:
-                db.execute("PRAGMA journal_mode=WAL")
-                db.execute("PRAGMA synchronous=FULL")
-                db.execute("""CREATE TABLE IF NOT EXISTS claims (
-                    resource TEXT PRIMARY KEY, owner TEXT NOT NULL,
-                    token_hash TEXT NOT NULL, acquired_utc TEXT NOT NULL
-                )""")
-                db.execute("""CREATE TABLE IF NOT EXISTS claim_audit (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    resource TEXT NOT NULL, owner TEXT NOT NULL,
-                    action TEXT NOT NULL, timestamp_utc TEXT NOT NULL
-                )""")
+            # SQLite WAL setup is not race-safe before the first transaction.
+            # Serialize *only initialization* between independent local workers.
+            # Keep this lock file: unlinking it could create two lock inodes.
+            init_lock = self.path.parent / ".init.lock"
+            _private_file(init_lock, create=True)
+            lock_fd = os.open(init_lock, os.O_RDONLY | os.O_NOFOLLOW)
+            with os.fdopen(lock_fd, "rb") as lock:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+                _private_file(self.path, create=True)
+                with closing(self._connect()) as db:
+                    db.execute("PRAGMA journal_mode=WAL")
+                    db.execute("PRAGMA synchronous=FULL")
+                    db.execute("""CREATE TABLE IF NOT EXISTS claims (
+                        resource TEXT PRIMARY KEY, owner TEXT NOT NULL,
+                        token_hash TEXT NOT NULL, acquired_utc TEXT NOT NULL
+                    )""")
+                    db.execute("""CREATE TABLE IF NOT EXISTS claim_audit (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        resource TEXT NOT NULL, owner TEXT NOT NULL,
+                        action TEXT NOT NULL, timestamp_utc TEXT NOT NULL
+                    )""")
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
         except (OSError, sqlite3.Error) as exc:
             raise ClaimError(f"claim store unavailable: {type(exc).__name__}") from exc
 
