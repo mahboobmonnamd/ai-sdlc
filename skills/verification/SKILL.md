@@ -22,13 +22,13 @@ Mandatory evidence is missing, criteria conflict with authority, tests fail, or 
 
 ## Desktop-safe testing
 
-Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; unknown or disruptive effects require a verified isolated runner or explicit per-run human authorization before execution. Never self-authorize or bypass the consumer guard. Continue safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge.
+Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; resolve unknown effects by read-only inspection or verified containment; disruptive runs require a verified isolated runner or explicit per-run human authorization for a known bounded scope if consumer policy permits. Never self-authorize or bypass the consumer guard. Coordinate required headed suites with the convergence ledger; reuse only independently verified unaffected evidence, never prior desktop permission; rerun affected and mandatory exact-head checks safely. No duplicate specialist runs, unapproved retries or automatic review/fix recursion on blocked evidence. Continue separable safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge. Escalate per canonical convergence policy.
 
 ## Procedure
 1. Freeze exact revision and criteria before inspecting results.
 2. For each criterion, record command/fixture/measurement, actual result and PASS/FAIL/INCONCLUSIVE.
 3. Check relevant negative, security, failure and integration behavior and all required checks. No skipped check silently passes.
-4. Re-read head when revision sensitive. A changed head invalidates previous evidence.
+4. Re-read head when revision sensitive. A changed head requires reassessment under `docs/WORKING-LOOP.md#review-convergence-and-evidence-reuse`. Invalidate affected or unknown-provenance evidence; rerun all mandatory exact-head checks. Link unchanged historical results only with verified equivalence of relevant code, transitive dependencies, contracts, fixtures, tools and config; never claim they were run at new SHA. Record reuse rationale and invalidated items.
 5. Summarize blockers and precise next action. Never repair code during independent verification.
 
 ## Output contract

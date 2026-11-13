@@ -24,11 +24,13 @@
 create-issue → implement-issue → pr-review ── APPROVE ──→ pr-merge
                                       └── REQUEST_CHANGES ──→ process-review
                                                                    │
-                                                 full pr-review ←─┘
+                                                 impact recheck + final review ←─┘
 ```
 
-**Preserved from the original system:** governance and accepted-plan authority, safe resume of existing/closed-unmerged candidates, no duplicate PRs, explicit ownership, exact-revision verification, risk-based tests, full re-review and protected merging. Separate mandatory planning/readiness ceremonies are removed; issue contains the plan unless project policy says otherwise.
+**Preserved from the original system:** governance and accepted-plan authority, safe resume of existing/closed-unmerged candidates, no duplicate PRs, explicit ownership, exact-revision verification, risk-based tests, final independent whole-candidate exact-head review and protected merging. Separate mandatory planning/readiness ceremonies are removed; issue contains the plan unless project policy says otherwise.
 
-**Test execution:** [desktop-safe by default](docs/WORKING-LOOP.md#desktop-safe-test-execution). Consumers isolate interactive automation or require explicit per-run permission; required test coverage is never waived.
+**Test execution:** [desktop-safe by default](docs/WORKING-LOOP.md#desktop-safe-test-execution). Isolate interactive automation or require explicit bounded per-run permission where allowed. Coordinate required native suites with review convergence; never waive mandatory evidence or reuse desktop authorization.
 
 Run `make check` for catalog, evaluation contracts, CI and unit checks. This is not proof of live multi-agent execution: behavioral evaluations remain `NOT_RUN` until real adapters and claim handling are exercised. Consumers must integrate GitHub permissions, a transactional claim backend and actual test execution.
+
+[Review convergence](docs/WORKING-LOOP.md#review-convergence-and-evidence-reuse): batch blockers, focus interim rechecks on impacted behavior, independently verify whole-candidate acceptance at final head, escalate after three routine remediation cycles or earlier no-progress/unsafe conditions. No stale approvals or weaker merge gates. Consumers must update reviewed pins and reconcile stricter local rules; policy alone does not interrupt an already running agent.

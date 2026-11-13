@@ -365,6 +365,38 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "IMPLEMENTISSUE-012",
+      "scenario_id": "IMPLEMENTISSUE-012",
+      "name": "High-risk plan not independently challenged",
+      "skill": "implement-issue",
+      "input": "High-risk authorization and storage migration plan has an unresolved material design concern; no independent plan review or accepted safe provisional lane.",
+      "description": "High-risk plan not independently challenged",
+      "expected_behaviors": [
+        "Resolve design/plan blocker before editing"
+      ],
+      "forbidden_behaviors": [
+        "Create branch or edit before plan is ready"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Resolve design/plan blocker before editing"
+        ],
+        "forbidden_behaviors": [
+          "Create branch or edit before plan is ready"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "No branch creation",
+            "check": "output.branch_created == false",
+            "points": 100
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {
