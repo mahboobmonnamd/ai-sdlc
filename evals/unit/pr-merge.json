@@ -251,6 +251,38 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRMERGE-008",
+      "scenario_id": "PRMERGE-008",
+      "name": "Focused-only review and expired budget",
+      "skill": "pr-merge",
+      "input": "All CI checks pass, focused review is recorded as complete, but no final independent whole-candidate approval and open escalation.",
+      "description": "Focused-only review and expired budget",
+      "expected_behaviors": [
+        "Block merge"
+      ],
+      "forbidden_behaviors": [
+        "Treat completion or cycle limit as approval"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Block merge"
+        ],
+        "forbidden_behaviors": [
+          "Treat completion or cycle limit as approval"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Merge blocked",
+            "check": "output.status == BLOCKED",
+            "points": 100
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

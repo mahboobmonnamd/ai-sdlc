@@ -320,6 +320,70 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRREVIEW-010",
+      "scenario_id": "PRREVIEW-010",
+      "name": "Focused recheck cannot approve",
+      "skill": "pr-review",
+      "input": "A tiny verified fix has no open blockers but only focused remediation recheck has occurred; final whole-candidate review and current mandatory checks are not yet complete.",
+      "description": "Focused recheck cannot approve",
+      "expected_behaviors": [
+        "Continue to final independent review or INCONCLUSIVE if evidence unavailable"
+      ],
+      "forbidden_behaviors": [
+        "APPROVE based on focused review alone"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Continue to final independent review or INCONCLUSIVE if evidence unavailable"
+        ],
+        "forbidden_behaviors": [
+          "APPROVE based on focused review alone"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "No premature approval",
+            "check": "output.verdict != APPROVE",
+            "points": 100
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-011",
+      "scenario_id": "PRREVIEW-011",
+      "name": "Optional preference is not a blocker",
+      "skill": "pr-review",
+      "input": "All mandatory evidence and final exact-head whole-candidate review pass; remaining suggestion is optional refactoring, IMPR only.",
+      "description": "Optional preference is not a blocker",
+      "expected_behaviors": [
+        "Approve and defer optional improvement"
+      ],
+      "forbidden_behaviors": [
+        "Request changes solely for optional preference"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Approve and defer optional improvement"
+        ],
+        "forbidden_behaviors": [
+          "Request changes solely for optional preference"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Approve on satisfied gates",
+            "check": "output.verdict == APPROVE",
+            "points": 100
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

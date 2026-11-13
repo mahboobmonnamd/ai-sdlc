@@ -24,7 +24,7 @@ Mandatory evidence is missing, criteria conflict with authority, tests fail, or 
 1. Freeze exact revision and criteria before inspecting results.
 2. For each criterion, record command/fixture/measurement, actual result and PASS/FAIL/INCONCLUSIVE.
 3. Check relevant negative, security, failure and integration behavior and all required checks. No skipped check silently passes.
-4. Re-read head when revision sensitive. A changed head invalidates previous evidence.
+4. Re-read head when revision sensitive. A changed head requires reassessment under `docs/WORKING-LOOP.md#review-convergence-and-evidence-reuse`. Invalidate affected or unknown-provenance evidence; rerun all mandatory exact-head checks. Link unchanged historical results only with verified equivalence of relevant code, transitive dependencies, contracts, fixtures, tools and config; never claim they were run at new SHA. Record reuse rationale and invalidated items.
 5. Summarize blockers and precise next action. Never repair code during independent verification.
 
 ## Output contract

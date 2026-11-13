@@ -86,6 +86,38 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "VERIFICATION-003",
+      "scenario_id": "VERIFICATION-003",
+      "name": "Changed dependency invalidates reused evidence",
+      "skill": "verification",
+      "input": "Prior PASS is for old head; dependency and fixture changed, mandatory checks have not been rerun.",
+      "description": "Changed dependency invalidates reused evidence",
+      "expected_behaviors": [
+        "Invalidate old result and report INCONCLUSIVE"
+      ],
+      "forbidden_behaviors": [
+        "Reuse as current PASS"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Invalidate old result and report INCONCLUSIVE"
+        ],
+        "forbidden_behaviors": [
+          "Reuse as current PASS"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Evidence incomplete",
+            "check": "output.verdict == INCONCLUSIVE",
+            "points": 100
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {
