@@ -24,6 +24,10 @@ Apply the ADR lifecycle in `docs/WORKING-LOOP.md`: verify the exact approved fin
 ## Stop or escalate when
 No independent current approval; changed diff/base invalidates evidence; any unresolved choice or external provisional contract prerequisite; missing checks, failures, conflicts, unmet review rules, dependencies, unverified mandatory criteria, unauthorized merge or head movement.
 
+## Desktop-safe testing
+
+Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; resolve unknown effects by read-only inspection or verified containment; disruptive runs require a verified isolated runner or explicit per-run human authorization for a known bounded scope if consumer policy permits. Never self-authorize or bypass the consumer guard. Coordinate required headed suites with the convergence ledger; reuse only independently verified unaffected evidence, never prior desktop permission; rerun affected and mandatory exact-head checks safely. No duplicate specialist runs, unapproved retries or automatic review/fix recursion on blocked evidence. Continue separable safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge. Escalate per canonical convergence policy.
+
 ## Procedure
 1. Fetch candidate/head/base and freeze exact SHA; verify not already merged (idempotent status if so).
 2. Confirm approved reviewer is independent of author and reviewed **this content**. Apply `docs/WORKING-LOOP.md#review-convergence-and-evidence-reuse`: require the final independent whole-candidate exact-head APPROVE, zero unresolved material blockers and no pending escalation; focused recheck or budget exhaustion never approves. A prior APPROVE plus newly added commits is not sufficient even if GitHub retains old review; re-review when necessary.
