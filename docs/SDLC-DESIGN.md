@@ -54,7 +54,7 @@ Support skills: `project-context` narrows authoritative retrieval; `verification
 - **Keep issue as single small plan:** 3–7 ordered implementation steps; map each criterion to a test and impacted file/boundary. Avoid a second generic planning document or plan-acceptance ceremony.
 - **Develop test-first where useful:** narrow failing test → smallest permanent code change → targeted test → applicable project checks → verification matrix. No enormous mandatory template for trivial changes.
 - **Anticipate review:** pre-PR self-review checks unintended diff, unhandled errors, coverage gaps, security, migrations, compatibility and documentation. This is NOT independent review or self-approval.
-- **Batch remediation:** one full review → one complete disposition/approval gate → fix root causes + siblings in batch → full re-review. Avoid per-comment review ping-pong.
+- **Convergent review:** risk-based independent plan challenge → initial full review → one batched disposition/approval → root-cause fixes + regression tests → focused impact recheck with proven unchanged evidence → final independent whole-candidate exact-head review. Expand coverage when risk/uncertainty demands. Three routine remediation cycles per candidate campaign, earlier no-progress escalation; no approval with blockers. See [canonical policy](WORKING-LOOP.md#review-convergence-and-evidence-reuse).
 - **Never lower acceptance to reduce time.** Put genuinely unrelated optional improvements in separate follow-ups.
 - **Recovery is cheap:** persist issue/PR/head/owner, gate approvals, current evidence, unprocessed comments and next action in the issue/PR or other authorized durable system; revalidate instead of replaying the entire workflow.
 
@@ -62,7 +62,7 @@ Support skills: `project-context` narrows authoritative retrieval; `verification
 
 Track from GitHub events when available (avoid fabricated baselines):
 - Ready → PR opened lead time; PR opened → merged lead time; waiting-for-human vs active execution.
-- Review rounds per merged PR and repeat findings / reopened findings.
+- Review rounds and remediation cycles per merged PR, repeat/reopened findings, full vs focused passes, evidence reuse, escalations, time/tokens when observable and escaped defects. Never optimize count by weakening findings.
 - PRs blocked by missing acceptance, ownership collisions, failing CI, stale heads.
 - Post-merge regressions tied to a change (where source data exists).
 - Number of redundant questions and duplicate candidates prevented.

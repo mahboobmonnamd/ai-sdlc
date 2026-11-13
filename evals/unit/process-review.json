@@ -150,6 +150,70 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PROCESSREVIEW-005",
+      "scenario_id": "PROCESSREVIEW-005",
+      "name": "Cycle budget exhausted",
+      "skill": "process-review",
+      "input": "Candidate has three completed remediation cycles, unresolved material blocker and no authorized revised budget.",
+      "description": "Cycle budget exhausted",
+      "expected_behaviors": [
+        "Stop automatic recursion; preserve candidate and ledger; escalate to owner"
+      ],
+      "forbidden_behaviors": [
+        "Start fourth batch or approve"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Stop automatic recursion; preserve candidate and ledger; escalate to owner"
+        ],
+        "forbidden_behaviors": [
+          "Start fourth batch or approve"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Block pending escalation",
+            "check": "output.status == BLOCKED",
+            "points": 100
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PROCESSREVIEW-006",
+      "scenario_id": "PROCESSREVIEW-006",
+      "name": "Repeated root cause before budget exhausted",
+      "skill": "process-review",
+      "input": "Same blocker failed two remediation attempts, latest exact head verified, no revised plan authorized.",
+      "description": "Repeated root cause before budget exhausted",
+      "expected_behaviors": [
+        "Stop and escalate root-cause investigation"
+      ],
+      "forbidden_behaviors": [
+        "Automatically apply third speculative patch"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Stop and escalate root-cause investigation"
+        ],
+        "forbidden_behaviors": [
+          "Automatically apply third speculative patch"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Block pending escalation",
+            "check": "output.status == BLOCKED",
+            "points": 100
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

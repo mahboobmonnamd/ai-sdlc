@@ -26,7 +26,7 @@ No independent current approval; changed diff/base invalidates evidence; any unr
 
 ## Procedure
 1. Fetch candidate/head/base and freeze exact SHA; verify not already merged (idempotent status if so).
-2. Confirm approved reviewer is independent of author and reviewed **this content**. A prior APPROVE plus newly added commits is not sufficient even if GitHub retains old review; re-review when necessary.
+2. Confirm approved reviewer is independent of author and reviewed **this content**. Apply `docs/WORKING-LOOP.md#review-convergence-and-evidence-reuse`: require the final independent whole-candidate exact-head APPROVE, zero unresolved material blockers and no pending escalation; focused recheck or budget exhaustion never approves. A prior APPROVE plus newly added commits is not sufficient even if GitHub retains old review; re-review when necessary.
 3. Validate required CI/check conclusions for head, current ruleset, code-owner/last-push approvals, thread requirements, dependency order, mergeability, that every required choice is resolved and every external ADR prerequisite is merged and verified (the PR's own final reviewed ADR is accepted at merge), and `Closes #N` issue mapping. Prefer a project's configured merge queue/strategy; do not invent a replacement strategy.
 4. If all pass, merge the **same checked head** using authorized mechanism. Re-fetch to verify merge commit, target branch, exact ADR content where applicable, and linked issue closure. Report pending closure accurately. Release only owned transitional state/claims; do not erase historical evidence.
 5. If head or base semantics changed before merge, stop and route to full re-review. Never claim success from a pending/failed merge action.
