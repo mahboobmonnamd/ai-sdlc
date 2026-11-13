@@ -17,6 +17,8 @@ Do not fix only the latest comment, blindly obey suggestions, create a second PR
 ## Required context
 Current head/base, ownership and stage, **all** review threads/comments and prior blocking findings, all required checks/logs, issue/AC or reconstructed standalone intent, authority, affected code and tests.
 
+For ADR-related findings, follow `docs/WORKING-LOOP.md#adr-lifecycle-merge-is-acceptance`: revise the ADR in the same authorized decision PR and obtain exact-head re-review. Do not create a second PR merely to change Proposed to Accepted. A separate dependent implementation must reconcile the actual external ADR merge before its final review; do not close a genuinely unresolved choice as a status-only issue.
+
 ## Stop or escalate when
 Candidate already merged/rejected or incomplete feature scope should route to `implement-issue`; conflicting owner/claim; head changed after preview; proposal requires new product/security/architecture decision or unrelated scope.
 

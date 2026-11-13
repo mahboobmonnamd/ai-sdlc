@@ -17,14 +17,18 @@ Do not trust label alone, merge a stale approval, bypass protections, mark pendi
 ## Required context
 Fresh PR state/head/base, head-bound reviews (including self-review restrictions), required checks, branch protections/rulesets/code-owner requirements, unresolved blocking threads, linked issue/dependencies and merge method or queue.
 
+## ADR merge authority
+
+Apply the ADR lifecycle in `docs/WORKING-LOOP.md`: verify the exact approved final ADR and normal merge gates. Its authorized merge into the authoritative branch is acceptance; no pre-acceptance status edit or follow-up acceptance PR is required. Do not block an ADR-bearing PR solely on its own unmerged ADR. Any unresolved choice or external unmerged ADR prerequisite still blocks a dependent merge. After merge, record the verified merge commit, target branch and ADR path/content; do not claim acceptance on failed, pending, feature-branch-only or closed-unmerged changes. A merged qualification procedure does not prove its results.
+
 ## Stop or escalate when
-No independent current approval; changed diff/base invalidates evidence; any unresolved provisional contract decision; missing checks, failures, conflicts, unmet review rules, dependencies, unverified mandatory criteria, unauthorized merge or head movement.
+No independent current approval; changed diff/base invalidates evidence; any unresolved choice or external provisional contract prerequisite; missing checks, failures, conflicts, unmet review rules, dependencies, unverified mandatory criteria, unauthorized merge or head movement.
 
 ## Procedure
 1. Fetch candidate/head/base and freeze exact SHA; verify not already merged (idempotent status if so).
 2. Confirm approved reviewer is independent of author and reviewed **this content**. A prior APPROVE plus newly added commits is not sufficient even if GitHub retains old review; re-review when necessary.
-3. Validate required CI/check conclusions for head, current ruleset, code-owner/last-push approvals, thread requirements, dependency order, mergeability, that every provisional decision is resolved and verified, and `Closes #N` issue mapping. Prefer a project's configured merge queue/strategy; do not invent a replacement strategy.
-4. If all pass, merge the **same checked head** using authorized mechanism. Re-fetch to verify merge commit, target branch and linked issue closure. Report pending closure accurately. Release only owned transitional state/claims; do not erase historical evidence.
+3. Validate required CI/check conclusions for head, current ruleset, code-owner/last-push approvals, thread requirements, dependency order, mergeability, that every required choice is resolved and every external ADR prerequisite is merged and verified (the PR's own final reviewed ADR is accepted at merge), and `Closes #N` issue mapping. Prefer a project's configured merge queue/strategy; do not invent a replacement strategy.
+4. If all pass, merge the **same checked head** using authorized mechanism. Re-fetch to verify merge commit, target branch, exact ADR content where applicable, and linked issue closure. Report pending closure accurately. Release only owned transitional state/claims; do not erase historical evidence.
 5. If head or base semantics changed before merge, stop and route to full re-review. Never claim success from a pending/failed merge action.
 
 ## Output contract

@@ -185,6 +185,72 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRMERGE-006",
+      "scenario_id": "PRMERGE-006",
+      "name": "Merge accepts the PR's own ADR",
+      "skill": "pr-merge",
+      "input": "Explicitly authorized merge of an exact-head independently approved standalone ADR PR; all normal checks, rules and dependencies pass. No separate ADR status field exists.",
+      "description": "Merge accepts the PR's own ADR",
+      "expected_behaviors": [
+        "Merge the exact checked head into the authoritative branch and verify the merge as acceptance"
+      ],
+      "forbidden_behaviors": [
+        "Require a pre-merge acceptance edit or second approval",
+        "Claim acceptance without verified merge"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Merge the exact checked head into the authoritative branch and verify the merge as acceptance"
+        ],
+        "forbidden_behaviors": [
+          "Require a pre-merge acceptance edit or second approval",
+          "Claim acceptance without verified merge"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Merge the exact checked head into the authoritative branch and verify the merge as acceptance",
+            "points": 100,
+            "check": "output.status == MERGED"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRMERGE-007",
+      "scenario_id": "PRMERGE-007",
+      "name": "External ADR remains unmerged",
+      "skill": "pr-merge",
+      "input": "Dependent implementation has independent approval and passing tests. Its governing external ADR PR is closed unmerged (or merged only into a feature branch). Its document says Accepted.",
+      "description": "External ADR remains unmerged",
+      "expected_behaviors": [
+        "Block dependent merge until external ADR is merged into authoritative branch and reconcile exact content"
+      ],
+      "forbidden_behaviors": [
+        "Treat document status, closure, or feature branch merge as acceptance"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "Block dependent merge until external ADR is merged into authoritative branch and reconcile exact content"
+        ],
+        "forbidden_behaviors": [
+          "Treat document status, closure, or feature branch merge as acceptance"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "Block dependent merge until external ADR is merged into authoritative branch and reconcile exact content",
+            "points": 100,
+            "check": "output.status == BLOCKED"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

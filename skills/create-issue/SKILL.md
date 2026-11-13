@@ -17,6 +17,8 @@ Do not create duplicates, silently broaden milestone scope, force 3–5 criteria
 ## Required context
 Read only relevant requirements, design decisions (`## Design nuance`), code/expected behavior, dependencies, existing issues/PRs and `docs/WORKING-LOOP.md`.
 
+Treat an ADR merged into the authoritative branch as accepted without a separate status or approval step. Verify the source revision; do not treat unmerged ADR text as authority, and do not invent choices deferred by a merged ADR. See `docs/WORKING-LOOP.md`.
+
 ## Stop or escalate when
 Desired outcome conflicts with accepted authority, a material decision needs an owner, a duplicate already represents the outcome, or the issue is too broad to be independently verified.
 

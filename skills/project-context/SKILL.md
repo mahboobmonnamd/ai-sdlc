@@ -34,6 +34,8 @@ Start with the task itself and the project's context/index configuration. Query 
 
 Project context is a navigation/index layer. It never overrides authoritative requirements, decisions, specifications, code, tests, approved decisions, or tracker/work-state authority. When a summary disagrees with its source, the source wins and the summary is stale.
 
+ADR authority is derived from the exact content merged into the designated authoritative branch, not a status field. Unmerged ADR proposals and stale cached metadata are not binding. Follow the merge/commit evidence and effective superseding ADR when necessary. A merged ADR may establish a process without selecting its future outcome. See `docs/WORKING-LOOP.md`.
+
 ## Stop or escalate when
 
 - **Stale source:** stop relying on the stale summary; read the current source and refresh/rebuild the derived index.
