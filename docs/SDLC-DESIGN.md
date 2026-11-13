@@ -16,6 +16,10 @@ An engineer supplies an issue/PR number once. Skills retrieve authoritative proj
 
 **Stop immediately** on conflicting product/security authority, ambiguous exclusive ownership, unsafe dependencies, untestable required acceptance, or misleading verification. When blocked, return a specific remedy, not another long questionnaire.
 
+## Architecture decision authority
+
+An ADR is proposed until its PR merges into the authoritative branch; merge accepts the exact decision. Do not require a separate proposed/accepted status field or a post-merge approval. A final ADR PR can pass review without already being merged; dependent PRs must use the merged decision. Normal independent review, unresolved external dependencies and qualification gates remain intact. See [WORKING-LOOP](WORKING-LOOP.md#adr-lifecycle-merge-is-acceptance).
+
 ## End-to-end phases
 
 | Command | Responsibility | Exit criteria / next |
