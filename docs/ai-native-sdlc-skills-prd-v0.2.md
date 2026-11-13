@@ -221,7 +221,7 @@ The project will not:
 ## 6. Foundational Principles
 
 ### P-001 — Source of truth remains authoritative
-Code, approved requirements, ADRs, specifications, tests, and user-approved decisions remain authoritative. The context graph is an index/cache, not truth.
+Code, approved requirements, merged ADRs, specifications, tests, and user-approved decisions remain authoritative. An ADR is proposed until its PR is merged into the designated authoritative branch; that authorized merge accepts the exact ADR content without a separate status transition. See [the ADR lifecycle](WORKING-LOOP.md#adr-lifecycle-merge-is-acceptance). The context graph is an index/cache, not truth.
 
 ### P-002 — Separate fact, assumption, unknown, and decision
 Skills must not silently convert assumptions into project facts.
@@ -1160,14 +1160,14 @@ Illustrative logical record only:
 ```text
 id: ADR-004
 kind: decision
-status: accepted
 summary: <decision>
 source: docs/adr/ADR-004...
+acceptance_evidence: <authoritative branch merge commit / PR>
 validated_against: <version/commit/artifact>
 relationships: [...]
 ```
 
-This example is **not** a mandated serialization format.
+This example is **not** a mandated serialization format. ADR acceptance is derived from authoritative-branch merge evidence, never a manually maintained status field.
 
 ### 12.9 Durable context write policy
 
