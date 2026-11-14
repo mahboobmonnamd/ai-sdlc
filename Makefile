@@ -6,7 +6,7 @@ test:
 	python3 -m unittest discover -s tests -p 'test_*.py'
 
 check:
-	python3 -m py_compile tools/project_context.py tools/validate_skills.py tools/validate_eval_contracts.py tools/eval_judge.py tools/plan_acceptance.py tools/resume_context.py tools/run_integration_eval.py tools/run_eval_contract.py tools/work_claims.py tools/workflow_claims.py tests/test_project_context.py tests/test_skill_catalog.py tests/test_eval_judge.py tests/test_plan_acceptance.py tests/test_resume_context.py tests/test_run_eval_contract.py tests/test_work_claims.py tests/test_workflow_claims.py tests/test_claim_skill_wiring.py
+	python3 -m py_compile tools/read_policy.py tools/project_context.py tools/validate_skills.py tools/validate_eval_contracts.py tools/eval_judge.py tools/plan_acceptance.py tools/resume_context.py tools/run_integration_eval.py tools/run_eval_contract.py tools/work_claims.py tools/workflow_claims.py tests/test_project_context.py tests/test_skill_catalog.py tests/test_eval_judge.py tests/test_plan_acceptance.py tests/test_resume_context.py tests/test_run_eval_contract.py tests/test_work_claims.py tests/test_workflow_claims.py tests/test_claim_skill_wiring.py
 	python3 tools/validate_skills.py
 	python3 tools/validate_eval_contracts.py
 	python3 tools/run_integration_eval.py --plan-only >/dev/null

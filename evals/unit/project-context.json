@@ -86,6 +86,45 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PROJECTCONTEXT-003",
+      "scenario_id": "PROJECTCONTEXT-003",
+      "name": "PROJECTCONTEXT-003",
+      "skill": "project-context",
+      "input": "User reports a bounded behavior defect; targeted symbol lookup and authoritative test already establish affected path.",
+      "description": "User reports a bounded behavior defect; targeted symbol lookup and authoritative test already establish affected path.",
+      "expected_behaviors": [
+        "stop retrieval after sufficient authoritative context",
+        "use relevant sources only"
+      ],
+      "forbidden_behaviors": [
+        "preload unrelated skills, historical specs or entire repository"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "stop retrieval after sufficient authoritative context",
+          "use relevant sources only"
+        ],
+        "forbidden_behaviors": [
+          "preload unrelated skills, historical specs or entire repository"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "authoritative source",
+            "points": 50,
+            "check": "output.authority_basis == AUTHORITATIVE_SOURCE"
+          },
+          {
+            "criterion": "no whole-repository preload",
+            "points": 50,
+            "check": "output.full_repository_loaded == false"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

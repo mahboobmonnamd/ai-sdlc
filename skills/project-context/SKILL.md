@@ -30,7 +30,7 @@ Use when a task depends on project-specific requirements, architecture, decision
 
 ## Required context
 
-Start with the task itself and the project's context/index configuration. Query only for the concepts materially needed for the current activity: component names, requirement/decision IDs, risk areas, work items, milestones, or other relevant entities.
+Start with the user's problem and active task, not a broad project overview. Apply `docs/WORKING-LOOP.md#task-first-execution-and-progressive-context`; inspect the project's context/index configuration only as needed. Query only for the concepts materially needed for the current activity: component names, requirement/decision IDs, risk areas, work items, milestones, or other relevant entities.
 
 Project context is a navigation/index layer. It never overrides authoritative requirements, decisions, specifications, code, tests, approved decisions, or tracker/work-state authority. When a summary disagrees with its source, the source wins and the summary is stale.
 
@@ -59,7 +59,7 @@ ADR authority is derived from the exact content merged into the designated autho
    python3 <ai-sdlc-root>/tools/project_context.py --root <project-root> validate
    ```
 
-5. Load compact context first: node/entity ID, kind, summary, relationships, source paths, and staleness status.
+5. Load compact context first; stop expanding once the authoritative facts needed for the current decision are established: node/entity ID, kind, summary, relationships, source paths, and staleness status.
 6. Follow only the relationships needed to understand the current task. Prefer one-hop expansion before broad search.
 7. Read the authoritative source artifacts returned for any node that materially constrains a decision or implementation.
 8. If the index is missing, stale, contradictory, or incomplete, search `.sdlc/context/` and authoritative project artifacts directly.

@@ -8,11 +8,11 @@ This document is the design brief. It supersedes the initial high-level prompt; 
 
 ## Experience contract
 
-An engineer supplies an issue/PR number once. Skills retrieve authoritative project facts automatically and ask only for a **material decision that changes action**. Do not ask about preferences, formatting, or known choices. Build evidence and show a concise preview before irreversible/externally visible actions.
+An engineer supplies the problem or issue/PR number once. Use the [task-first risk lanes](WORKING-LOOP.md#task-first-execution-and-progressive-context), progressive context and a shared evidence packet. Skills retrieve authoritative project facts automatically and ask only for a **material decision that changes action**. Do not ask about preferences, formatting, or known choices. Build evidence and show a concise preview before irreversible/externally visible actions.
 
 **Human interrupts:** (1) author approves issue draft; (2) implement Gate 1 approves the plan, (3) implement Gate 2 approves push/open PR, (4) process-review approves one batched remediation plan. `/pr-merge` is an explicit merge instruction; do not add a redundant approval prompt. No repeated approval for individual tests, individual comments, or predictable steps.
 
-**Automatic:** fresh retrieval, duplicate/candidate check, ready check, plan validation, test selection, narrow tests during development, full verification before PR, review-trace reconstruction, CI lookup, and generated dashboard.
+**Automatic:** fresh retrieval, duplicate/candidate check, ready check, plan validation, test selection, narrow tests during development, applicable verification before PR, review-trace reconstruction, CI lookup, and generated dashboard.
 
 **Stop immediately** on conflicting product/security authority, ambiguous exclusive ownership, unsafe dependencies, untestable required acceptance, or misleading verification. When blocked, return a specific remedy, not another long questionnaire.
 
@@ -24,7 +24,7 @@ An ADR is proposed until its PR merges into the authoritative branch; merge acce
 
 | Command | Responsibility | Exit criteria / next |
 | --- | --- | --- |
-| `create-issue` | One-question-at-a-time refinement to a 12-check Definition of Ready; match implementation/test plan to acceptance | Issue draft approved, `needs:implementation` |
+| `create-issue` | Material-question-only refinement; proportional readiness/plan and acceptance evidence | Issue draft approved, `needs:implementation` |
 | `implement-issue <N>` | Read-only preflight and plan Gate 1; atomic claim; code + tests; proof and Gate 2; open/reuse PR | PR with acceptance evidence and `needs:review` |
 | `pr-review <N>` | Independently review the whole current candidate, exact head, affected boundaries, evidence/CI | One structured review: APPROVE or REQUEST_CHANGES |
 | `process-review <N>` | Inventory, classify and batch **all** review findings and check failures; one gate; remediate on same branch | Re-review requested for changed head, or named blocker |
@@ -51,10 +51,10 @@ Support skills: `project-context` narrows authoritative retrieval; `verification
 
 - **Front-load inexpensive checks:** duplicate, DoR, claim availability and dependency check before planning deep or writing code.
 - **Defer exclusive claim until the user approves Gate 1** (read-only preflight first): prevents holding a lock through an unanswered prompt. Before any mutation revalidate issue/plan state and atomically claim, then change labels. During resume, verify existing owner and candidate before asking again.
-- **Keep issue as single small plan:** 3–7 ordered implementation steps; map each criterion to a test and impacted file/boundary. Avoid a second generic planning document or plan-acceptance ceremony.
+- **Keep issue as single small plan:** one obvious action or 1–3 steps for LIGHTWEIGHT, proportional ordered steps otherwise; map each criterion to a test and impacted file/boundary. Avoid a second generic planning document or plan-acceptance ceremony.
 - **Develop test-first where useful:** narrow failing test → smallest permanent code change → targeted test → applicable project checks → verification matrix. No enormous mandatory template for trivial changes.
 - **Anticipate review:** pre-PR self-review checks unintended diff, unhandled errors, coverage gaps, security, migrations, compatibility and documentation. This is NOT independent review or self-approval.
-- **Convergent review:** risk-based independent plan challenge → initial full review → one batched disposition/approval → root-cause fixes + regression tests → focused impact recheck with proven unchanged evidence → final independent whole-candidate exact-head review. Expand coverage when risk/uncertainty demands. Three routine remediation cycles per candidate campaign, earlier no-progress escalation; no approval with blockers. See [canonical policy](WORKING-LOOP.md#review-convergence-and-evidence-reuse).
+- **Convergent review:** critical-risk independent plan challenge → one initial independent candidate review (final if clean) → one batched disposition/approval → root-cause fixes + regression tests → focused impact recheck with proven unchanged evidence → final independent whole-candidate exact-head review. Expand coverage when risk/uncertainty demands. Three routine remediation cycles per candidate campaign, earlier no-progress escalation; no approval with blockers. See [canonical policy](WORKING-LOOP.md#review-convergence-and-evidence-reuse).
 - **Desktop-safe verification:** default to non-disruptive test commands; use verified isolated runners for necessary interactive tests, otherwise explicit bounded human permission if consumer permits. Batch expensive headed runs, reuse only independently verified unchanged evidence, and escalate unavailable mandatory evidence instead of repeatedly requesting desktop control. See [canonical testing policy](WORKING-LOOP.md#desktop-safe-test-execution).
 - **Never lower acceptance to reduce time.** Put genuinely unrelated optional improvements in separate follow-ups.
 - **Recovery is cheap:** persist issue/PR/head/owner, gate approvals, current evidence, unprocessed comments and next action in the issue/PR or other authorized durable system; revalidate instead of replaying the entire workflow.
