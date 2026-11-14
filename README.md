@@ -15,7 +15,7 @@ Choose LIGHTWEIGHT / STANDARD / CRITICAL from actual impact, not file extension.
 | --- | --- | --- |
 | `/create-issue` | Turn an idea into a testable issue; ask only one material question at a time | Approve issue draft |
 | `/implement-issue <N>` | Readiness + plan → atomic claim → implement/tests → verified PR | Gate 1 plan, Gate 2 push/PR |
-| `/pr-review <N>` | Independent full-candidate review, inline evidence and findings | Approve or request changes |
+| `/pr-review <N>` | Independent risk-proportional whole-candidate review; findings only when justified | Approve or request changes |
 | `/process-review <N>` | Triage and fix all comments and failing checks in a batch | One remediation gate |
 | `/pr-merge <N>` | Merge exact independently approved head after checks/protections | Explicit invocation |
 | `/describe-backlog [milestone]` | Live ready/blocked/active issues | Read-only |
@@ -31,7 +31,7 @@ create-issue → implement-issue → pr-review ── APPROVE ──→ pr-merge
                                                  impact recheck + final review ←─┘
 ```
 
-**Preserved from the original system:** governance and accepted-plan authority, safe resume of existing/closed-unmerged candidates, no duplicate PRs, explicit ownership, exact-revision verification, risk-based tests, final independent whole-candidate exact-head review and protected merging. Separate mandatory planning/readiness ceremonies are removed; issue contains the plan unless project policy says otherwise.
+**Preserved from the original system:** governance and accepted-plan authority, safe resume of existing/closed-unmerged candidates, no duplicate PRs, explicit ownership, exact-revision verification, risk-based tests, independent whole-candidate exact-head review and protected merging. Separate mandatory planning/readiness ceremonies are removed; issue contains the plan unless project policy says otherwise.
 
 **Test execution:** [desktop-safe by default](docs/WORKING-LOOP.md#desktop-safe-test-execution). Isolate interactive automation or require explicit bounded per-run permission where allowed. Coordinate required native suites with review convergence; never waive mandatory evidence or reuse desktop authorization.
 

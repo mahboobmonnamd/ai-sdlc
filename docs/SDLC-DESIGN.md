@@ -12,7 +12,7 @@ An engineer supplies the problem or issue/PR number once. Use the [task-first ri
 
 **Human interrupts:** (1) author approves issue draft; (2) implement Gate 1 approves the plan, (3) implement Gate 2 approves push/open PR, (4) process-review approves one batched remediation plan. `/pr-merge` is an explicit merge instruction; do not add a redundant approval prompt. No repeated approval for individual tests, individual comments, or predictable steps.
 
-**Automatic:** fresh retrieval, duplicate/candidate check, ready check, plan validation, test selection, narrow tests during development, full verification before PR, review-trace reconstruction, CI lookup, and generated dashboard.
+**Automatic:** fresh retrieval, duplicate/candidate check, ready check, plan validation, test selection, narrow tests during development, applicable verification before PR, review-trace reconstruction, CI lookup, and generated dashboard.
 
 **Stop immediately** on conflicting product/security authority, ambiguous exclusive ownership, unsafe dependencies, untestable required acceptance, or misleading verification. When blocked, return a specific remedy, not another long questionnaire.
 
@@ -24,7 +24,7 @@ An ADR is proposed until its PR merges into the authoritative branch; merge acce
 
 | Command | Responsibility | Exit criteria / next |
 | --- | --- | --- |
-| `create-issue` | One-question-at-a-time refinement to a 12-check Definition of Ready; match implementation/test plan to acceptance | Issue draft approved, `needs:implementation` |
+| `create-issue` | Material-question-only refinement; proportional readiness/plan and acceptance evidence | Issue draft approved, `needs:implementation` |
 | `implement-issue <N>` | Read-only preflight and plan Gate 1; atomic claim; code + tests; proof and Gate 2; open/reuse PR | PR with acceptance evidence and `needs:review` |
 | `pr-review <N>` | Independently review the whole current candidate, exact head, affected boundaries, evidence/CI | One structured review: APPROVE or REQUEST_CHANGES |
 | `process-review <N>` | Inventory, classify and batch **all** review findings and check failures; one gate; remediate on same branch | Re-review requested for changed head, or named blocker |
