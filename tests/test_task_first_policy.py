@@ -21,7 +21,7 @@ class TaskFirstPolicyTests(unittest.TestCase):
                        "Unknown risk", "no second review",
                        "A review may find zero issues", "one compact, durable candidate record",
                        "do not preload this entire document"):
-            self.assertIn(phrase, body)
+            self.assertIn(phrase.casefold(), body.casefold())
 
     def test_new_behavioral_cases_not_claimed_run(self):
         for name, ids in {

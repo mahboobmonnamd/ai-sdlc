@@ -7,7 +7,7 @@
 
 ## Task-first workflow
 
-Choose LIGHTWEIGHT / STANDARD / CRITICAL from actual impact, not file extension. Read only the active skill and relevant policy sections; preserve the user's problem as primary context. Use one evidence packet, one accountable independent review by default, and existing deterministic CI checks. See [task-first policy](docs/WORKING-LOOP.md#task-first-execution-and-progressive-context). Existing mandatory consumer checks and protections still apply.
+Choose LIGHTWEIGHT / STANDARD / CRITICAL from actual impact, not file extension. Read only the active skill and relevant policy sections; preserve the user's problem as primary context. Use one evidence packet, one accountable independent review by default, and existing deterministic CI checks. See [task-first policy](docs/WORKING-LOOP.md#task-first-execution-and-progressive-context). Existing mandatory consumer checks and protections still apply. For selective reads, use `python3 tools/read_policy.py --list`, then pass only the applicable section IDs; no new gate or mandatory tool call.
 
 ## Commands
 
