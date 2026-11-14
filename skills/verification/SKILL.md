@@ -15,14 +15,14 @@ Use during `implement-issue` before gate 2 and during `pr-review` or `process-re
 Do not replace tests with confidence, silently change acceptance, or mark unrun checks passing.
 
 ## Required context
-Read intended observable behavior, acceptance criteria, current code/PR revision, required checks and governing decisions. For PRs without an issue, derive explicit testable intent from PR and repository contracts.
+Read `docs/WORKING-LOOP.md#task-first-execution-and-progressive-context`; consume the existing evidence packet, intended behavior, current revision and applicable checks/authority. Load only affected sources; update the same packet. For PRs without an issue, derive explicit testable intent from PR and repository contracts.
 
 ## Stop or escalate when
 Mandatory evidence is missing, criteria conflict with authority, tests fail, or head SHA changes during verification.
 
 ## Desktop-safe testing
 
-Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; resolve unknown effects by read-only inspection or verified containment; disruptive runs require a verified isolated runner or explicit per-run human authorization for a known bounded scope if consumer policy permits. Never self-authorize or bypass the consumer guard. Coordinate required headed suites with the convergence ledger; reuse only independently verified unaffected evidence, never prior desktop permission; rerun affected and mandatory exact-head checks safely. No duplicate specialist runs, unapproved retries or automatic review/fix recursion on blocked evidence. Continue separable safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge. Escalate per canonical convergence policy.
+Apply `docs/WORKING-LOOP.md#desktop-safe-test-execution` before any test or delegation: prefer non-disruptive or verified isolated execution; disruptive runs require explicit per-run human authorization when permitted. Never self-authorize. Unknown effects fail closed. Reuse only proven unaffected evidence; rerun required affected/exact-head checks. Unavailable mandatory evidence is NOT_RUN / INCONCLUSIVE; escalate, do not bypass.
 
 ## Procedure
 1. Freeze exact revision and criteria before inspecting results.

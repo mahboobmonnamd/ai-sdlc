@@ -15,7 +15,7 @@ Use when creating or refining work that cannot yet pass the shared 12-point Defi
 Do not create duplicates, silently broaden milestone scope, force 3–5 criteria when a single clear criterion suffices, or ask every DoR item as a separate ritual question.
 
 ## Required context
-Read only relevant requirements, design decisions (`## Design nuance`), code/expected behavior, dependencies, existing issues/PRs and `docs/WORKING-LOOP.md`.
+Start with the user's problem. Load only relevant requirements, decisions (`## Design nuance`), code/expected behavior, dependencies and candidate/duplicate search. Read `docs/WORKING-LOOP.md#task-first-execution-and-progressive-context` and applicable readiness/authority sections; no full framework or project dump.
 
 Treat an ADR merged into the authoritative branch as accepted without a separate status or approval step. Verify the source revision; do not treat unmerged ADR text as authority, and do not invent choices deferred by a merged ADR. See `docs/WORKING-LOOP.md`.
 
@@ -26,13 +26,13 @@ Desired outcome conflicts with accepted authority, a material decision needs an 
 1. Search duplicate issues/PRs and existing decisions **before** questions. If an existing issue covers the request, offer refinement rather than creating another.
 2. Extract the problem, observable current vs expected behavior (including failure case), scope/non-goals, dependencies, security impacts and acceptance checks from existing context. Propose a best-practice solution, clearly distinguishing recommendation from accepted decision.
 3. **Ask exactly one high-impact unanswered question per turn**; give a suggested answer and brief tradeoff. Never ask what authoritative sources already answer. If all decisions are known, ask zero questions.
-4. Keep one coherent independently reviewable outcome. Add a short 3–7-step permanent-production implementation plan and criterion→test/evidence map inside the issue; no parallel planning artifact unless project policy requires it.
-5. Evaluate all 12 DoR entries; missing optional verification *command* is not a blocker if the evidence strategy is clear. Record accepted design under `## Design nuance`; unresolved `!+concern` affecting scope/behavior blocks readiness.
-6. Show an editable issue preview including title, current/expected, in/out, AC, plan, dependencies, risks/controls and compact readiness matrix; ask to create/update it **once**. Do not perform tracker writes until approval.
+4. Keep one coherent independently reviewable outcome. Choose the risk lane and add only the necessary production plan and criterion→evidence map. LIGHTWEIGHT can be one obvious action or 1–3 steps; no separate planning artifact unless required.
+5. Assess applicable DoR entries; report only material exceptions for LIGHTWEIGHT, missing optional verification *command* is not a blocker if the evidence strategy is clear. Record accepted design under `## Design nuance`; unresolved `!+concern` affecting scope/behavior blocks readiness.
+6. Show an editable issue preview with title, expected outcome, scope, observable acceptance and applicable plan/risks/dependencies; for LIGHTWEIGHT keep it short and omit the routine matrix; ask to create/update it **once**. Do not perform tracker writes until approval.
 7. On approval, search duplicates and recheck governance once more; create/update issue, apply `needs:implementation` only if fully ready, and return actual URL. If blocked, save as refinement only with user approval.
 
 ## Output contract
-Issue draft or URL, issue/source revisions, DoR verdict and gap rows, implementation steps, AC→test evidence, design decisions, single next question if any, explicit write approval/state and next skill.
+Issue draft or URL, relevant source revisions, readiness verdict/material gaps, proportional plan/evidence, decisions only if needed, write approval/state and next action.
 
 ## Handoff
 READY → `implement-issue <N>`; unresolved authority → named decision owner. Do not claim the item automatically.

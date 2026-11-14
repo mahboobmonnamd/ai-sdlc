@@ -15,18 +15,18 @@ Only after a completed independent `pr-review` has approved the current candidat
 Do not trust label alone, merge a stale approval, bypass protections, mark pending CI passed, force merge with unresolved blocking threads or provisional decisions, or close unrelated issues manually.
 
 ## Required context
-Fresh PR state/head/base, head-bound reviews (including self-review restrictions), required checks, branch protections/rulesets/code-owner requirements, unresolved blocking threads, linked issue/dependencies and merge method or queue.
+Read `docs/WORKING-LOOP.md#task-first-execution-and-progressive-context`; consume existing evidence and fresh PR state/head/base, head-bound reviews (including self-review restrictions), required checks, branch protections/rulesets/code-owner requirements, unresolved blocking threads, linked issue/dependencies and merge method or queue.
 
 ## ADR merge authority
 
-Apply the ADR lifecycle in `docs/WORKING-LOOP.md`: verify the exact approved final ADR and normal merge gates. Its authorized merge into the authoritative branch is acceptance; no pre-acceptance status edit or follow-up acceptance PR is required. Do not block an ADR-bearing PR solely on its own unmerged ADR. Any unresolved choice or external unmerged ADR prerequisite still blocks a dependent merge. After merge, record the verified merge commit, target branch and ADR path/content; do not claim acceptance on failed, pending, feature-branch-only or closed-unmerged changes. A merged qualification procedure does not prove its results.
+If applicable, follow `docs/WORKING-LOOP.md#adr-lifecycle-merge-is-acceptance`. This PR's final ADR can be accepted by authorized authoritative-branch merge; external unresolved prerequisites block. Verify actual merge commit and ADR content before reporting acceptance.
 
 ## Stop or escalate when
 No independent current approval; changed diff/base invalidates evidence; any unresolved choice or external provisional contract prerequisite; missing checks, failures, conflicts, unmet review rules, dependencies, unverified mandatory criteria, unauthorized merge or head movement.
 
 ## Desktop-safe testing
 
-Before executing or delegating any test/check/benchmark (including retries), apply `docs/WORKING-LOOP.md#desktop-safe-test-execution`: inspect transitive desktop effects; prefer non-disruptive tests; resolve unknown effects by read-only inspection or verified containment; disruptive runs require a verified isolated runner or explicit per-run human authorization for a known bounded scope if consumer policy permits. Never self-authorize or bypass the consumer guard. Coordinate required headed suites with the convergence ledger; reuse only independently verified unaffected evidence, never prior desktop permission; rerun affected and mandatory exact-head checks safely. No duplicate specialist runs, unapproved retries or automatic review/fix recursion on blocked evidence. Continue separable safe work; unavailable mandatory evidence stays NOT_RUN / INCONCLUSIVE and blocks approval/merge. Escalate per canonical convergence policy.
+Apply `docs/WORKING-LOOP.md#desktop-safe-test-execution` before any test or delegation: prefer non-disruptive or verified isolated execution; disruptive runs require explicit per-run human authorization when permitted. Never self-authorize. Unknown effects fail closed. Reuse only proven unaffected evidence; rerun required affected/exact-head checks. Unavailable mandatory evidence is NOT_RUN / INCONCLUSIVE; escalate, do not bypass.
 
 ## Procedure
 1. Fetch candidate/head/base and freeze exact SHA; verify not already merged (idempotent status if so).
@@ -36,7 +36,7 @@ Before executing or delegating any test/check/benchmark (including retries), app
 5. If head or base semantics changed before merge, stop and route to full re-review. Never claim success from a pending/failed merge action.
 
 ## Output contract
-PR/approved head/merged head, reviewer/check/ruleset/thread/dependency matrix, merge strategy, confirmed commit URL and linked issue state, or BLOCKED with exact next action.
+PR/approved head/merged head, compact reviewer/check/ruleset/thread/dependency result, merge strategy, confirmed commit URL and linked issue state, or BLOCKED with exact next action.
 
 ## Handoff
 Merge verified → update milestone status; changed head or requirements → `pr-review`; review failures → `process-review`.

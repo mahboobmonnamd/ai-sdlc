@@ -384,6 +384,75 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "PRREVIEW-012",
+      "scenario_id": "PRREVIEW-012",
+      "name": "PRREVIEW-012",
+      "skill": "pr-review",
+      "input": "Exact current head contains a non-normative typo correction with required check evidence; independent reviewer finds no defect.",
+      "description": "Exact current head contains a non-normative typo correction with required check evidence; independent reviewer finds no defect.",
+      "expected_behaviors": [
+        "complete candidate coverage and approve in initial invocation"
+      ],
+      "forbidden_behaviors": [
+        "invent comment or repeat full review just to finalize"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "complete candidate coverage and approve in initial invocation"
+        ],
+        "forbidden_behaviors": [
+          "invent comment or repeat full review just to finalize"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "approve clean exact head",
+            "points": 50,
+            "check": "output.verdict == APPROVE"
+          },
+          {
+            "criterion": "one pass",
+            "points": 50,
+            "check": "output.full_review_passes == 1"
+          }
+        ],
+        "total_points": 100
+      }
+    },
+    {
+      "id": "PRREVIEW-013",
+      "scenario_id": "PRREVIEW-013",
+      "name": "PRREVIEW-013",
+      "skill": "pr-review",
+      "input": "One-line documentation edit changes normative authorization policy.",
+      "description": "One-line documentation edit changes normative authorization policy.",
+      "expected_behaviors": [
+        "classify CRITICAL; inspect governing authority and security consequences"
+      ],
+      "forbidden_behaviors": [
+        "classify LIGHTWEIGHT by file extension or diff size"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "classify CRITICAL; inspect governing authority and security consequences"
+        ],
+        "forbidden_behaviors": [
+          "classify LIGHTWEIGHT by file extension or diff size"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "correct risk lane",
+            "points": 100,
+            "check": "output.risk_lane == CRITICAL"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

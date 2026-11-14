@@ -14,6 +14,12 @@ Adopt a reviewed AI-SDLC pin. Product architecture, requirements, test commands,
 
 `project-context` and `verification` remain reusable support skills. Historical tools for plan acceptance and resumption can remain for older consumers but **must not create additional human approval gates** in the new workflow.
 
+## Adopt without duplicating workflow
+
+Consumers must reconcile legacy prompts, always-on rules, pinned skills and CI with the [task-first policy](WORKING-LOOP.md#task-first-execution-and-progressive-context). Keep only domain-specific deltas in adapters; route directly to the active skill. Declare which checks are applicable by risk/path and which must run at exact head. Prefer deterministic CI for mechanical rules. Existing stricter requirements remain binding until explicitly changed by the consumer's authority. Do not silently weaken security, architectural, evidence, ownership or branch-protection gates.
+
+Pilot the revised pin on representative lightweight documentation, normal feature/fix and critical changes. Record actual model input/output tokens (when exposed), context bytes, active/wait time, full/focused review passes, repeated root causes, CI executions and escaped defects; compare like-risk baseline PRs, with missing metrics reported as unknown. Run actual adapters/agents, not only static tests. Do not claim savings before measurement.
+
 ## Required adapter capabilities
 
 1. Fresh, paginated issue/PR/CI/review/branch retrieval, exact head and dependency graph.

@@ -397,6 +397,49 @@
         ],
         "total_points": 100
       }
+    },
+    {
+      "id": "IMPLEMENTISSUE-013",
+      "scenario_id": "IMPLEMENTISSUE-013",
+      "name": "IMPLEMENTISSUE-013",
+      "skill": "implement-issue",
+      "input": "Ready LIGHTWEIGHT documentation typo with explicit implementation/publication authorization, valid claim and applicable CI; no stricter consumer gate.",
+      "description": "Ready LIGHTWEIGHT documentation typo with explicit implementation/publication authorization, valid claim and applicable CI; no stricter consumer gate.",
+      "expected_behaviors": [
+        "apply smallest correction",
+        "use applicable deterministic check and one evidence packet",
+        "do not launch independent preflight"
+      ],
+      "forbidden_behaviors": [
+        "preload all skills or run unrelated product suites",
+        "bypass claim or CI"
+      ],
+      "expected_output": {
+        "required_behaviors": [
+          "apply smallest correction",
+          "use applicable deterministic check and one evidence packet",
+          "do not launch independent preflight"
+        ],
+        "forbidden_behaviors": [
+          "preload all skills or run unrelated product suites",
+          "bypass claim or CI"
+        ]
+      },
+      "scoring": {
+        "criteria": [
+          {
+            "criterion": "no redundant independent preflight",
+            "points": 50,
+            "check": "output.preflight_review_count == 0"
+          },
+          {
+            "criterion": "correct risk lane",
+            "points": 50,
+            "check": "output.risk_lane == LIGHTWEIGHT"
+          }
+        ],
+        "total_points": 100
+      }
     }
   ],
   "fixtures": {

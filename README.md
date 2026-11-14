@@ -5,6 +5,10 @@
 - [Engineering design brief](docs/SDLC-DESIGN.md): rationale, recovery guarantees, user-interruption budget, measurable outcomes.
 - [Canonical working loop](docs/WORKING-LOOP.md): 12-point Definition of Ready, claim safety, lifecycle, approvals and evidence.
 
+## Task-first workflow
+
+Choose LIGHTWEIGHT / STANDARD / CRITICAL from actual impact, not file extension. Read only the active skill and relevant policy sections; preserve the user's problem as primary context. Use one evidence packet, one accountable independent review by default, and existing deterministic CI checks. See [task-first policy](docs/WORKING-LOOP.md#task-first-execution-and-progressive-context). Existing mandatory consumer checks and protections still apply.
+
 ## Commands
 
 | Command | Work | Human decision |
